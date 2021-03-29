@@ -9,6 +9,9 @@ from array import array
 # from matplotlib import rc
 
 
+recalculate = False
+
+
 outputDirPath = os.environ.get("CMSSW_BASE")+'/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/UL17/'
 fileName_prefix = 'uhh2.AnalysisModuleRunner.MC.'
 fileName_postfix = '.npy'
@@ -20,9 +23,12 @@ filePath_ttbar = outputDirPath+fileName_prefix+fileName_ttbar+fileName_postfix
 
 workdir = outputDirPath+'workdir_npy/'
 
-array_ttbar_raw = np.load(filePath_ttbar)
-array_qcd_raw = np.load(filePath_qcd)
-print 'Raw numpy files loaded into memory.'
+array_ttbar_raw = None
+array_qcd_raw = None
+if recalculate:
+    array_ttbar_raw = np.load(filePath_ttbar)
+    array_qcd_raw = np.load(filePath_qcd)
+    print 'Raw numpy files loaded into memory.'
 
 # indices:
 # 0: weight
@@ -81,8 +87,6 @@ pt_intervals = {
     #     'pt_max': 620.,
     # },
 }
-
-recalculate = True
 
 
 def get_eff_vs_tau32cut(ARG_array, ARG_sumofweights=1, ARG_nx=1000):
@@ -158,7 +162,7 @@ for pt in pt_intervals.keys():
         eff_qcd_msd_btag = np.load(workdir_pt+'eff_qcd_msd_btag.npy')
         eff_ttbar_msd_btag = np.load(workdir_pt+'eff_ttbar_msd_btag.npy')
 
-    print 'Re-conversion to ROOT'
+    print 'Conversion to ROOT TGraph objects'
     # rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
     # # rc('text', usetex=True)
     # fig, ax = plt.subplots()
@@ -173,44 +177,25 @@ for pt in pt_intervals.keys():
     root_file = ROOT.TFile.Open(workdir_pt+'root_Pt'+pt+'.root', 'RECREATE')
     root_file.cd()
 
-    # Do some really cheesy stuff to convert back to ROOT ...
+    graph = ROOT.TGraph(len(eff_qcd), tau32cuts, eff_qcd)
+    graph.Write("eff_qcd")
+    graph = ROOT.TGraph(len(eff_ttbar), tau32cuts, eff_ttbar)
+    graph.Write("eff_ttbar")
+    graph = ROOT.TGraph(len(eff_qcd), eff_ttbar, eff_qcd)
+    graph.Write("roc")
 
-    h_tau32cuts = ROOT.TH1F("tau32cuts", "tau32cuts", len(tau32cuts), 0, 1)
-    for i in range(len(tau32cuts)): h_tau32cuts.SetBinContent(i, tau32cuts[i])
-    h_tau32cuts.Write()
+    graph = ROOT.TGraph(len(eff_qcd_msd), tau32cuts_msd, eff_qcd_msd)
+    graph.Write("eff_qcd_msd")
+    graph = ROOT.TGraph(len(eff_ttbar_msd), tau32cuts_msd, eff_ttbar_msd)
+    graph.Write("eff_ttbar_msd")
+    graph = ROOT.TGraph(len(eff_qcd_msd), eff_ttbar_msd, eff_qcd_msd)
+    graph.Write("roc_msd")
 
-    h_eff_qcd = ROOT.TH1F("eff_qcd", "eff_qcd", len(eff_qcd), 0, 1)
-    for i in range(len(eff_qcd)): h_eff_qcd.SetBinContent(i, eff_qcd[i])
-    h_eff_qcd.Write()
-
-    h_eff_ttbar = ROOT.TH1F("eff_ttbar", "eff_ttbar", len(eff_ttbar), 0, 1)
-    for i in range(len(eff_ttbar)): h_eff_ttbar.SetBinContent(i, eff_ttbar[i])
-    h_eff_ttbar.Write()
-
-
-    h_tau32cuts_msd = ROOT.TH1F("tau32cuts_msd", "tau32cuts_msd", len(tau32cuts_msd), 0, 1)
-    for i in range(len(tau32cuts_msd)): h_tau32cuts_msd.SetBinContent(i, tau32cuts_msd[i])
-    h_tau32cuts_msd.Write()
-
-    h_eff_qcd_msd = ROOT.TH1F("eff_qcd_msd", "eff_qcd_msd", len(eff_qcd_msd), 0, 1)
-    for i in range(len(eff_qcd_msd)): h_eff_qcd_msd.SetBinContent(i, eff_qcd_msd[i])
-    h_eff_qcd_msd.Write()
-
-    h_eff_ttbar_msd = ROOT.TH1F("eff_ttbar_msd", "eff_ttbar_msd", len(eff_ttbar_msd), 0, 1)
-    for i in range(len(eff_ttbar_msd)): h_eff_ttbar_msd.SetBinContent(i, eff_ttbar_msd[i])
-    h_eff_ttbar_msd.Write()
-
-
-    h_tau32cuts_msd_btag = ROOT.TH1F("tau32cuts_msd_btag", "tau32cuts_msd_btag", len(tau32cuts_msd_btag), 0, 1)
-    for i in range(len(tau32cuts_msd_btag)): h_tau32cuts_msd_btag.SetBinContent(i, tau32cuts_msd_btag[i])
-    h_tau32cuts_msd_btag.Write()
-
-    h_eff_qcd_msd_btag = ROOT.TH1F("eff_qcd_msd_btag", "eff_qcd_msd_btag", len(eff_qcd_msd_btag), 0, 1)
-    for i in range(len(eff_qcd_msd_btag)): h_eff_qcd_msd_btag.SetBinContent(i, eff_qcd_msd_btag[i])
-    h_eff_qcd_msd_btag.Write()
-
-    h_eff_ttbar_msd_btag = ROOT.TH1F("eff_ttbar_msd_btag", "eff_ttbar_msd_btag", len(eff_ttbar_msd_btag), 0, 1)
-    for i in range(len(eff_ttbar_msd_btag)): h_eff_ttbar_msd_btag.SetBinContent(i, eff_ttbar_msd_btag[i])
-    h_eff_ttbar_msd_btag.Write()
+    graph = ROOT.TGraph(len(eff_qcd_msd_btag), tau32cuts_msd_btag, eff_qcd_msd_btag)
+    graph.Write("eff_qcd_msd_btag")
+    graph = ROOT.TGraph(len(eff_ttbar_msd_btag), tau32cuts_msd_btag, eff_ttbar_msd_btag)
+    graph.Write("eff_ttbar_msd_btag")
+    graph = ROOT.TGraph(len(eff_qcd_msd_btag), eff_ttbar_msd_btag, eff_qcd_msd_btag)
+    graph.Write("roc_msd_btag")
 
     root_file.Close()
