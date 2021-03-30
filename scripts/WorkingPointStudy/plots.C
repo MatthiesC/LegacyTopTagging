@@ -1,3 +1,6 @@
+#include <iomanip>
+#include <sstream>
+
 typedef struct {
   string name;
   string text;
@@ -8,6 +11,7 @@ typedef struct {
   float real_eff_qcd;
   float real_eff_ttbar;
   float tau32cut;
+  int tau32cut_i;
   float real_eff_qcd_with_btag;
   float real_eff_ttbar_with_btag;
 } WorkingPoint;
@@ -76,12 +80,79 @@ WorkingPoint init_working_point(float eff, const TGraph * graph_eff_qcd, const T
   result.real_eff_qcd_with_btag = y;
   graph_eff_ttbar_btag->GetPoint(index_tau32cut, x, y);
   result.real_eff_ttbar_with_btag = y;
+  result.tau32cut_i = index_tau32cut;
   return result;
 }
 
 
+vector<WorkingPoint> calculate_working_points(const PtBin & pt_bin, const vector<float> & target_effs_qcd, const bool print=false) {
+  string infileBasePath = "/nfs/dust/cms/user/matthies/uhh2-106X-v1-el7/CMSSW_10_6_13/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/UL17/workdir_npy/"+pt_bin.name+"/";
+  string infileName = "root_"+pt_bin.name+".root";
+  string infilePath = infileBasePath+infileName;
 
-void do_plot(const PtBin & pt_bin, const string & graph_base_name, const bool log_y, const bool do_raw = true, const bool do_msd = true, const bool do_msd_btag = true) {
+  TFile* infile = TFile::Open(infilePath.c_str(), "READ");
+  const TGraph* graph_eff_qcd_msd = (TGraph*)infile->Get("eff_qcd_msd");
+  const TGraph* graph_eff_qcd_msd_btag = (TGraph*)infile->Get("eff_qcd_msd_btag");
+  const TGraph* graph_eff_ttbar_msd = (TGraph*)infile->Get("eff_ttbar_msd");
+  const TGraph* graph_eff_ttbar_msd_btag = (TGraph*)infile->Get("eff_ttbar_msd_btag");
+
+  vector<WorkingPoint> working_points;
+  for(auto wp : target_effs_qcd) {
+    working_points.push_back(init_working_point(wp, graph_eff_qcd_msd, graph_eff_ttbar_msd, graph_eff_qcd_msd_btag, graph_eff_ttbar_msd_btag));
+  }
+  if(print) for(auto wp : working_points) {
+    cout << ">>> WP derived from this pt bin <<<" << endl;
+    cout << "Target QCD eff: " << wp.target_eff_qcd << endl;
+    cout << "Actual QCD eff: " << wp.real_eff_qcd << endl;
+    cout << "Actual tt eff:  " << wp.real_eff_ttbar << endl;
+    cout << "tau32 cut:      " << wp.tau32cut << endl;
+    cout << "Actual QCD eff with b-tag: " << wp.real_eff_qcd_with_btag << endl;
+    cout << "Actual tt eff with b-tag:  " << wp.real_eff_ttbar_with_btag << endl;
+  };
+  return working_points;
+}
+
+
+vector<WorkingPoint> get_reference_working_points(const PtBin & pt_bin, const vector<WorkingPoint> & wps_this_bin, const vector<WorkingPoint> & wps_reference, const bool print=false) {
+  string infileBasePath = "/nfs/dust/cms/user/matthies/uhh2-106X-v1-el7/CMSSW_10_6_13/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/UL17/workdir_npy/"+pt_bin.name+"/";
+  string infileName = "root_"+pt_bin.name+".root";
+  string infilePath = infileBasePath+infileName;
+
+  TFile* infile = TFile::Open(infilePath.c_str(), "READ");
+  const TGraph* graph_eff_qcd_msd = (TGraph*)infile->Get("eff_qcd_msd");
+  const TGraph* graph_eff_qcd_msd_btag = (TGraph*)infile->Get("eff_qcd_msd_btag");
+  const TGraph* graph_eff_ttbar_msd = (TGraph*)infile->Get("eff_ttbar_msd");
+  const TGraph* graph_eff_ttbar_msd_btag = (TGraph*)infile->Get("eff_ttbar_msd_btag");
+
+  vector<WorkingPoint> working_points;
+  double x=0, y=0;
+  for(int i = 0; i < wps_reference.size(); i++) {
+    WorkingPoint wp_ref = wps_reference.at(i);
+    WorkingPoint wp_ref_this_bin;
+    wp_ref_this_bin.target_eff_qcd = wp_ref.target_eff_qcd;
+    wp_ref_this_bin.tau32cut = wp_ref.tau32cut;
+    wp_ref_this_bin.tau32cut_i = wp_ref.tau32cut_i;
+    graph_eff_qcd_msd->GetPoint(wp_ref.tau32cut_i, x, y); wp_ref_this_bin.real_eff_qcd = y;
+    graph_eff_qcd_msd_btag->GetPoint(wp_ref.tau32cut_i, x, y); wp_ref_this_bin.real_eff_qcd_with_btag = y;
+    graph_eff_ttbar_msd->GetPoint(wp_ref.tau32cut_i, x, y); wp_ref_this_bin.real_eff_ttbar = y;
+    graph_eff_ttbar_msd_btag->GetPoint(wp_ref.tau32cut_i, x, y); wp_ref_this_bin.real_eff_ttbar_with_btag = y;
+    working_points.push_back(wp_ref_this_bin);
+  }
+  if(print) for(auto wp : working_points) {
+    cout << ">>> WP derived from reference bin <<<" << endl;
+    cout << "Target QCD eff: " << wp.target_eff_qcd << endl;
+    cout << "Actual QCD eff: " << wp.real_eff_qcd << endl;
+    cout << "Actual tt eff:  " << wp.real_eff_ttbar << endl;
+    cout << "tau32 cut:      " << wp.tau32cut << endl;
+    cout << "Actual QCD eff with b-tag: " << wp.real_eff_qcd_with_btag << endl;
+    cout << "Actual tt eff with b-tag:  " << wp.real_eff_ttbar_with_btag << endl;
+  };
+  return working_points;
+}
+
+
+
+void do_plot(const PtBin & pt_bin, const string & graph_base_name, const bool log_y, const vector<WorkingPoint> & wps_this_bin, const vector<WorkingPoint> & wps_this_bin_ref, const bool do_raw = true, const bool do_msd = true, const bool do_msd_btag = true) {
   if(!(do_raw || do_msd || do_msd_btag)) cout << "Nothing to plot." << endl;
   bool is_eff_qcd = graph_base_name == "eff_qcd";
   bool is_eff_ttbar = graph_base_name == "eff_ttbar";
@@ -96,27 +167,6 @@ void do_plot(const PtBin & pt_bin, const string & graph_base_name, const bool lo
   if(do_raw) graphs.push_back((TGraph*)infile->Get(graph_base_name.c_str()));
   if(do_msd) graphs.push_back((TGraph*)infile->Get((graph_base_name+"_msd").c_str()));
   if(do_msd_btag) graphs.push_back((TGraph*)infile->Get((graph_base_name+"_msd_btag").c_str()));
-
-  vector<float> working_point_mistag_rates = {0.001, 0.003, 0.01, 0.03, 0.1}; // Access definition of working point mistag rates here!
-  vector<int> markerstyles = {47, 22, 34, 23, 20};
-  vector<int> markercolors = {kOrange, kRed, kBlue, kGreen, kMagenta};
-  const TGraph* graph_eff_qcd_msd = (TGraph*)infile->Get("eff_qcd_msd");
-  const TGraph* graph_eff_qcd_msd_btag = (TGraph*)infile->Get("eff_qcd_msd_btag");
-  const TGraph* graph_eff_ttbar_msd = (TGraph*)infile->Get("eff_ttbar_msd");
-  const TGraph* graph_eff_ttbar_msd_btag = (TGraph*)infile->Get("eff_ttbar_msd_btag");
-  vector<WorkingPoint> working_points;
-  for(auto wp : working_point_mistag_rates) {
-    working_points.push_back(init_working_point(wp, graph_eff_qcd_msd, graph_eff_ttbar_msd, graph_eff_qcd_msd_btag, graph_eff_ttbar_msd_btag));
-  }
-  for(auto wp : working_points) {
-    cout << "WP:" << endl;
-    cout << "Target QCD eff: " << wp.target_eff_qcd << endl;
-    cout << "Actual QCD eff: " << wp.real_eff_qcd << endl;
-    cout << "Actual tt eff:  " << wp.real_eff_ttbar << endl;
-    cout << "tau32 cut:      " << wp.tau32cut << endl;
-    cout << "Actual QCD eff with b-tag: " << wp.real_eff_qcd_with_btag << endl;
-    cout << "Actual tt eff with b-tag:  " << wp.real_eff_ttbar_with_btag << endl;
-  }
 
   TCanvas *c = new TCanvas("canvas", "canvas title", 600, 600);
   c->cd();
@@ -138,7 +188,7 @@ void do_plot(const PtBin & pt_bin, const string & graph_base_name, const bool lo
   float legend_x2 = coord->ConvertGraphXToPadX(log_y ? 0.95 : 0.55);
   float legend_y2 = coord->ConvertGraphYToPadY(log_y ? 0.35 : 0.77);
   TLegend *legend = new TLegend(legend_x1, legend_y1, legend_x2, legend_y2); // x1 y1 x2 y2
-  legend->SetHeader(("#bf{Scan of #tau_{32} for "+pt_bin.text+"}").c_str());
+  legend->SetHeader(("#bf{Scan of #tau_{3}/#tau_{2} for "+pt_bin.text+"}").c_str());
   legend->SetTextSize(0.025);
   legend->SetBorderSize(0);
   legend->SetFillStyle(0);
@@ -147,7 +197,7 @@ void do_plot(const PtBin & pt_bin, const string & graph_base_name, const bool lo
   vector<int> linewidths = {2, 2, 2};
   vector<int> linestyles = {3, 1, 2};
   vector<int> linecolors = {kBlue, kRed, kMagenta};
-  vector<string> legends = {"No #it{m}_{SD} window nor b tagging", "105 < #it{m}_{SD} (GeV) < 210", "#it{m}_{SD} as above + subjet b tag"};
+  vector<string> legends = {"No #it{m}_{SD} window nor b tagging", "105 < #it{m}_{SD} [GeV] < 210", "#it{m}_{SD} as above + subjet b tag"};
   int iterator = -1;
   for(auto graph : graphs) {
     // min0max1(graph);
@@ -164,7 +214,8 @@ void do_plot(const PtBin & pt_bin, const string & graph_base_name, const bool lo
   double maximum_saved = mg->GetHistogram()->GetMaximum();
   double minimum_saved = mg->GetHistogram()->GetMinimum();
   mg->GetHistogram()->SetMaximum(1.);
-  // if(log_y) mg->GetHistogram()->SetMinimum(0.0003);
+  if(!log_y) mg->GetHistogram()->SetMinimum(0.);
+  else mg->GetHistogram()->SetMinimum(0.0002);
   if(is_eff_qcd || is_eff_ttbar) mg->GetHistogram()->GetXaxis()->SetTitle("#tau_{3}/#tau_{2} upper limit");
   else if(is_roc) mg->GetHistogram()->GetXaxis()->SetTitle("#varepsilon_{S}");
   if(is_eff_qcd || is_roc) mg->GetHistogram()->GetYaxis()->SetTitle("#varepsilon_{B}");
@@ -173,6 +224,7 @@ void do_plot(const PtBin & pt_bin, const string & graph_base_name, const bool lo
   mg->GetHistogram()->GetYaxis()->SetTitleOffset(1.2);
   // mg->GetHistogram()->GetXaxis()->SetNdivisions(405);
   if(!log_y) mg->GetHistogram()->GetYaxis()->SetNdivisions(405);
+  gStyle->SetLineWidth(2);
 
   legend->Draw();
 
@@ -183,7 +235,7 @@ void do_plot(const PtBin & pt_bin, const string & graph_base_name, const bool lo
   text_top_left->SetNDC();
   text_top_left->Draw();
 
-  TText *text_top_right = new TText(1-margin_r, 1-(margin_t-0.01), "UL17 (106X)");
+  TText *text_top_right = new TText(1-margin_r, 1-(margin_t-0.01), "UL17 (CMSSW 10.6.X)");
   text_top_right->SetTextAlign(31); // right bottom aligned
   text_top_right->SetTextFont(42);
   text_top_right->SetTextSize(0.035);
@@ -204,25 +256,47 @@ void do_plot(const PtBin & pt_bin, const string & graph_base_name, const bool lo
   prelim->SetNDC();
   prelim->Draw();
 
-  int iterator_wp = -1;
-  for(auto wp : working_points) {
-    float x=0, y=0;
+  // WP markers
+  for(int i = 0; i < wps_this_bin.size(); i++) {
+    double x=0, y=0;
+
+    WorkingPoint wp = wps_this_bin.at(i);
+    WorkingPoint wp_ref = wps_this_bin_ref.at(i);
+
     if(is_roc) { x=wp.real_eff_ttbar; y=wp.real_eff_qcd; }
     else if(is_eff_qcd) { x=wp.tau32cut; y=wp.real_eff_qcd; }
     else if(is_eff_ttbar) { x=wp.tau32cut; y=wp.real_eff_ttbar; }
-    TMarker *marker = new TMarker(x, y, 24);
-    marker->SetMarkerColor(kRed);
-    marker->SetMarkerSize(1.2);
-    marker->Draw();
+    TMarker *marker1 = new TMarker(x, y, 24);
+    marker1->SetMarkerColor(kRed);
+    marker1->SetMarkerSize(1.2);
+    marker1->Draw();
+
+    if(is_roc) { x=wp_ref.real_eff_ttbar; y=wp_ref.real_eff_qcd; }
+    else if(is_eff_qcd) { x=wp_ref.tau32cut; y=wp_ref.real_eff_qcd; }
+    else if(is_eff_ttbar) { x=wp_ref.tau32cut; y=wp_ref.real_eff_ttbar; }
+    TMarker *marker2 = new TMarker(x, y, 3);
+    marker2->SetMarkerColor(kBlue);
+    marker2->SetMarkerSize(1.2);
+    marker2->Draw();
+
+    if(is_roc) { x=wp.real_eff_ttbar_with_btag; y=wp.real_eff_qcd_with_btag; }
+    else if(is_eff_qcd) { x=wp.tau32cut; y=wp.real_eff_qcd_with_btag; }
+    else if(is_eff_ttbar) { x=wp.tau32cut; y=wp.real_eff_ttbar_with_btag; }
+    TMarker *marker3 = new TMarker(x, y, 24);
+    marker3->SetMarkerColor(kOrange-3);
+    marker3->SetMarkerSize(1.2);
+    marker3->Draw();
+
+    if(is_roc) { x=wp_ref.real_eff_ttbar_with_btag; y=wp_ref.real_eff_qcd_with_btag; }
+    else if(is_eff_qcd) { x=wp_ref.tau32cut; y=wp_ref.real_eff_qcd_with_btag; }
+    else if(is_eff_ttbar) { x=wp_ref.tau32cut; y=wp_ref.real_eff_ttbar_with_btag; }
+    TMarker *marker4 = new TMarker(x, y, 3);
+    marker4->SetMarkerColor(kCyan);
+    marker4->SetMarkerSize(1.2);
+    marker4->Draw();
   }
 
-  // TLatex *info = new TLatex(coord->ConvertGraphXToPadX(0.5), coord->ConvertGraphYToPadY(0.28), pt_bin.text.c_str());
-  // info->SetTextAlign(11); // left bottom
-  // info->SetTextFont(42);
-  // info->SetTextSize(0.035);
-  // info->SetNDC();
-  // info->Draw();
-
+  // Save to disk
   string plotName = "plot_"+pt_bin.name+"__"+graph_base_name+"__";
   for(bool do_x : {do_raw, do_msd, do_msd_btag}) { do_x ? plotName += "1" : plotName += "0"; }
   plotName += (log_y ? string("_log") : string("_lin"))+".pdf";
@@ -230,22 +304,48 @@ void do_plot(const PtBin & pt_bin, const string & graph_base_name, const bool lo
   c->SaveAs(plotPath.c_str());
 }
 
+
+string my_format(float value, int prec=2, int factor=100) {
+  std::stringstream stream;
+  stream << std::fixed << std::setprecision(prec) << value*factor;
+  return stream.str();
+}
+
+
+void print_latex_table(const vector<WorkingPoint> & wps) {
+  cout << "WPs in LaTeX tabular format:" << endl;
+  for(auto wp : wps) {
+    cout << "$< " << my_format(wp.tau32cut, 3, 1) << "$ & & " << my_format(wp.real_eff_qcd) << " & " << my_format(wp.real_eff_ttbar) << " & & " << my_format(wp.real_eff_qcd_with_btag) << " & " << my_format(wp.real_eff_ttbar_with_btag) << "\\\\" << endl;
+  }
+}
+
+
 void plots() {
   vector<PtBin> pt_bins;
-  pt_bins.push_back(PtBin{"Pt300to400", "300 < p_{T}^{jet} (GeV) < 400"});
-  pt_bins.push_back(PtBin{"Pt400to480", "400 < p_{T}^{jet} (GeV) < 480"});
-  pt_bins.push_back(PtBin{"Pt480to600", "480 < p_{T}^{jet} (GeV) < 600"});
-  pt_bins.push_back(PtBin{"Pt600toInf", "p_{T}^{jet} (GeV) > 600"});
-  pt_bins.push_back(PtBin{"Pt300toInf", "p_{T}^{jet} (GeV) > 300"});
+  pt_bins.push_back(PtBin{"Pt300to400", "300 < p_{T}^{jet} [GeV] < 400"});
+  pt_bins.push_back(PtBin{"Pt400toInf", "p_{T}^{jet} [GeV] > 400"});
+  pt_bins.push_back(PtBin{"Pt400to480", "400 < p_{T}^{jet} [GeV] < 480"});
+  pt_bins.push_back(PtBin{"Pt480to600", "480 < p_{T}^{jet} [GeV] < 600"});
+  pt_bins.push_back(PtBin{"Pt600toInf", "p_{T}^{jet} [GeV] > 600"});
+  pt_bins.push_back(PtBin{"Pt300toInf", "p_{T}^{jet} [GeV] > 300"});
+  pt_bins.push_back(PtBin{"Pt1000toInf", "p_{T}^{jet} [GeV] > 1000"});
 
-  vector<string> graph_base_names = {"roc"};
-  // vector<string> graph_base_names = {"eff_qcd", "eff_ttbar", "roc"};
+  // vector<string> graph_base_names = {"roc"};
+  vector<string> graph_base_names = {"eff_qcd", "eff_ttbar", "roc"};
+
+  vector<float> working_point_mistag_rates = {0.001, 0.003, 0.01, 0.03, 0.1};
+  // for(int i = 0; i < pt_bins.size(); i++) cout << pt_bins.at(i).name << endl;
+  vector<WorkingPoint> wps_reference = calculate_working_points(pt_bins.at(1), working_point_mistag_rates);
 
   for(auto & pt_bin : pt_bins) {
     cout << "Working on " << pt_bin.name << endl;
+    vector<WorkingPoint> wps_this_bin = calculate_working_points(pt_bin, working_point_mistag_rates);
+    vector<WorkingPoint> wps_this_bin_ref = get_reference_working_points(pt_bin, wps_this_bin, wps_reference);
+    print_latex_table(wps_this_bin);
+    print_latex_table(wps_this_bin_ref);
     for(auto & graph_base_name : graph_base_names) {
-      do_plot(pt_bin, graph_base_name, true);
-      // do_plot(pt_bin, graph_base_name, false);
+      do_plot(pt_bin, graph_base_name, true, wps_this_bin, wps_this_bin_ref);
+      do_plot(pt_bin, graph_base_name, false, wps_this_bin, wps_this_bin_ref);
     }
   }
 }

@@ -8,7 +8,8 @@ from array import array
 # from matplotlib import pyplot as plt
 # from matplotlib import rc
 
-
+# true: re-analyze efficiency vs. tau32 cuts and store results in numpy files
+# false: only load previously saved numpy files and store results in ROOT format
 recalculate = False
 
 
@@ -62,30 +63,38 @@ deepcsv_value = deepcsv['UL17']['loose']
 
 # define here the jet pt intervals you want to analyze
 pt_intervals = {
-    '300toInf': {
-        'pt_min': 300.,
-        'pt_max': np.inf,
-    },
-    '300to400': {
-        'pt_min': 300.,
-        'pt_max': 400.,
-    },
-    '400to480': {
-        'pt_min': 400.,
-        'pt_max': 480.,
-    },
-    '480to600': {
-        'pt_min': 480.,
-        'pt_max': 600.,
-    },
-    '600toInf': {
-        'pt_min': 600.,
-        'pt_max': np.inf,
-    },
+    # '300toInf': {
+    #     'pt_min': 300.,
+    #     'pt_max': np.inf,
+    # },
+    # '400toInf': {
+    #     'pt_min': 400.,
+    #     'pt_max': np.inf,
+    # },
+    # '300to400': {
+    #     'pt_min': 300.,
+    #     'pt_max': 400.,
+    # },
+    # '400to480': {
+    #     'pt_min': 400.,
+    #     'pt_max': 480.,
+    # },
+    # '480to600': {
+    #     'pt_min': 480.,
+    #     'pt_max': 600.,
+    # },
+    # '600toInf': {
+    #     'pt_min': 600.,
+    #     'pt_max': np.inf,
+    # },
     # '600to620': { # for quick test runs
     #     'pt_min': 600.,
     #     'pt_max': 620.,
     # },
+    '1000toInf': {
+    'pt_min': 1000.,
+    'pt_max': np.inf,
+    },
 }
 
 
@@ -162,40 +171,40 @@ for pt in pt_intervals.keys():
         eff_qcd_msd_btag = np.load(workdir_pt+'eff_qcd_msd_btag.npy')
         eff_ttbar_msd_btag = np.load(workdir_pt+'eff_ttbar_msd_btag.npy')
 
-    print 'Conversion to ROOT TGraph objects'
-    # rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
-    # # rc('text', usetex=True)
-    # fig, ax = plt.subplots()
-    # ax.plot(tau32cuts, eff_qcd, color='royalblue', linestyle='solid', linewidth=1)
-    # ax.plot(tau32cuts, eff_qcd_msd, color='darkorange', linestyle='dashed', linewidth=1)
-    # ax.plot(tau32cuts, eff_qcd_msd_btag, color='magenta', linestyle='dashdot', linewidth=1)
-    # fig.gca().set_xlabel(r'$\tau_3/\tau_2$ upper limit')
-    # fig.gca().set_ylabel(r'$\epsilon_\mathrm{B}$')
-    # ax.set_yscale('log')
-    # fig.savefig(workdir_pt+'plot_'+pt+'_eff_qcd.pdf')
+        print 'Conversion to ROOT TGraph objects'
+        # rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
+        # # rc('text', usetex=True)
+        # fig, ax = plt.subplots()
+        # ax.plot(tau32cuts, eff_qcd, color='royalblue', linestyle='solid', linewidth=1)
+        # ax.plot(tau32cuts, eff_qcd_msd, color='darkorange', linestyle='dashed', linewidth=1)
+        # ax.plot(tau32cuts, eff_qcd_msd_btag, color='magenta', linestyle='dashdot', linewidth=1)
+        # fig.gca().set_xlabel(r'$\tau_3/\tau_2$ upper limit')
+        # fig.gca().set_ylabel(r'$\epsilon_\mathrm{B}$')
+        # ax.set_yscale('log')
+        # fig.savefig(workdir_pt+'plot_'+pt+'_eff_qcd.pdf')
 
-    root_file = ROOT.TFile.Open(workdir_pt+'root_Pt'+pt+'.root', 'RECREATE')
-    root_file.cd()
+        root_file = ROOT.TFile.Open(workdir_pt+'root_Pt'+pt+'.root', 'RECREATE')
+        root_file.cd()
 
-    graph = ROOT.TGraph(len(eff_qcd), tau32cuts, eff_qcd)
-    graph.Write("eff_qcd")
-    graph = ROOT.TGraph(len(eff_ttbar), tau32cuts, eff_ttbar)
-    graph.Write("eff_ttbar")
-    graph = ROOT.TGraph(len(eff_qcd), eff_ttbar, eff_qcd)
-    graph.Write("roc")
+        graph = ROOT.TGraph(len(eff_qcd), tau32cuts, eff_qcd)
+        graph.Write("eff_qcd")
+        graph = ROOT.TGraph(len(eff_ttbar), tau32cuts, eff_ttbar)
+        graph.Write("eff_ttbar")
+        graph = ROOT.TGraph(len(eff_qcd), eff_ttbar, eff_qcd)
+        graph.Write("roc")
 
-    graph = ROOT.TGraph(len(eff_qcd_msd), tau32cuts_msd, eff_qcd_msd)
-    graph.Write("eff_qcd_msd")
-    graph = ROOT.TGraph(len(eff_ttbar_msd), tau32cuts_msd, eff_ttbar_msd)
-    graph.Write("eff_ttbar_msd")
-    graph = ROOT.TGraph(len(eff_qcd_msd), eff_ttbar_msd, eff_qcd_msd)
-    graph.Write("roc_msd")
+        graph = ROOT.TGraph(len(eff_qcd_msd), tau32cuts_msd, eff_qcd_msd)
+        graph.Write("eff_qcd_msd")
+        graph = ROOT.TGraph(len(eff_ttbar_msd), tau32cuts_msd, eff_ttbar_msd)
+        graph.Write("eff_ttbar_msd")
+        graph = ROOT.TGraph(len(eff_qcd_msd), eff_ttbar_msd, eff_qcd_msd)
+        graph.Write("roc_msd")
 
-    graph = ROOT.TGraph(len(eff_qcd_msd_btag), tau32cuts_msd_btag, eff_qcd_msd_btag)
-    graph.Write("eff_qcd_msd_btag")
-    graph = ROOT.TGraph(len(eff_ttbar_msd_btag), tau32cuts_msd_btag, eff_ttbar_msd_btag)
-    graph.Write("eff_ttbar_msd_btag")
-    graph = ROOT.TGraph(len(eff_qcd_msd_btag), eff_ttbar_msd_btag, eff_qcd_msd_btag)
-    graph.Write("roc_msd_btag")
+        graph = ROOT.TGraph(len(eff_qcd_msd_btag), tau32cuts_msd_btag, eff_qcd_msd_btag)
+        graph.Write("eff_qcd_msd_btag")
+        graph = ROOT.TGraph(len(eff_ttbar_msd_btag), tau32cuts_msd_btag, eff_ttbar_msd_btag)
+        graph.Write("eff_ttbar_msd_btag")
+        graph = ROOT.TGraph(len(eff_qcd_msd_btag), eff_ttbar_msd_btag, eff_qcd_msd_btag)
+        graph.Write("roc_msd_btag")
 
-    root_file.Close()
+        root_file.Close()
