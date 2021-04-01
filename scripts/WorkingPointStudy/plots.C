@@ -4,6 +4,9 @@
 typedef struct {
   string name;
   string text;
+  int summary_plot_linecolor;
+  int summary_plot_linestyle;
+  int summary_plot_linewidth=2;
 } PtBin;
 
 typedef struct {
@@ -113,7 +116,7 @@ vector<WorkingPoint> calculate_working_points(const PtBin & pt_bin, const vector
 }
 
 
-vector<WorkingPoint> get_reference_working_points(const PtBin & pt_bin, const vector<WorkingPoint> & wps_this_bin, const vector<WorkingPoint> & wps_reference, const bool print=false) {
+vector<WorkingPoint> get_reference_working_points(const PtBin & pt_bin, const vector<WorkingPoint> & wps_reference, const bool print=false) {
   string infileBasePath = "/nfs/dust/cms/user/matthies/uhh2-106X-v1-el7/CMSSW_10_6_13/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/UL17/workdir_npy/"+pt_bin.name+"/";
   string infileName = "root_"+pt_bin.name+".root";
   string infilePath = infileBasePath+infileName;
@@ -151,6 +154,18 @@ vector<WorkingPoint> get_reference_working_points(const PtBin & pt_bin, const ve
 }
 
 
+TGraph * new_null_graph() {
+  int n = 1001; // should be the same number + 1 as the variable "nx" in analyze.py
+  double x[n], y[n];
+  for(int i = 0; i <= n; i++) {
+    x[i] = i/double(n);
+    y[i] = i/double(n);
+  }
+  TGraph * graph = new TGraph(n, x, y);
+  graph->SetLineColorAlpha(kBlack, 0); // 0 = fully transparent
+  return graph;
+}
+
 
 void do_plot(const PtBin & pt_bin, const string & graph_base_name, const bool log_y, const vector<WorkingPoint> & wps_this_bin, const vector<WorkingPoint> & wps_this_bin_ref, const bool do_raw = true, const bool do_msd = true, const bool do_msd_btag = true) {
   if(!(do_raw || do_msd || do_msd_btag)) cout << "Nothing to plot." << endl;
@@ -183,10 +198,13 @@ void do_plot(const PtBin & pt_bin, const string & graph_base_name, const bool lo
 
   TMultiGraph *mg = new TMultiGraph("mg", "mg title");
 
-  float legend_x1 = coord->ConvertGraphXToPadX(log_y ? 0.45 : 0.05);
-  float legend_y1 = coord->ConvertGraphYToPadY(log_y ? 0.05 : 0.47);
-  float legend_x2 = coord->ConvertGraphXToPadX(log_y ? 0.95 : 0.55);
-  float legend_y2 = coord->ConvertGraphYToPadY(log_y ? 0.35 : 0.77);
+  bool plot_at_bottom = false;
+  if((is_eff_ttbar || is_roc) && log_y) plot_at_bottom = true;
+
+  float legend_x1 = coord->ConvertGraphXToPadX(plot_at_bottom ? 0.45 : 0.05);
+  float legend_y1 = coord->ConvertGraphYToPadY(plot_at_bottom ? 0.05 : 0.47);
+  float legend_x2 = coord->ConvertGraphXToPadX(plot_at_bottom ? 0.95 : 0.55);
+  float legend_y2 = coord->ConvertGraphYToPadY(plot_at_bottom ? 0.35 : 0.77);
   TLegend *legend = new TLegend(legend_x1, legend_y1, legend_x2, legend_y2); // x1 y1 x2 y2
   legend->SetHeader(("#bf{Scan of #tau_{3}/#tau_{2} for "+pt_bin.text+"}").c_str());
   legend->SetTextSize(0.025);
@@ -302,6 +320,169 @@ void do_plot(const PtBin & pt_bin, const string & graph_base_name, const bool lo
   plotName += (log_y ? string("_log") : string("_lin"))+".pdf";
   string plotPath = infileBasePath+plotName;
   c->SaveAs(plotPath.c_str());
+  delete c;
+}
+
+
+void do_summary_plot(const string & tag_type, const vector<PtBin> & pt_bins, const string & graph_base_name, const bool log_y, const vector<WorkingPoint> & wps_ref_pt480to600, const vector<WorkingPoint> & wps_dpnote_pt480to600) {
+  bool is_eff_qcd = graph_base_name == "eff_qcd";
+  bool is_eff_ttbar = graph_base_name == "eff_ttbar";
+  bool is_roc = graph_base_name == "roc";
+
+  bool is_raw = tag_type == "raw";
+  bool is_msd = tag_type == "msd";
+  bool is_msd_btag = tag_type == "msd_btag";
+
+  string infileBaseBasePath = "/nfs/dust/cms/user/matthies/uhh2-106X-v1-el7/CMSSW_10_6_13/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/UL17/workdir_npy/";
+  vector<TGraph*> graphs;
+  for(auto pt_bin : pt_bins) {
+    string infileBasePath = infileBaseBasePath+pt_bin.name+"/";
+    string infileName = "root_"+pt_bin.name+".root";
+    string infilePath = infileBasePath+infileName;
+    TFile* infile = TFile::Open(infilePath.c_str(), "READ");
+    graphs.push_back((TGraph*)infile->Get((graph_base_name+(is_raw ? "" : "_"+tag_type)).c_str()));
+  }
+
+  TCanvas *c = new TCanvas("canvas", "canvas title", 600, 600);
+  c->cd();
+  float margin_l = 0.15;
+  float margin_r = 0.05;
+  float margin_b = 0.12;
+  float margin_t = 0.08;
+  c->SetMargin(margin_l, margin_r, margin_b, margin_t); //lrbt
+  auto coord = new CoordinateConverter();
+  coord->init(margin_l, margin_r, margin_b, margin_t);
+  if(log_y) c->SetLogy();
+  c->SetTickx(1);
+  c->SetTicky(1);
+
+  TMultiGraph *mg = new TMultiGraph("mg", "mg title");
+
+  bool plot_at_bottom = false;
+  if((is_eff_ttbar || is_roc) && log_y) plot_at_bottom = true;
+
+  float legend_x1 = coord->ConvertGraphXToPadX(plot_at_bottom ? 0.45 : 0.05);
+  float legend_y1 = coord->ConvertGraphYToPadY(plot_at_bottom ? 0.05 : 0.32); //0.47
+  float legend_x2 = coord->ConvertGraphXToPadX(plot_at_bottom ? 0.95 : 0.55);
+  float legend_y2 = coord->ConvertGraphYToPadY(plot_at_bottom ? 0.50 : 0.77); //0.35
+  TLegend *legend = new TLegend(legend_x1, legend_y1, legend_x2, legend_y2); // x1 y1 x2 y2
+  string legend_title = "";
+  if(is_raw) legend_title = "No #it{m}_{SD} window nor b tagging";
+  else if(is_msd) legend_title = "105 < #it{m}_{SD} [GeV] < 210";
+  else if(is_msd_btag) legend_title = "105 < #it{m}_{SD} [GeV] < 210 + subjet b tag";
+  legend->SetHeader(("#bf{"+legend_title+"}").c_str());
+  legend->SetTextSize(0.025);
+  legend->SetBorderSize(0);
+  legend->SetFillStyle(0);
+
+  for(int i = 0; i < graphs.size(); i++) {
+    mg->Add(graphs.at(i));
+    graphs.at(i)->SetLineWidth(pt_bins.at(i).summary_plot_linewidth);
+    graphs.at(i)->SetLineStyle(pt_bins.at(i).summary_plot_linestyle);
+    graphs.at(i)->SetLineColor(pt_bins.at(i).summary_plot_linecolor);
+    legend->AddEntry(graphs.at(i), pt_bins.at(i).text.c_str(), "l");
+  }
+  TGraph * null_graph = new_null_graph();
+  mg->Add(null_graph);
+
+  mg->Draw("ac");
+  mg->SetTitle("");
+  mg->GetHistogram()->GetXaxis()->SetRangeUser(0., 1.);
+  double maximum_saved = mg->GetHistogram()->GetMaximum();
+  double minimum_saved = mg->GetHistogram()->GetMinimum();
+  mg->GetHistogram()->SetMaximum(1.);
+  if(!log_y) mg->GetHistogram()->SetMinimum(0.);
+  else mg->GetHistogram()->SetMinimum(0.0002);
+  if(is_eff_qcd || is_eff_ttbar) mg->GetHistogram()->GetXaxis()->SetTitle("#tau_{3}/#tau_{2} upper limit");
+  else if(is_roc) mg->GetHistogram()->GetXaxis()->SetTitle("#varepsilon_{S}");
+  if(is_eff_qcd || is_roc) mg->GetHistogram()->GetYaxis()->SetTitle("#varepsilon_{B}");
+  if(is_eff_ttbar) mg->GetHistogram()->GetYaxis()->SetTitle("#varepsilon_{S}");
+  mg->GetHistogram()->GetXaxis()->SetTitleOffset(1.2);
+  mg->GetHistogram()->GetYaxis()->SetTitleOffset(1.2);
+  // mg->GetHistogram()->GetXaxis()->SetNdivisions(405);
+  if(!log_y) mg->GetHistogram()->GetYaxis()->SetNdivisions(405);
+  gStyle->SetLineWidth(2);
+
+  legend->Draw();
+
+  TText *text_top_left = new TText(margin_l, 1-(margin_t-0.01), "AK8 PUPPI(v14)");
+  text_top_left->SetTextAlign(11); // left bottom aligned
+  text_top_left->SetTextFont(42);
+  text_top_left->SetTextSize(0.035);
+  text_top_left->SetNDC();
+  text_top_left->Draw();
+
+  TText *text_top_right = new TText(1-margin_r, 1-(margin_t-0.01), "UL17 (CMSSW 10.6.X)");
+  text_top_right->SetTextAlign(31); // right bottom aligned
+  text_top_right->SetTextFont(42);
+  text_top_right->SetTextSize(0.035);
+  text_top_right->SetNDC();
+  text_top_right->Draw();
+
+  TText *cms = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.95), "CMS");
+  cms->SetTextAlign(13); // left top
+  cms->SetTextFont(62);
+  cms->SetTextSize(0.05);
+  cms->SetNDC();
+  cms->Draw();
+
+  TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.87), "Simulation, Work in Progress");
+  prelim->SetTextAlign(13); // left top
+  prelim->SetTextFont(52);
+  prelim->SetTextSize(0.035);
+  prelim->SetNDC();
+  prelim->Draw();
+
+  // WP markers for Pt480to600
+  if(is_msd || is_msd_btag) {
+    for(int i = 0; i < wps_ref_pt480to600.size(); i++) {
+      double x=0, y=0;
+
+      WorkingPoint wp = wps_ref_pt480to600.at(i);
+
+      if(is_msd) {
+        if(is_roc) { x=wp.real_eff_ttbar; y=wp.real_eff_qcd; }
+        else if(is_eff_qcd) { x=wp.tau32cut; y=wp.real_eff_qcd; }
+        else if(is_eff_ttbar) { x=wp.tau32cut; y=wp.real_eff_ttbar; }
+      }
+      else if(is_msd_btag) {
+        if(is_roc) { x=wp.real_eff_ttbar_with_btag; y=wp.real_eff_qcd_with_btag; }
+        else if(is_eff_qcd) { x=wp.tau32cut; y=wp.real_eff_qcd_with_btag; }
+        else if(is_eff_ttbar) { x=wp.tau32cut; y=wp.real_eff_ttbar_with_btag; }
+      }
+      TMarker *marker = new TMarker(x, y, 20);
+      marker->SetMarkerColor(kBlack);
+      marker->SetMarkerSize(1.2);
+      marker->Draw();
+    }
+    for(int i = 0; i < wps_dpnote_pt480to600.size(); i++) {
+      double x=0, y=0;
+
+      WorkingPoint wp = wps_dpnote_pt480to600.at(i);
+
+      if(is_msd) {
+        if(is_roc) { x=wp.real_eff_ttbar; y=wp.real_eff_qcd; }
+        else if(is_eff_qcd) { x=wp.tau32cut; y=wp.real_eff_qcd; }
+        else if(is_eff_ttbar) { x=wp.tau32cut; y=wp.real_eff_ttbar; }
+      }
+      else if(is_msd_btag) {
+        if(is_roc) { x=wp.real_eff_ttbar_with_btag; y=wp.real_eff_qcd_with_btag; }
+        else if(is_eff_qcd) { x=wp.tau32cut; y=wp.real_eff_qcd_with_btag; }
+        else if(is_eff_ttbar) { x=wp.tau32cut; y=wp.real_eff_ttbar_with_btag; }
+      }
+      TMarker *marker = new TMarker(x, y, 3);
+      marker->SetMarkerColor(kRed);
+      marker->SetMarkerSize(1.2);
+      marker->Draw();
+    }
+  }
+
+  // Save to disk
+  string plotName = "plot_summary__"+graph_base_name+"__"+tag_type+"__";
+  plotName += (log_y ? string("log") : string("lin"))+".pdf";
+  string plotPath = infileBaseBasePath+plotName;
+  c->SaveAs(plotPath.c_str());
+  delete c;
 }
 
 
@@ -320,32 +501,65 @@ void print_latex_table(const vector<WorkingPoint> & wps) {
 }
 
 
+vector<WorkingPoint> init_DPnote_WPs() {
+  // values taken from CMS DP 2020-025
+  vector<WorkingPoint> wps;
+  wps.push_back(WorkingPoint{ .tau32cut=0.80, .real_eff_qcd=0.159, .real_eff_ttbar=0.62, .real_eff_qcd_with_btag=0.053, .real_eff_ttbar_with_btag=0.53 });
+  wps.push_back(WorkingPoint{ .tau32cut=0.65, .real_eff_qcd=0.051, .real_eff_ttbar=0.49, .real_eff_qcd_with_btag=0.018, .real_eff_ttbar_with_btag=0.43 });
+  wps.push_back(WorkingPoint{ .tau32cut=0.54, .real_eff_qcd=0.017, .real_eff_ttbar=0.37, .real_eff_qcd_with_btag=0.006, .real_eff_ttbar_with_btag=0.33 });
+  wps.push_back(WorkingPoint{ .tau32cut=0.46, .real_eff_qcd=0.005, .real_eff_ttbar=0.26, .real_eff_qcd_with_btag=0.003, .real_eff_ttbar_with_btag=0.23 });
+  wps.push_back(WorkingPoint{ .tau32cut=0.40, .real_eff_qcd=0.002, .real_eff_ttbar=0.17, .real_eff_qcd_with_btag=0.001, .real_eff_ttbar_with_btag=0.16 });
+  return wps;
+}
+
+
 void plots() {
   vector<PtBin> pt_bins;
-  pt_bins.push_back(PtBin{"Pt300to400", "300 < p_{T}^{jet} [GeV] < 400"});
-  pt_bins.push_back(PtBin{"Pt400toInf", "p_{T}^{jet} [GeV] > 400"});
-  pt_bins.push_back(PtBin{"Pt400to480", "400 < p_{T}^{jet} [GeV] < 480"});
-  pt_bins.push_back(PtBin{"Pt480to600", "480 < p_{T}^{jet} [GeV] < 600"});
-  pt_bins.push_back(PtBin{"Pt600toInf", "p_{T}^{jet} [GeV] > 600"});
+  // DO NOT CHANGE THE ORDER !!! .at(i) is used later here to refer to specific pt bins!
+  pt_bins.push_back(PtBin{"Pt300to400", "300 < p_{T}^{jet} [GeV] < 400", kOrange-3, 1});
+  pt_bins.push_back(PtBin{"Pt400toInf", "p_{T}^{jet} [GeV] > 400", kCyan, 1});
+  pt_bins.push_back(PtBin{"Pt400to480", "400 < p_{T}^{jet} [GeV] < 480", kBlue, 2});
+  pt_bins.push_back(PtBin{"Pt480to600", "480 < p_{T}^{jet} [GeV] < 600", kBlue, 3});
+  pt_bins.push_back(PtBin{"Pt600toInf", "p_{T}^{jet} [GeV] > 600", kBlue, 4});
   pt_bins.push_back(PtBin{"Pt300toInf", "p_{T}^{jet} [GeV] > 300"});
   pt_bins.push_back(PtBin{"Pt1000toInf", "p_{T}^{jet} [GeV] > 1000"});
 
   // vector<string> graph_base_names = {"roc"};
-  vector<string> graph_base_names = {"eff_qcd", "eff_ttbar", "roc"};
+  const vector<string> graph_base_names = {"eff_qcd", "eff_ttbar", "roc"};
 
-  vector<float> working_point_mistag_rates = {0.001, 0.003, 0.01, 0.03, 0.1};
+  // access here the target background efficiencies (the code is adaptive - you can freely change these values here and all WPs will correctly be recalculated)
+  const vector<float> working_point_mistag_rates = {0.001, 0.003, 0.01, 0.03, 0.1};
   // for(int i = 0; i < pt_bins.size(); i++) cout << pt_bins.at(i).name << endl;
-  vector<WorkingPoint> wps_reference = calculate_working_points(pt_bins.at(1), working_point_mistag_rates);
+  const vector<WorkingPoint> wps_reference = calculate_working_points(pt_bins.at(1), working_point_mistag_rates);
 
-  for(auto & pt_bin : pt_bins) {
+  for(const auto & pt_bin : pt_bins) {
     cout << "Working on " << pt_bin.name << endl;
-    vector<WorkingPoint> wps_this_bin = calculate_working_points(pt_bin, working_point_mistag_rates);
-    vector<WorkingPoint> wps_this_bin_ref = get_reference_working_points(pt_bin, wps_this_bin, wps_reference);
-    print_latex_table(wps_this_bin);
-    print_latex_table(wps_this_bin_ref);
-    for(auto & graph_base_name : graph_base_names) {
+    const vector<WorkingPoint> wps_this_bin = calculate_working_points(pt_bin, working_point_mistag_rates);
+    const vector<WorkingPoint> wps_this_bin_ref = get_reference_working_points(pt_bin, wps_reference);
+    // print_latex_table(wps_this_bin);
+    // print_latex_table(wps_this_bin_ref);
+    for(const auto & graph_base_name : graph_base_names) {
       do_plot(pt_bin, graph_base_name, true, wps_this_bin, wps_this_bin_ref);
       do_plot(pt_bin, graph_base_name, false, wps_this_bin, wps_this_bin_ref);
+    }
+  }
+
+  vector<PtBin> pt_bins_summary_plots;
+  pt_bins_summary_plots.push_back(pt_bins.at(1));
+  pt_bins_summary_plots.push_back(pt_bins.at(0));
+  pt_bins_summary_plots.push_back(pt_bins.at(2));
+  pt_bins_summary_plots.push_back(pt_bins.at(3));
+  pt_bins_summary_plots.push_back(pt_bins.at(4));
+  const vector<string> tag_types = {"raw", "msd", "msd_btag"};
+  const vector<WorkingPoint> wps_ref_pt480to600 = get_reference_working_points(pt_bins.at(3), wps_reference);
+  const vector<WorkingPoint> wps_dpnote_pt480to600 = init_DPnote_WPs();
+  cout << "WPs for Pt480to600: this study (tau32cuts from reference bin) vs. CMS DP 2020-025" << endl;
+  print_latex_table(wps_ref_pt480to600);
+  print_latex_table(wps_dpnote_pt480to600);
+  for(const auto & tag_type : tag_types) {
+    for(const auto & graph_base_name : graph_base_names) {
+      do_summary_plot(tag_type, pt_bins_summary_plots, graph_base_name, true, wps_ref_pt480to600, wps_dpnote_pt480to600);
+      do_summary_plot(tag_type, pt_bins_summary_plots, graph_base_name, false, wps_ref_pt480to600, wps_dpnote_pt480to600);
     }
   }
 }
