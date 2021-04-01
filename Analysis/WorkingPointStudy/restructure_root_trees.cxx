@@ -3,7 +3,7 @@
 
 void restructure_root_trees_qcd() {
 
-  const string sframe_output_path = "/nfs/dust/cms/user/matthies/LegacyTopTagging/WorkingPointStudy/UL17/";
+  const string sframe_output_path = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/UL17/";
   const string file_prefix = "uhh2.AnalysisModuleRunner.MC.";
   const string file_postfix_qcd = "QCD_HT300toInf_UL17.root";
 
@@ -59,7 +59,7 @@ void restructure_root_trees_qcd() {
 
 void restructure_root_trees_ttbar() {
 
-  const string sframe_output_path = "/nfs/dust/cms/user/matthies/LegacyTopTagging/WorkingPointStudy/UL17/";
+  const string sframe_output_path = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/UL17/";
   const string file_prefix = "uhh2.AnalysisModuleRunner.MC.";
   const string file_postfix_ttbar = "TTbarToHadronic_UL17.root";
 

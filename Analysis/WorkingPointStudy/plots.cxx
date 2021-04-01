@@ -89,7 +89,7 @@ WorkingPoint init_working_point(float eff, const TGraph * graph_eff_qcd, const T
 
 
 vector<WorkingPoint> calculate_working_points(const PtBin & pt_bin, const vector<float> & target_effs_qcd, const bool print=false) {
-  string infileBasePath = "/nfs/dust/cms/user/matthies/uhh2-106X-v1-el7/CMSSW_10_6_13/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/UL17/workdir_npy/"+pt_bin.name+"/";
+  string infileBasePath = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/UL17/workdir_npy/"+pt_bin.name+"/";
   string infileName = "root_"+pt_bin.name+".root";
   string infilePath = infileBasePath+infileName;
 
@@ -117,7 +117,7 @@ vector<WorkingPoint> calculate_working_points(const PtBin & pt_bin, const vector
 
 
 vector<WorkingPoint> get_reference_working_points(const PtBin & pt_bin, const vector<WorkingPoint> & wps_reference, const bool print=false) {
-  string infileBasePath = "/nfs/dust/cms/user/matthies/uhh2-106X-v1-el7/CMSSW_10_6_13/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/UL17/workdir_npy/"+pt_bin.name+"/";
+  string infileBasePath = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/UL17/workdir_npy/"+pt_bin.name+"/";
   string infileName = "root_"+pt_bin.name+".root";
   string infilePath = infileBasePath+infileName;
 
@@ -173,7 +173,7 @@ void do_plot(const PtBin & pt_bin, const string & graph_base_name, const bool lo
   bool is_eff_ttbar = graph_base_name == "eff_ttbar";
   bool is_roc = graph_base_name == "roc";
 
-  string infileBasePath = "/nfs/dust/cms/user/matthies/uhh2-106X-v1-el7/CMSSW_10_6_13/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/UL17/workdir_npy/"+pt_bin.name+"/";
+  string infileBasePath = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/UL17/workdir_npy/"+pt_bin.name+"/";
   string infileName = "root_"+pt_bin.name+".root";
   string infilePath = infileBasePath+infileName;
 
@@ -333,7 +333,7 @@ void do_summary_plot(const string & tag_type, const vector<PtBin> & pt_bins, con
   bool is_msd = tag_type == "msd";
   bool is_msd_btag = tag_type == "msd_btag";
 
-  string infileBaseBasePath = "/nfs/dust/cms/user/matthies/uhh2-106X-v1-el7/CMSSW_10_6_13/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/UL17/workdir_npy/";
+  string infileBaseBasePath = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/UL17/workdir_npy/";
   vector<TGraph*> graphs;
   for(auto pt_bin : pt_bins) {
     string infileBasePath = infileBaseBasePath+pt_bin.name+"/";
