@@ -4,4 +4,8 @@ UHH2 sub-framework for measuring top quark tagging efficiencies in AK8 and HOTVR
 
 ## Setup
 
-- Please create a directory into which all output files should be stored, e.g. `/nfs/dust/cms/user/<username>/LegacyTopTaggingOutput/`; then create a symbolic link to that output directory within the framework: `ln -s /nfs/dust/cms/user/<username>/LegacyTopTaggingOutput/ <your-path-to>/UHH2/LegacyTopTagging/output`. This step is *obligatory*; this framework considers `<your-path-to>/UHH2/LegacyTopTagging/output` to be the base output directory -- since you do not want to spam your framework with ultra-large output files, you should use this symbolic link
+- Please install UHH2 version `RunII_106X_v1`
+- Once the UHH2 installation is done, clone this repository and the HOTVR repository into `<your-path-to>/UHH2/`:
+`git clone https://github.com/MatthiesC/LegacyTopTagging.git`
+`git clone --branch 106X_v1 https://github.com/UHH2/HOTVR.git`
+- Please create a directory into which all output files should be stored, e.g. `/nfs/dust/cms/user/<username>/LegacyTopTaggingOutput/`; then create a symbolic link to that output directory within the framework: `ln -s /nfs/dust/cms/user/<username>/LegacyTopTaggingOutput/ <your-path-to>/UHH2/LegacyTopTagging/output`. This step is **obligatory**; this framework considers `<your-path-to>/UHH2/LegacyTopTagging/output` to be the base output directory -- since you do not want to spam your framework with ultra-large output files, you should use this symbolic link
