@@ -28,8 +28,6 @@ private:
   bool debug;
   string dataset_version;
   bool is_qcd, is_ttbar;
-  float get_subjets_deepcsv_max(const TopJet&);
-  float get_mSD(const TopJet&, const bool);
 
   unique_ptr<AnalysisModule> sf_lumi;
   unique_ptr<AnalysisModule> sf_pileup;
