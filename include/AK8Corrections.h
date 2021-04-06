@@ -8,7 +8,7 @@
 #include "UHH2/common/include/YearRunSwitchers.h"
 
 
-namespace ltt {
+namespace uhh2 { namespace ltt {
 
 class AK8Corrections: public uhh2::AnalysisModule {
 public:
@@ -53,4 +53,4 @@ class AK8Cleaning : public uhh2::AnalysisModule {
   uhh2::Event::Handle<std::vector<TopJet>> h_ak8jets_rec;
 };
 
-}
+}}

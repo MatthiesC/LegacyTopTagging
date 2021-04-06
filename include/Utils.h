@@ -5,7 +5,7 @@
 #include "UHH2/core/include/Utils.h"
 
 
-namespace ltt {
+namespace uhh2 { namespace ltt {
 
 template<typename T, typename U>
 double deltaEta(const T & p1, const U & p2) {
@@ -26,4 +26,4 @@ double HOTVR_fpt(const TopJet & topjet, const unsigned int subjet_i = 0);
 
 const TopJet * nextTopJet(const Particle & p, const std::vector<TopJet> & topjets);
 
-}
+}}

@@ -17,7 +17,7 @@ using namespace std;
 using namespace uhh2;
 
 
-namespace ltt {
+namespace uhh2 { namespace ltt {
 
 class WorkingPointModule: public AnalysisModule {
 public:
@@ -204,4 +204,4 @@ bool WorkingPointModule::process(Event & event) {
 
 UHH2_REGISTER_ANALYSIS_MODULE(WorkingPointModule)
 
-}
+}}

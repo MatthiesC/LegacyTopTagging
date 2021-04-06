@@ -1,9 +1,11 @@
 #include "UHH2/LegacyTopTagging/include/AK8Corrections.h"
 
-using namespace uhh2;
 using namespace std;
+using namespace uhh2;
 using namespace ltt;
 
+
+namespace uhh2 { namespace ltt {
 
 /*
 * AK8 CORRECTIONS SETUP
@@ -178,3 +180,5 @@ bool AK8Cleaning::process(uhh2::Event & event) {
 
   return true;
 }
+
+}}

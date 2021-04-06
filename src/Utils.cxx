@@ -4,9 +4,10 @@
 
 using namespace std;
 using namespace uhh2;
+using namespace ltt;
 
 
-namespace ltt {
+namespace uhh2 { namespace ltt {
 
 double tau32(const TopJet & topjet) {
   return min((double)(topjet.tau3() / topjet.tau2()), 0.99999);
@@ -52,4 +53,4 @@ const TopJet * nextTopJet(const Particle & p, const vector<TopJet> & topjets) {
   return closestParticle(p, topjets);
 }
 
-}
+}}
