@@ -516,13 +516,13 @@ vector<WorkingPoint> init_DPnote_WPs() {
 void plots() {
   vector<PtBin> pt_bins;
   // DO NOT CHANGE THE ORDER !!! .at(i) is used later here to refer to specific pt bins!
-  pt_bins.push_back(PtBin{"Pt300to400", "300 < p_{T}^{jet} [GeV] < 400", kOrange-3, 1});
-  pt_bins.push_back(PtBin{"Pt400toInf", "p_{T}^{jet} [GeV] > 400", kCyan, 1});
-  pt_bins.push_back(PtBin{"Pt400to480", "400 < p_{T}^{jet} [GeV] < 480", kBlue, 2});
-  pt_bins.push_back(PtBin{"Pt480to600", "480 < p_{T}^{jet} [GeV] < 600", kBlue, 3});
-  pt_bins.push_back(PtBin{"Pt600toInf", "p_{T}^{jet} [GeV] > 600", kBlue, 4});
-  pt_bins.push_back(PtBin{"Pt300toInf", "p_{T}^{jet} [GeV] > 300"});
-  pt_bins.push_back(PtBin{"Pt1000toInf", "p_{T}^{jet} [GeV] > 1000"});
+  pt_bins.push_back(PtBin{"Pt300to400", "300 < #it{p}_{T}^{jet} [GeV] < 400", kOrange-3, 1});
+  pt_bins.push_back(PtBin{"Pt400toInf", "#it{p}_{T}^{jet} [GeV] > 400", kCyan, 1});
+  pt_bins.push_back(PtBin{"Pt400to480", "400 < #it{p}_{T}^{jet} [GeV] < 480", kBlue, 2});
+  pt_bins.push_back(PtBin{"Pt480to600", "480 < #it{p}_{T}^{jet} [GeV] < 600", kBlue, 3});
+  pt_bins.push_back(PtBin{"Pt600toInf", "#it{p}_{T}^{jet} [GeV] > 600", kBlue, 4});
+  pt_bins.push_back(PtBin{"Pt300toInf", "#it{p}_{T}^{jet} [GeV] > 300"});
+  pt_bins.push_back(PtBin{"Pt1000toInf", "#it{p}_{T}^{jet} [GeV] > 1000"});
 
   // vector<string> graph_base_names = {"roc"};
   const vector<string> graph_base_names = {"eff_qcd", "eff_ttbar", "roc"};
