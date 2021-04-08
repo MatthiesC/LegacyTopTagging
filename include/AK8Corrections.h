@@ -15,14 +15,31 @@ public:
   AK8Corrections(const std::string & coll_rec="", const std::string & coll_gen="");
   virtual bool process(uhh2::Event & event) override;
   void init(uhh2::Context & ctx);
+  void disable_topjet_corrections() { fail_if_init_done(); correct_topjets = false; }
+  void disable_subjet_corrections() { fail_if_init_done(); correct_subjets = false; }
+  void enable_rebuilding_topjets_from_subjets() { fail_if_init_done(); do_rebuild_topjets_from_subjets = true; }
 
 private:
-  std::unique_ptr<YearSwitcher> tjet_corrector_MC, tjet_corrector_data;
-  std::shared_ptr<RunSwitcher> jec_switcher_16, jec_switcher_17, jec_switcher_18, jec_switcher_UL17, jec_switcher_UL18;
+  void set_subjet_handles(uhh2::Event & event);
+  void reset_smeared_subjets(uhh2::Event & event);
+  void rebuild_topjets_from_subjets(uhh2::Event & event);
+  void fail_if_init_done() const { if(init_done) throw std::runtime_error("AK8Corrections: Not allowed to call a configuration switch after AK8Corrections::init() has already been called"); }
+
+  std::unique_ptr<YearSwitcher> tjet_corrector_MC, tjet_corrector_data, subjet_corrector_MC, subjet_corrector_data;
+  std::shared_ptr<RunSwitcher> jec_switcher_16_topjets, jec_switcher_16_subjets;
+  std::shared_ptr<RunSwitcher> jec_switcher_17_topjets, jec_switcher_17_subjets;
+  std::shared_ptr<RunSwitcher> jec_switcher_18_topjets, jec_switcher_18_subjets;
+  std::shared_ptr<RunSwitcher> jec_switcher_UL17_topjets, jec_switcher_UL17_subjets;
+  std::shared_ptr<RunSwitcher> jec_switcher_UL18_topjets, jec_switcher_UL18_subjets;
   std::unique_ptr<GenericJetResolutionSmearer> tjet_resolution_smearer;
+  std::unique_ptr<GenericJetResolutionSmearer> subjet_resolution_smearer;
 
   bool is_mc;
   bool init_done = false;
+
+  bool correct_topjets = true;
+  bool correct_subjets = true;
+  bool do_rebuild_topjets_from_subjets = false;
 
   Year year;
 
@@ -31,9 +48,18 @@ private:
   std::string jec_tag_2018, jec_ver_2018;
   std::string jec_tag_UL17, jec_ver_UL17;
   std::string jec_tag_UL18, jec_ver_UL18;
-  std::string jec_tjet_coll;
 
-  std::string collection_rec, collection_gen;
+  std::string collection_rec = "topjets";
+  bool use_additional_branch_for_rec = false;
+  std::string collection_gen = "gentopjets";
+  bool use_additional_branch_for_gen = false;
+
+  uhh2::Event::Handle<std::vector<TopJet>> h_topjets;
+  uhh2::Event::Handle<std::vector<GenTopJet>> h_gentopjets;
+
+  uhh2::Event::Handle<std::vector<GenJet>> h_gensubjets;
+  uhh2::Event::Handle<std::vector<Jet>> h_subjets;
+  uhh2::Event::Handle<std::vector<std::pair<int, int>>> h_subjets_map;
 };
 
 
