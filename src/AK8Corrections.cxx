@@ -90,8 +90,8 @@ void AK8Corrections::init(Context & ctx) {
   else if(userTopJetColl.find("ak8") != string::npos) {
     algo = "AK8";
   }
-  else {
-    cout << "AK8Corrections::init(): Cannot determine t jet cone + radius (neither AK4 nor AK8) - going to assume it is AK8" << '\n';
+  else { // e.g. HOTVR. But we won't use AK8 corrections for HOTVR, though; for HOTVR, call disable_topjet_corrections() and enable_rebuilding_topjets_from_subjets()
+    cout << "AK8Corrections::init(): Cannot determine t jet cone + radius (neither AK4 nor AK8) - going to assume it is AK8 for identifying JEC files" << endl;
     algo = "AK8";
   }
 
@@ -100,7 +100,7 @@ void AK8Corrections::init(Context & ctx) {
     pus = "PFPuppi";
   }
   else if(userTopJetColl.find("chs") == string::npos) {
-    cout << "AK8Corrections::init(): Cannot determine pile-up subtraction (neither CHS nor PUPPI) - going to assume it is CHS" << endl;
+    cout << "AK8Corrections::init(): Cannot determine pile-up subtraction (neither CHS nor PUPPI) - going to assume it is CHS for identifying JEC files" << endl;
   }
   string jec_tjet_coll = algo + pus;
   string jec_subjet_coll = (string)"AK4" + pus; // going to assume that subjets will always be corrected like AK4 jets
