@@ -8,8 +8,8 @@
 <!ENTITY YEARsuffix "_UL17">
 <!ENTITY PROOFdir "/nfs/dust/cms/user/matthies/.proof2">
 
-<!ENTITY TTbarToHadronicPuppiV14 SYSTEM "/nfs/dust/cms/user/matthies/uhh2-106X-v1-el7/CMSSW_10_6_13/src/UHH2/LegacyTopTagging/config/datasets/TTToHadronic_CP5_Summer19UL17MiniAOD-106X_mc2017_realistic_v6-v4.xml">
-<!ENTITY TTbarToHadronicPuppiV15 SYSTEM "/nfs/dust/cms/user/matthies/uhh2-106X-v1-el7/CMSSW_10_6_13/src/UHH2/LegacyTopTagging/config/datasets/TTToHadronic_CP5_Summer19UL17MiniAOD-106X_mc2017_realistic_v6-v4__PuppiV15.xml">
+<!ENTITY TTbarToHadronicPuppiV14 SYSTEM "/nfs/dust/cms/user/matthies/uhh2-106X-v1-el7/CMSSW_10_6_13/src/UHH2/LegacyTopTagging/config/datasets/UL17/PuppiV14/TTToHadronic_CP5_Summer19UL17MiniAOD-106X_mc2017_realistic_v6-v4.xml">
+<!ENTITY TTbarToHadronicPuppiV15 SYSTEM "/nfs/dust/cms/user/matthies/uhh2-106X-v1-el7/CMSSW_10_6_13/src/UHH2/LegacyTopTagging/config/datasets/UL17/PuppiV15/TTToHadronic_CP5_Summer19UL17MiniAOD-106X_mc2017_realistic_v6-v4__PuppiV15.xml">
 
 ]>
 
