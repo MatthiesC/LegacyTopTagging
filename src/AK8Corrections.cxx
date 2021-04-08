@@ -17,18 +17,23 @@ AK8Corrections::AK8Corrections(const string & coll_rec, const string & coll_gen)
 
   jec_tag_2016 = "Summer16_07Aug2017";
   jec_ver_2016 = "11";
+  jer_tag_2016 = "Summer16_25nsV1";
 
   jec_tag_2017 = "Fall17_17Nov2017";
   jec_ver_2017 = "32";
+  jer_tag_2017 = "Fall17_V3";
 
   jec_tag_2018 = "Autumn18";
   jec_ver_2018 = "19";
+  jer_tag_2018 = "Autumn18_V7";
 
   jec_tag_UL17 = "Summer19UL17";
   jec_ver_UL17 = "5";
+  jer_tag_UL17 = "Summer19UL17_JRV2";
 
   jec_tag_UL18 = "Summer19UL18";
   jec_ver_UL18 = "5";
+  jer_tag_UL18 = "Summer19UL18_JRV2";
 
   if(!coll_rec.empty()) {
     collection_rec = coll_rec;
@@ -50,10 +55,10 @@ void AK8Corrections::init(Context & ctx) {
   init_done = true;
 
   if(correct_topjets) {
-    cout << "AK8Corrections will correct superjets in t jet collection '" << collection_rec << "'" << endl;
+    cout << "AK8Corrections will correct topjets in t jet collection '" << collection_rec << "'" << endl;
   }
   else {
-    cout << "AK8Corrections will NOT correct superjets in t jet collection '" << collection_rec << "'" << endl;
+    cout << "AK8Corrections will NOT correct topjets in t jet collection '" << collection_rec << "'" << endl;
   }
   if(correct_subjets) {
     cout << "AK8Corrections will correct subjets in t jet collection '" << collection_rec << "'" << endl;
@@ -122,19 +127,19 @@ void AK8Corrections::init(Context & ctx) {
 
     string jer_tag = "";
     if(year == Year::is2016v2 || year == Year::is2016v3) {
-      jer_tag = "Summer16_25nsV1";
+      jer_tag = jer_tag_2016;
     }
     else if(year == Year::is2017v1 || year == Year::is2017v2) {
-      jer_tag = "Fall17_V3";
+      jer_tag = jer_tag_2017;
     }
     else if(year == Year::is2018) {
-      jer_tag = "Autumn18_V7";
+      jer_tag = jer_tag_2018;
     }
     else if(year == Year::isUL17) {
-      jer_tag = "Summer19UL17_JRV2";
+      jer_tag = jer_tag_UL17;
     }
     else if(year == Year::isUL18) {
-      jer_tag = "Summer19UL18_JRV2";
+      jer_tag = jer_tag_UL18;
     }
     else {
       throw runtime_error("Cannot find suitable jet resolution file & scale factors for this year for JetResolutionSmearer");

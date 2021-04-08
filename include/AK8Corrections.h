@@ -43,11 +43,11 @@ private:
 
   Year year;
 
-  std::string jec_tag_2016, jec_ver_2016;
-  std::string jec_tag_2017, jec_ver_2017;
-  std::string jec_tag_2018, jec_ver_2018;
-  std::string jec_tag_UL17, jec_ver_UL17;
-  std::string jec_tag_UL18, jec_ver_UL18;
+  std::string jec_tag_2016, jec_ver_2016, jer_tag_2016;
+  std::string jec_tag_2017, jec_ver_2017, jer_tag_2017;
+  std::string jec_tag_2018, jec_ver_2018, jer_tag_2018;
+  std::string jec_tag_UL17, jec_ver_UL17, jer_tag_UL17;
+  std::string jec_tag_UL18, jec_ver_UL18, jer_tag_UL18;
 
   std::string collection_rec = "topjets";
   bool use_additional_branch_for_rec = false;
