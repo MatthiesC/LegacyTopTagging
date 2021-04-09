@@ -32,7 +32,7 @@ AK8Hists::AK8Hists(Context & ctx, const string & dirname, const string & coll_re
   hist_subjets_pt = book<TH1F>("subjets_pt", "AK8 subjets: #it{p}_{T} [GeV]", 1000, 0, 500);
   hist_subjets_eta = book<TH1F>("subjets_eta", "AK8 subjets: #eta", 1000, -5.0, 5.0);
   hist_subjets_phi = book<TH1F>("subjets_phi", "AK8 subjets: #phi [rad]", 1000, -M_PI, M_PI);
-  hist_subjets_mass = book<TH1F>("subjets_mass", "AK8 subjets: #it{m}_{jet} [GeV]", 1000, 0, 200);
+  hist_subjets_mass = book<TH1F>("subjets_mass", "AK8 subjets: #it{m}_{jet} [GeV]", 1000, 0, 250);
   hist_subjets_deepCSV = book<TH1F>("subjets_deepCSV", "AK8 subjets: #it{O}_{DeepCSV}^{prob(b)+prob(bb)}", 1000, 0, 1);
 
   hist_ak8jet1_pt = book<TH1F>("ak8jet1_pt", "Leading AK8 jet: #it{p}_{T} [GeV]", 1000, 0, 1000);

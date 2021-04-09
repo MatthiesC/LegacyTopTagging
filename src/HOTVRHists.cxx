@@ -24,7 +24,7 @@ HOTVRHists::HOTVRHists(Context & ctx, const string & dirname, const string & col
   hist_hotvrjets_eta = book<TH1F>("hotvrjets_eta", "HOTVR jets: #eta", 1000, -5.0, 5.0);
   hist_hotvrjets_phi = book<TH1F>("hotvrjets_phi", "HOTVR jets: #phi [rad]", 1000, -M_PI, M_PI);
   hist_hotvrjets_mass = book<TH1F>("hotvrjets_mass", "HOTVR jets: #it{m}_{jet} [GeV]", 1000, 0, 500);
-  hist_hotvrjets_mpair = book<TH1F>("hotvrjets_mpair", "HOTVR jets: min. #it{m}_{ij} [GeV] of leading three subjets", 1000, 0, 500);
+  hist_hotvrjets_mpair = book<TH1F>("hotvrjets_mpair", "HOTVR jets: min. #it{m}_{ij} [GeV] of leading three subjets", 1000, 0, 250);
   hist_hotvrjets_tau32 = book<TH1F>("hotvrjets_tau32", "HOTVR jets: #tau_{3}/#tau_{2}", 1000, 0, 1);
   hist_hotvrjets_fpt1 = book<TH1F>("hotvrjets_fpt1", "HOTVR jets: #it{p}_{T} fraction of leading subjet", 1000, 0, 1);
 
@@ -32,7 +32,7 @@ HOTVRHists::HOTVRHists(Context & ctx, const string & dirname, const string & col
   hist_subjets_pt = book<TH1F>("subjets_pt", "HOTVR subjets: #it{p}_{T} [GeV]", 1000, 0, 500);
   hist_subjets_eta = book<TH1F>("subjets_eta", "HOTVR subjets: #eta", 1000, -5.0, 5.0);
   hist_subjets_phi = book<TH1F>("subjets_phi", "HOTVR subjets: #phi [rad]", 1000, -M_PI, M_PI);
-  hist_subjets_mass = book<TH1F>("subjets_mass", "HOTVR subjets: #it{m}_{jet} [GeV]", 1000, 0, 200);
+  hist_subjets_mass = book<TH1F>("subjets_mass", "HOTVR subjets: #it{m}_{jet} [GeV]", 1000, 0, 250);
   hist_subjets_fpt = book<TH1F>("subjets_fpt", "HOTVR subjets: #it{p}_{T} fraction", 1000, 0, 1);
 
   hist_hotvrjet1_pt = book<TH1F>("hotvrjet1_pt", "Leading HOTVR jet: #it{p}_{T} [GeV]", 1000, 0, 1000);
@@ -40,7 +40,7 @@ HOTVRHists::HOTVRHists(Context & ctx, const string & dirname, const string & col
   hist_hotvrjet1_eta = book<TH1F>("hotvrjet1_eta", "Leading HOTVR jet: #eta", 1000, -5.0, 5.0);
   hist_hotvrjet1_phi = book<TH1F>("hotvrjet1_phi", "Leading HOTVR jet: #phi [rad]", 1000, -M_PI, M_PI);
   hist_hotvrjet1_mass = book<TH1F>("hotvrjet1_mass", "Leading HOTVR jet: #it{m}_{jet} [GeV]", 1000, 0, 500);
-  hist_hotvrjet1_mpair = book<TH1F>("hotvrjet1_mpair", "Leading HOTVR jet: min. #it{m}_{ij} [GeV] of leading three subjets", 1000, 0, 500);
+  hist_hotvrjet1_mpair = book<TH1F>("hotvrjet1_mpair", "Leading HOTVR jet: min. #it{m}_{ij} [GeV] of leading three subjets", 1000, 0, 250);
   hist_hotvrjet1_tau32 = book<TH1F>("hotvrjet1_tau32", "Leading HOTVR jet: #tau_{3}/#tau_{2}", 1000, 0, 1);
   hist_hotvrjet1_fpt1 = book<TH1F>("hotvrjet1_fpt1", "Leading HOTVR jet: #it{p}_{T} fraction of leading subjet", 1000, 0, 1);
 
@@ -49,7 +49,7 @@ HOTVRHists::HOTVRHists(Context & ctx, const string & dirname, const string & col
   hist_hotvrjet2_eta = book<TH1F>("hotvrjet2_eta", "Subleading HOTVR jet: #eta", 1000, -5.0, 5.0);
   hist_hotvrjet2_phi = book<TH1F>("hotvrjet2_phi", "Subleading HOTVR jet: #phi [rad]", 1000, -M_PI, M_PI);
   hist_hotvrjet2_mass = book<TH1F>("hotvrjet2_mass", "Subleading HOTVR jet: #it{m}_{jet} [GeV]", 1000, 0, 500);
-  hist_hotvrjet2_mpair = book<TH1F>("hotvrjet2_mpair", "Subleading HOTVR jet: min. #it{m}_{ij} [GeV] of leading three subjets", 1000, 0, 500);
+  hist_hotvrjet2_mpair = book<TH1F>("hotvrjet2_mpair", "Subleading HOTVR jet: min. #it{m}_{ij} [GeV] of leading three subjets", 1000, 0, 250);
   hist_hotvrjet2_tau32 = book<TH1F>("hotvrjet2_tau32", "Subleading HOTVR jet: #tau_{3}/#tau_{2}", 1000, 0, 1);
   hist_hotvrjet2_fpt1 = book<TH1F>("hotvrjet2_fpt1", "Subleading HOTVR jet: #it{p}_{T} fraction of leading subjet", 1000, 0, 1);
 }
