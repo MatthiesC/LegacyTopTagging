@@ -10,9 +10,9 @@
 
 namespace uhh2 { namespace ltt {
 
-class AK8Corrections: public uhh2::AnalysisModule {
+class TopJetCorrections: public uhh2::AnalysisModule {
 public:
-  AK8Corrections(const std::string & coll_rec="", const std::string & coll_gen="");
+  TopJetCorrections(const std::string & coll_rec="", const std::string & coll_gen="");
   virtual bool process(uhh2::Event & event) override;
   void init(uhh2::Context & ctx);
   void disable_topjet_corrections() { fail_if_init_done(); correct_topjets = false; }
@@ -23,7 +23,7 @@ private:
   void set_subjet_handles(uhh2::Event & event);
   void reset_smeared_subjets(uhh2::Event & event);
   void rebuild_topjets_from_subjets(uhh2::Event & event);
-  void fail_if_init_done() const { if(init_done) throw std::runtime_error("AK8Corrections: Not allowed to call a configuration switch after AK8Corrections::init() has already been called"); }
+  void fail_if_init_done() const { if(init_done) throw std::runtime_error("TopJetCorrections: Not allowed to call a configuration switch after TopJetCorrections::init() has already been called"); }
 
   std::unique_ptr<YearSwitcher> tjet_corrector_MC, tjet_corrector_data, subjet_corrector_MC, subjet_corrector_data;
   std::shared_ptr<RunSwitcher> jec_switcher_16_topjets, jec_switcher_16_subjets;

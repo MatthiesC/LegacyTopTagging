@@ -1,4 +1,4 @@
-#include "UHH2/LegacyTopTagging/include/AK8Corrections.h"
+#include "UHH2/LegacyTopTagging/include/TopJetCorrections.h"
 
 using namespace std;
 using namespace uhh2;
@@ -11,9 +11,9 @@ namespace uhh2 { namespace ltt {
 * AK8 CORRECTIONS SETUP
 */
 
-AK8Corrections::AK8Corrections(const string & coll_rec, const string & coll_gen) {
+TopJetCorrections::TopJetCorrections(const string & coll_rec, const string & coll_gen) {
 
-  cout << "Hello World from AK8Corrections!" << endl;
+  cout << "Hello World from TopJetCorrections!" << endl;
 
   jec_tag_2016 = "Summer16_07Aug2017";
   jec_ver_2016 = "11";
@@ -47,27 +47,27 @@ AK8Corrections::AK8Corrections(const string & coll_rec, const string & coll_gen)
 }
 
 
-void AK8Corrections::init(Context & ctx) {
+void TopJetCorrections::init(Context & ctx) {
 
   if(init_done) {
-    throw runtime_error("AK8Corrections::init() called twice!");
+    throw runtime_error("TopJetCorrections::init() called twice!");
   }
   init_done = true;
 
   if(correct_topjets) {
-    cout << "AK8Corrections will correct topjets in t jet collection '" << collection_rec << "'" << endl;
+    cout << "TopJetCorrections will correct topjets in t jet collection '" << collection_rec << "'" << endl;
   }
   else {
-    cout << "AK8Corrections will NOT correct topjets in t jet collection '" << collection_rec << "'" << endl;
+    cout << "TopJetCorrections will NOT correct topjets in t jet collection '" << collection_rec << "'" << endl;
   }
   if(correct_subjets) {
-    cout << "AK8Corrections will correct subjets in t jet collection '" << collection_rec << "'" << endl;
+    cout << "TopJetCorrections will correct subjets in t jet collection '" << collection_rec << "'" << endl;
   }
   else {
-    cout << "AK8Corrections will NOT correct subjets in t jet collection '" << collection_rec << "'" << endl;
+    cout << "TopJetCorrections will NOT correct subjets in t jet collection '" << collection_rec << "'" << endl;
   }
   if(!(correct_topjets || correct_subjets)) {
-    throw invalid_argument("AK8Corrections::init(): You are initializing AK8Corrections but you specified to not correct t jets nor their subjets. This seems to be unintended. Please check!");
+    throw invalid_argument("TopJetCorrections::init(): You are initializing TopJetCorrections but you specified to not correct t jets nor their subjets. This seems to be unintended. Please check!");
   }
 
   is_mc = ctx.get("dataset_type") == "MC";
@@ -76,11 +76,11 @@ void AK8Corrections::init(Context & ctx) {
   h_topjets = ctx.get_handle<vector<TopJet>>(collection_rec);
   h_gentopjets = ctx.get_handle<vector<GenTopJet>>(collection_gen);
 
-  string gensubjets_handle_name = (string)"ak8corrections_gensubjets_handle_for_" + collection_gen;
+  string gensubjets_handle_name = (string)"TopJetCorrections_gensubjets_handle_for_" + collection_gen;
   h_gensubjets = ctx.get_handle<vector<GenJet>>(gensubjets_handle_name);
-  string subjets_handle_name = (string)"ak8corrections_subjets_handle_for_" + collection_rec;
+  string subjets_handle_name = (string)"TopJetCorrections_subjets_handle_for_" + collection_rec;
   h_subjets = ctx.get_handle<vector<Jet>>(subjets_handle_name);
-  string subjets_map_handle_name = (string)"ak8corrections_subjets_map_handle_for_" + collection_rec;
+  string subjets_map_handle_name = (string)"TopJetCorrections_subjets_map_handle_for_" + collection_rec;
   h_subjets_map = ctx.get_handle<vector<pair<int, int>>>(subjets_map_handle_name);
 
   string userTopJetColl = string2lowercase(use_additional_branch_for_rec ? collection_rec : ctx.get("TopJetCollection"));
@@ -89,14 +89,14 @@ void AK8Corrections::init(Context & ctx) {
   if(userTopJetColl.find("ak4") != string::npos) {
     algo = "AK4";
     if(correct_subjets) {
-      throw invalid_argument("AK8Corrections::init(): You specified to correct subjets but your t jet collection is an AK4 collection. AK4 jets do not have subjets. Please check!");
+      throw invalid_argument("TopJetCorrections::init(): You specified to correct subjets but your t jet collection is an AK4 collection. AK4 jets do not have subjets. Please check!");
     }
   }
   else if(userTopJetColl.find("ak8") != string::npos) {
     algo = "AK8";
   }
   else { // e.g. HOTVR. But we won't use AK8 corrections for HOTVR, though; for HOTVR, call disable_topjet_corrections() and enable_rebuilding_topjets_from_subjets()
-    cout << "AK8Corrections::init(): Cannot determine t jet cone + radius (neither AK4 nor AK8) - going to assume it is AK8 for identifying JEC files" << endl;
+    cout << "TopJetCorrections::init(): Cannot determine t jet cone + radius (neither AK4 nor AK8) - going to assume it is AK8 for identifying JEC files" << endl;
     algo = "AK8";
   }
 
@@ -105,7 +105,7 @@ void AK8Corrections::init(Context & ctx) {
     pus = "PFPuppi";
   }
   else if(userTopJetColl.find("chs") == string::npos) {
-    cout << "AK8Corrections::init(): Cannot determine pile-up subtraction (neither CHS nor PUPPI) - going to assume it is CHS for identifying JEC files" << endl;
+    cout << "TopJetCorrections::init(): Cannot determine pile-up subtraction (neither CHS nor PUPPI) - going to assume it is CHS for identifying JEC files" << endl;
   }
   string jec_tjet_coll = algo + pus;
   string jec_subjet_coll = (string)"AK4" + pus; // going to assume that subjets will always be corrected like AK4 jets
@@ -201,10 +201,10 @@ void AK8Corrections::init(Context & ctx) {
 }
 
 
-void AK8Corrections::set_subjet_handles(Event & event) {
+void TopJetCorrections::set_subjet_handles(Event & event) {
 
   if(event.isRealData) {
-    throw runtime_error("AK8Corrections::set_subjet_handles() may only be called on MC events");
+    throw runtime_error("TopJetCorrections::set_subjet_handles() may only be called on MC events");
   }
 
   vector<GenJet> gensubjets;
@@ -231,7 +231,7 @@ void AK8Corrections::set_subjet_handles(Event & event) {
 }
 
 
-void AK8Corrections::reset_smeared_subjets(Event & event) {
+void TopJetCorrections::reset_smeared_subjets(Event & event) {
 
   vector<Jet> subjets = event.get(h_subjets);
   vector<pair<int, int>> subjets_map = event.get(h_subjets_map);
@@ -250,7 +250,7 @@ void AK8Corrections::reset_smeared_subjets(Event & event) {
 }
 
 
-void AK8Corrections::rebuild_topjets_from_subjets(Event & event) {
+void TopJetCorrections::rebuild_topjets_from_subjets(Event & event) {
 
   vector<TopJet> *topjets = use_additional_branch_for_rec ? &event.get(h_topjets) : event.topjets;
   for(auto & topjet : *topjets) {
@@ -265,10 +265,10 @@ void AK8Corrections::rebuild_topjets_from_subjets(Event & event) {
 }
 
 
-bool AK8Corrections::process(Event & event) {
+bool TopJetCorrections::process(Event & event) {
 
   if(!init_done) {
-    throw runtime_error("AK8Corrections::init() not called!");
+    throw runtime_error("TopJetCorrections::init() not called!");
   }
 
   if(correct_topjets) {

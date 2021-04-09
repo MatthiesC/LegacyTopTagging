@@ -10,7 +10,7 @@
 #include "UHH2/common/include/NSelections.h"
 #include "UHH2/common/include/Utils.h"
 
-#include "UHH2/LegacyTopTagging/include/AK8Corrections.h"
+#include "UHH2/LegacyTopTagging/include/TopJetCorrections.h"
 #include "UHH2/LegacyTopTagging/include/Utils.h"
 
 using namespace std;
@@ -31,7 +31,7 @@ private:
 
   unique_ptr<AnalysisModule> sf_lumi;
   unique_ptr<AnalysisModule> sf_pileup;
-  unique_ptr<AK8Corrections> ak8_corrections;
+  unique_ptr<TopJetCorrections> ak8_corrections;
   unique_ptr<AnalysisModule> ak8_cleaner;
   unique_ptr<Selection> slct_1ak8;
 
@@ -85,7 +85,7 @@ WorkingPointModule::WorkingPointModule(Context & ctx) {
 
   sf_lumi.reset(new MCLumiWeight(ctx));
   sf_pileup.reset(new MCPileupReweight(ctx));
-  ak8_corrections.reset(new AK8Corrections());
+  ak8_corrections.reset(new TopJetCorrections());
   ak8_corrections->init(ctx);
   TopJetId ak8_id = PtEtaCut(300, 2.4);
   ak8_cleaner.reset(new TopJetCleaner(ctx, ak8_id));
