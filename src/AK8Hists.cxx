@@ -13,9 +13,9 @@ using namespace ltt;
 
 namespace uhh2 { namespace ltt {
 
-AK8Hists::AK8Hists(Context & ctx, const string & dirname, const string & ak8_coll_rec): Hists(ctx, dirname) {
+AK8Hists::AK8Hists(Context & ctx, const string & dirname, const string & coll_rec): Hists(ctx, dirname) {
 
-    h_ak8_coll_rec = ctx.get_handle<vector<TopJet>>(ak8_coll_rec);
+    h_ak8jets = ctx.get_handle<vector<TopJet>>(coll_rec.empty() ? "topjets" : coll_rec);
 
     hist_number = book<TH1F>("number", "Number of AK8 jets", 11, -0.5, 10.5);
 
@@ -59,23 +59,23 @@ void AK8Hists::fill(const Event & event) {
 
     const double w = event.weight;
 
-    vector<TopJet> ak8jets = event.get(h_ak8_coll_rec);
+    vector<TopJet> ak8jets = event.get(h_ak8jets);
     sort_by_pt(ak8jets);
 
     hist_number->Fill(ak8jets.size(), w);
 
-    for(unsigned int i = 0; i < ak8jets.size(); i++) {
-        hist_ak8jets_pt->Fill(ak8jets.at(i).v4().Pt(), w);
-        hist_ak8jets_ptlog->Fill(log10(ak8jets.at(i).v4().Pt()), w);
-        hist_ak8jets_eta->Fill(ak8jets.at(i).v4().Eta(), w);
-        hist_ak8jets_phi->Fill(ak8jets.at(i).v4().Phi(), w);
-        hist_ak8jets_mass->Fill(ak8jets.at(i).v4().M(), w);
-        hist_ak8jets_mSD->Fill(mSD(ak8jets.at(i)), w);
-        hist_ak8jets_tau32->Fill(tau32(ak8jets.at(i)), w);
-        hist_ak8jets_maxDeepCSV->Fill(maxDeepCSVSubJetValue(ak8jets.at(i)), w);
+    for(const TopJet & ak8jet : ak8jets) {
+        hist_ak8jets_pt->Fill(ak8jet.v4().Pt(), w);
+        hist_ak8jets_ptlog->Fill(log10(ak8jet.v4().Pt()), w);
+        hist_ak8jets_eta->Fill(ak8jet.v4().Eta(), w);
+        hist_ak8jets_phi->Fill(ak8jet.v4().Phi(), w);
+        hist_ak8jets_mass->Fill(ak8jet.v4().M(), w);
+        hist_ak8jets_mSD->Fill(mSD(ak8jet), w);
+        hist_ak8jets_tau32->Fill(tau32(ak8jet), w);
+        hist_ak8jets_maxDeepCSV->Fill(maxDeepCSVSubJetValue(ak8jet), w);
 
-        hist_subjets_number->Fill(ak8jets.at(i).subjets().size(), w);
-        for(const auto & subjet : ak8jets.at(i).subjets()) {
+        hist_subjets_number->Fill(ak8jet.subjets().size(), w);
+        for(const auto & subjet : ak8jet.subjets()) {
           hist_subjets_pt->Fill(subjet.v4().Pt(), w);
           hist_subjets_eta->Fill(subjet.v4().Eta(), w);
           hist_subjets_phi->Fill(subjet.v4().Phi(), w);

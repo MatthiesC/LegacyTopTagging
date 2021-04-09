@@ -8,7 +8,7 @@ namespace uhh2 { namespace ltt {
 
 class AK8Hists: public uhh2::Hists {
 public:
-    AK8Hists(uhh2::Context & ctx, const std::string & dirname, const std::string & ak8_coll_rec="topjets");
+    AK8Hists(uhh2::Context & ctx, const std::string & dirname, const std::string & coll_rec = "");
 
     virtual void fill(const uhh2::Event & event) override;
 
@@ -50,7 +50,7 @@ protected:
     TH1F *hist_ak8jet2_maxDeepCSV;
 
 private:
-    uhh2::Event::Handle<std::vector<TopJet>> h_ak8_coll_rec;
+    uhh2::Event::Handle<std::vector<TopJet>> h_ak8jets;
 };
 
 }}
