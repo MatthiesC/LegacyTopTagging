@@ -7,10 +7,6 @@ using namespace ltt;
 
 namespace uhh2 { namespace ltt {
 
-/*
-* AK8 CORRECTIONS SETUP
-*/
-
 TopJetCorrections::TopJetCorrections(const string & coll_rec, const string & coll_gen) {
 
   cout << "Hello World from TopJetCorrections!" << endl;
@@ -301,35 +297,22 @@ bool TopJetCorrections::process(Event & event) {
 }
 
 
-/*
-* AK8 CLEANING
-*/
-
-AK8Cleaning::AK8Cleaning(Context & ctx, const double minPt, const double maxEta, const double minDR, const string & coll_rec, const string & h_primlep_name) {
-
-  _minPt = minPt;
-  _maxEta = maxEta;
-  _minDR = minDR;
-  h_ak8jets_rec = ctx.get_handle<vector<TopJet>>(coll_rec.empty() ? "topjets" : coll_rec);
-  h_primlep = ctx.get_handle<FlavorParticle>(h_primlep_name);
-}
+TopJetCleaning::TopJetCleaning(Context & ctx, const double _pt_min, const double _eta_max, const double _dr_min, const string & coll_rec):
+  pt_min(_pt_min), eta_max(_eta_max), dr_min(_dr_min), h_primlep(ctx.get_handle<FlavorParticle>("PrimaryLepton")), h_topjets(ctx.get_handle<vector<TopJet>>(coll_rec.empty() ? "topjets" : coll_rec)) {}
 
 
-bool AK8Cleaning::process(Event & event) {
+bool TopJetCleaning::process(Event & event) {
 
-  vector<TopJet> initial_topjets = event.get(h_ak8jets_rec);
+  const FlavorParticle & primlep = event.get(h_primlep);
+  vector<TopJet> initial_topjets = event.get(h_topjets);
   vector<TopJet> cleaned_topjets;
-  const auto & primlep = event.get(h_primlep);
-
-  for(const auto & tjet : initial_topjets) {
-    if(deltaR(tjet, primlep) < _minDR) continue;
-    if(abs(tjet.v4().eta()) > _maxEta) continue;
-    if(tjet.v4().pt() < _minPt) continue;
-    cleaned_topjets.push_back(tjet);
+  for(const auto & topjet : initial_topjets) {
+    if(deltaR(topjet, primlep) < dr_min) continue;
+    if(abs(topjet.v4().eta()) > eta_max) continue;
+    if(topjet.v4().pt() < pt_min) continue;
+    cleaned_topjets.push_back(topjet);
   }
-  if(jet_pt_sorter) sort_by_pt<TopJet>(cleaned_topjets);
-
-  event.set(h_ak8jets_rec, cleaned_topjets);
+  event.set(h_topjets, cleaned_topjets);
 
   return true;
 }

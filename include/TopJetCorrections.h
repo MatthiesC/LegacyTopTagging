@@ -12,7 +12,7 @@ namespace uhh2 { namespace ltt {
 
 class TopJetCorrections: public uhh2::AnalysisModule {
 public:
-  TopJetCorrections(const std::string & coll_rec="", const std::string & coll_gen="");
+  TopJetCorrections(const std::string & coll_rec = "", const std::string & coll_gen = "");
   virtual bool process(uhh2::Event & event) override;
   void init(uhh2::Context & ctx);
   void disable_topjet_corrections() { fail_if_init_done(); correct_topjets = false; }
@@ -63,20 +63,18 @@ private:
 };
 
 
-class AK8Cleaning : public uhh2::AnalysisModule {
+class TopJetCleaning : public uhh2::AnalysisModule {
  public:
-  AK8Cleaning(uhh2::Context & ctx, const double minPt, const double maxEta, const double minDR = 0.8, const std::string & coll_rec="", const std::string & h_name_primlep = "PrimaryLepton");
-  virtual bool process(uhh2::Event&) override;
-  void switch_jet_pt_sorter(const bool b=true) { jet_pt_sorter=b; };
+  TopJetCleaning(uhh2::Context & ctx, const double pt_min, const double eta_max, const double dr_min, const std::string & coll_rec = "");
+  virtual bool process(uhh2::Event & event) override;
 
  private:
-  double _minPt;
-  double _maxEta;
-  double _minDR;
-  bool jet_pt_sorter = true;
+  double pt_min;
+  double eta_max;
+  double dr_min;
 
   uhh2::Event::Handle<FlavorParticle> h_primlep;
-  uhh2::Event::Handle<std::vector<TopJet>> h_ak8jets_rec;
+  uhh2::Event::Handle<std::vector<TopJet>> h_topjets;
 };
 
 }}
