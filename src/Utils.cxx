@@ -53,4 +53,32 @@ const TopJet * nextTopJet(const Particle & p, const vector<TopJet> & topjets) {
   return closestParticle(p, topjets);
 }
 
+METSelection::METSelection(const double _met_min, const double _met_max): met_min(_met_min), met_max(_met_max) {}
+
+bool METSelection::passes(const Event & event) {
+  bool passed_lower_limit = event.met->v4().Pt() > met_min;
+  bool passed_upper_limit = event.met->v4().Pt() < met_max;
+  return passed_lower_limit && passed_upper_limit;
+}
+
+PTWSelection::PTWSelection(Context & ctx, const double _ptw_min, const double _ptw_max): ptw_min(_ptw_min), ptw_max(_ptw_max), h_primlep(ctx.get_handle<FlavorParticle>("PrimaryLepton")) {}
+
+bool PTWSelection::passes(const Event & event) {
+  const FlavorParticle & primlep = event.get(h_primlep);
+  LorentzVector v4 = event.met->v4() + primlep.v4();
+  bool passed_lower_limit = v4.Pt() > ptw_min;
+  bool passed_upper_limit = v4.Pt() < ptw_max;
+  return passed_lower_limit && passed_upper_limit;
+}
+
+TwoDSelection::TwoDSelection(Context & ctx, const double _ptrel_min, const double _dr_min): ptrel_min(_ptrel_min), dr_min(_dr_min), h_primlep(ctx.get_handle<FlavorParticle>("PrimaryLepton")) {}
+
+bool TwoDSelection::passes(const Event & event) {
+  const FlavorParticle & primlep = event.get(h_primlep);
+  const Jet *nextjet = nextJet(primlep, *event.jets);
+  bool passed_ptrel_cut = pTrel(primlep, nextjet) > ptrel_min;
+  bool passed_dr_cut = deltaR(primlep.v4(), nextjet->v4()) > dr_min;
+  return passed_ptrel_cut || passed_dr_cut;
+}
+
 }}
