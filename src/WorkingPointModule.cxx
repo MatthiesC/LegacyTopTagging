@@ -15,6 +15,7 @@
 
 using namespace std;
 using namespace uhh2;
+using namespace ltt;
 
 
 namespace uhh2 { namespace ltt {
