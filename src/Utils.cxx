@@ -33,9 +33,12 @@ double maxDeepCSVSubJetValue(const TopJet & topjet) {
   return min(result, 0.99999);
 }
 
-double HOTVR_mpair(const TopJet & topjet) {
+double HOTVR_mpair(const TopJet & topjet, const bool safe) {
   vector<Jet> subjets = topjet.subjets();
-  if(subjets.size() < 3) throw runtime_error("HOTVR jet has less than 3 subjets, cannot calculate minimum pairwise mass.");
+  if(subjets.size() < 3) {
+    if(safe) throw runtime_error("HOTVR jet has less than 3 subjets, cannot calculate minimum pairwise mass.");
+    else return -1.;
+  }
   sort_by_pt(subjets);
   double m01 = (subjets.at(0).v4() + subjets.at(1).v4()).M();
   double m02 = (subjets.at(0).v4() + subjets.at(2).v4()).M();

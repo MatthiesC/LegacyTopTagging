@@ -21,7 +21,7 @@ double mSD(const TopJet & topjet);
 
 double maxDeepCSVSubJetValue(const TopJet & topjet);
 
-double HOTVR_mpair(const TopJet & topjet);
+double HOTVR_mpair(const TopJet & topjet, const bool safe = true);
 
 double HOTVR_fpt(const TopJet & topjet, const unsigned int subjet_i = 0);
 
