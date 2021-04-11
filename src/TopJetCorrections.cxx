@@ -254,7 +254,7 @@ void TopJetCorrections::rebuild_topjets_from_subjets(Event & event) {
     for(const auto & subjet : topjet.subjets()) {
       v4 += subjet.v4();
     }
-    double jec_factor_raw = topjet.v4().Pt() / v4.Pt();
+    double jec_factor_raw = topjet.v4().pt() * topjet.JEC_factor_raw() / v4.pt();
     topjet.set_JEC_factor_raw(jec_factor_raw);
     topjet.set_v4(v4);
   }
@@ -303,7 +303,9 @@ TopJetCleaning::TopJetCleaning(Context & ctx, const double _pt_min, const double
 
 bool TopJetCleaning::process(Event & event) {
 
+  if(!event.is_valid(h_primlep)) throw runtime_error("TopJetCleaning::process(): You need to set the PrimaryLepton handle first");
   const FlavorParticle & primlep = event.get(h_primlep);
+  if(!event.is_valid(h_topjets)) throw runtime_error("TopJetCleaning::process(): Handle for topjets is not valid");
   vector<TopJet> initial_topjets = event.get(h_topjets);
   vector<TopJet> cleaned_topjets;
   for(const auto & topjet : initial_topjets) {

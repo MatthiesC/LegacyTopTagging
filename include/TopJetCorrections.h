@@ -15,9 +15,9 @@ public:
   TopJetCorrections(const std::string & coll_rec = "", const std::string & coll_gen = "");
   virtual bool process(uhh2::Event & event) override;
   void init(uhh2::Context & ctx);
-  void disable_topjet_corrections() { fail_if_init_done(); correct_topjets = false; }
-  void disable_subjet_corrections() { fail_if_init_done(); correct_subjets = false; }
-  void enable_rebuilding_topjets_from_subjets() { fail_if_init_done(); do_rebuild_topjets_from_subjets = true; }
+  void switch_topjet_corrections(const bool b = true) { fail_if_init_done(); correct_topjets = b; }
+  void switch_subjet_corrections(const bool b = true) { fail_if_init_done(); correct_subjets = b; }
+  void switch_rebuilding_topjets_from_subjets(const bool b = true) { fail_if_init_done(); do_rebuild_topjets_from_subjets = b; }
 
 private:
   void set_subjet_handles(uhh2::Event & event);
