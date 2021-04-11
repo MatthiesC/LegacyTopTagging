@@ -16,7 +16,7 @@ protected:
   TH1F *hist_number;
 
   TH1F *hist_hotvrjets_pt;
-  TH1F *hist_hotvrjets_ptlog;
+  TH1F *hist_hotvrjets_drlepton;
   TH1F *hist_hotvrjets_eta;
   TH1F *hist_hotvrjets_phi;
   TH1F *hist_hotvrjets_mass;
@@ -32,7 +32,7 @@ protected:
   TH1F *hist_subjets_fpt;
 
   TH1F *hist_hotvrjet1_pt;
-  TH1F *hist_hotvrjet1_ptlog;
+  TH1F *hist_hotvrjet1_drlepton;
   TH1F *hist_hotvrjet1_eta;
   TH1F *hist_hotvrjet1_phi;
   TH1F *hist_hotvrjet1_mass;
@@ -41,7 +41,7 @@ protected:
   TH1F *hist_hotvrjet1_fpt1;
 
   TH1F *hist_hotvrjet2_pt;
-  TH1F *hist_hotvrjet2_ptlog;
+  TH1F *hist_hotvrjet2_drlepton;
   TH1F *hist_hotvrjet2_eta;
   TH1F *hist_hotvrjet2_phi;
   TH1F *hist_hotvrjet2_mass;
@@ -51,6 +51,7 @@ protected:
 
 private:
   uhh2::Event::Handle<std::vector<TopJet>> h_hotvrjets;
+  uhh2::Event::Handle<FlavorParticle> h_primlep;
 };
 
 }}

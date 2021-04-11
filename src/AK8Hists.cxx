@@ -16,11 +16,12 @@ namespace uhh2 { namespace ltt {
 AK8Hists::AK8Hists(Context & ctx, const string & dirname, const string & coll_rec): Hists(ctx, dirname) {
 
   h_ak8jets = ctx.get_handle<vector<TopJet>>(coll_rec.empty() ? "topjets" : coll_rec);
+  h_primlep = ctx.get_handle<FlavorParticle>("PrimaryLepton");
 
   hist_number = book<TH1F>("number", "Number of AK8 jets", 11, -0.5, 10.5);
 
   hist_ak8jets_pt = book<TH1F>("ak8jets_pt", "AK8 jets: #it{p}_{T} [GeV]", 1000, 0, 1000);
-  hist_ak8jets_ptlog = book<TH1F>("ak8jets_ptlog", "AK8 jets: log_{10}(#it{p}_{T} [GeV])", 1000, 0, 4);
+  hist_ak8jets_drlepton = book<TH1F>("ak8jets_drlepton", "AK8 jets: #Delta#it{R}(AK8 jet, lepton)", 1000, 0, 5);
   hist_ak8jets_eta = book<TH1F>("ak8jets_eta", "AK8 jets: #eta", 1000, -5.0, 5.0);
   hist_ak8jets_phi = book<TH1F>("ak8jets_phi", "AK8 jets: #phi [rad]", 1000, -M_PI, M_PI);
   hist_ak8jets_mass = book<TH1F>("ak8jets_mass", "AK8 jets: #it{m}_{jet} [GeV]", 1000, 0, 500);
@@ -36,7 +37,7 @@ AK8Hists::AK8Hists(Context & ctx, const string & dirname, const string & coll_re
   hist_subjets_deepCSV = book<TH1F>("subjets_deepCSV", "AK8 subjets: #it{O}_{DeepCSV}^{prob(b)+prob(bb)}", 1000, 0, 1);
 
   hist_ak8jet1_pt = book<TH1F>("ak8jet1_pt", "Leading AK8 jet: #it{p}_{T} [GeV]", 1000, 0, 1000);
-  hist_ak8jet1_ptlog = book<TH1F>("ak8jet1_ptlog", "Leading AK8 jet: log_{10}(#it{p}_{T} [GeV])", 1000, 0, 4);
+  hist_ak8jet1_drlepton = book<TH1F>("ak8jet1_drlepton", "Leading AK8 jet: #Delta#it{R}(AK8 jet, lepton)", 1000, 0, 5);
   hist_ak8jet1_eta = book<TH1F>("ak8jet1_eta", "Leading AK8 jet: #eta", 1000, -5.0, 5.0);
   hist_ak8jet1_phi = book<TH1F>("ak8jet1_phi", "Leading AK8 jet: #phi [rad]", 1000, -M_PI, M_PI);
   hist_ak8jet1_mass = book<TH1F>("ak8jet1_mass", "Leading AK8 jet: #it{m}_{jet} [GeV]", 1000, 0, 500);
@@ -45,7 +46,7 @@ AK8Hists::AK8Hists(Context & ctx, const string & dirname, const string & coll_re
   hist_ak8jet1_maxDeepCSV = book<TH1F>("ak8jet1_maxDeepCSV", "Leading AK8 jet: max. #it{O}_{DeepCSV}^{prob(b)+prob(bb)} of subjets", 1000, 0, 1);
 
   hist_ak8jet2_pt = book<TH1F>("ak8jet2_pt", "Subleading AK8 jet: #it{p}_{T} [GeV]", 1000, 0, 1000);
-  hist_ak8jet2_ptlog = book<TH1F>("ak8jet2_ptlog", "Subleading AK8 jet: log_{10}(#it{p}_{T} [GeV])", 1000, 0, 4);
+  hist_ak8jet2_drlepton = book<TH1F>("ak8jet2_drlepton", "Subleading AK8 jet: #Delta#it{R}(AK8 jet, lepton)", 1000, 0, 5);
   hist_ak8jet2_eta = book<TH1F>("ak8jet2_eta", "Subleading AK8 jet: #eta", 1000, -5.0, 5.0);
   hist_ak8jet2_phi = book<TH1F>("ak8jet2_phi", "Subleading AK8 jet: #phi [rad]", 1000, -M_PI, M_PI);
   hist_ak8jet2_mass = book<TH1F>("ak8jet2_mass", "Subleading AK8 jet: #it{m}_{jet} [GeV]", 1000, 0, 500);
@@ -58,6 +59,12 @@ AK8Hists::AK8Hists(Context & ctx, const string & dirname, const string & coll_re
 void AK8Hists::fill(const Event & event) {
 
   const double w = event.weight;
+  FlavorParticle primlep = FlavorParticle();
+  bool valid_primlep(false);
+  if(event.is_valid(h_primlep)) {
+    primlep = event.get(h_primlep);
+    valid_primlep = true;
+  }
 
   vector<TopJet> ak8jets = event.get(h_ak8jets);
   sort_by_pt(ak8jets);
@@ -66,7 +73,7 @@ void AK8Hists::fill(const Event & event) {
 
   for(const TopJet & ak8jet : ak8jets) {
     hist_ak8jets_pt->Fill(ak8jet.v4().Pt(), w);
-    hist_ak8jets_ptlog->Fill(log10(ak8jet.v4().Pt()), w);
+    if(valid_primlep) hist_ak8jets_drlepton->Fill(deltaR(ak8jet.v4(), primlep.v4()), w);
     hist_ak8jets_eta->Fill(ak8jet.v4().Eta(), w);
     hist_ak8jets_phi->Fill(ak8jet.v4().Phi(), w);
     hist_ak8jets_mass->Fill(ak8jet.v4().M(), w);
@@ -86,7 +93,7 @@ void AK8Hists::fill(const Event & event) {
 
   if(ak8jets.size() >= 1) {
     hist_ak8jet1_pt->Fill(ak8jets.at(0).v4().Pt(), w);
-    hist_ak8jet1_ptlog->Fill(log10(ak8jets.at(0).v4().Pt()), w);
+    if(valid_primlep) hist_ak8jet1_drlepton->Fill(deltaR(ak8jets.at(0).v4(), primlep.v4()), w);
     hist_ak8jet1_eta->Fill(ak8jets.at(0).v4().Eta(), w);
     hist_ak8jet1_phi->Fill(ak8jets.at(0).v4().Phi(), w);
     hist_ak8jet1_mass->Fill(ak8jets.at(0).v4().M(), w);
@@ -97,7 +104,7 @@ void AK8Hists::fill(const Event & event) {
 
   if(ak8jets.size() >= 2) {
     hist_ak8jet2_pt->Fill(ak8jets.at(1).v4().Pt(), w);
-    hist_ak8jet2_ptlog->Fill(log10(ak8jets.at(1).v4().Pt()), w);
+    if(valid_primlep) hist_ak8jet2_drlepton->Fill(deltaR(ak8jets.at(1).v4(), primlep.v4()), w);
     hist_ak8jet2_eta->Fill(ak8jets.at(1).v4().Eta(), w);
     hist_ak8jet2_phi->Fill(ak8jets.at(1).v4().Phi(), w);
     hist_ak8jet2_mass->Fill(ak8jets.at(1).v4().M(), w);

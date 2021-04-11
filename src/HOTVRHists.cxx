@@ -16,11 +16,12 @@ namespace uhh2 { namespace ltt {
 HOTVRHists::HOTVRHists(Context & ctx, const string & dirname, const string & coll_rec): Hists(ctx, dirname) {
 
   h_hotvrjets = ctx.get_handle<vector<TopJet>>(coll_rec.empty() ? "topjets" : coll_rec);
+  h_primlep = ctx.get_handle<FlavorParticle>("PrimaryLepton");
 
   hist_number = book<TH1F>("number", "Number of HOTVR jets", 11, -0.5, 10.5);
 
   hist_hotvrjets_pt = book<TH1F>("hotvrjets_pt", "HOTVR jets: #it{p}_{T} [GeV]", 1000, 0, 1000);
-  hist_hotvrjets_ptlog = book<TH1F>("hotvrjets_ptlog", "HOTVR jets: log_{10}(#it{p}_{T} [GeV])", 1000, 0, 4);
+  hist_hotvrjets_drlepton = book<TH1F>("hotvrjets_drlepton", "HOTVR jets: #Delta#it{R}(HOTVR jet, lepton)", 1000, 0, 5);
   hist_hotvrjets_eta = book<TH1F>("hotvrjets_eta", "HOTVR jets: #eta", 1000, -5.0, 5.0);
   hist_hotvrjets_phi = book<TH1F>("hotvrjets_phi", "HOTVR jets: #phi [rad]", 1000, -M_PI, M_PI);
   hist_hotvrjets_mass = book<TH1F>("hotvrjets_mass", "HOTVR jets: #it{m}_{jet} [GeV]", 1000, 0, 500);
@@ -36,7 +37,7 @@ HOTVRHists::HOTVRHists(Context & ctx, const string & dirname, const string & col
   hist_subjets_fpt = book<TH1F>("subjets_fpt", "HOTVR subjets: #it{p}_{T} fraction", 1000, 0, 1);
 
   hist_hotvrjet1_pt = book<TH1F>("hotvrjet1_pt", "Leading HOTVR jet: #it{p}_{T} [GeV]", 1000, 0, 1000);
-  hist_hotvrjet1_ptlog = book<TH1F>("hotvrjet1_ptlog", "Leading HOTVR jet: log_{10}(#it{p}_{T} [GeV])", 1000, 0, 4);
+  hist_hotvrjet1_drlepton = book<TH1F>("hotvrjet1_drlepton", "Leading HOTVR jet: #Delta#it{R}(HOTVR jet, lepton)", 1000, 0, 5);
   hist_hotvrjet1_eta = book<TH1F>("hotvrjet1_eta", "Leading HOTVR jet: #eta", 1000, -5.0, 5.0);
   hist_hotvrjet1_phi = book<TH1F>("hotvrjet1_phi", "Leading HOTVR jet: #phi [rad]", 1000, -M_PI, M_PI);
   hist_hotvrjet1_mass = book<TH1F>("hotvrjet1_mass", "Leading HOTVR jet: #it{m}_{jet} [GeV]", 1000, 0, 500);
@@ -45,7 +46,7 @@ HOTVRHists::HOTVRHists(Context & ctx, const string & dirname, const string & col
   hist_hotvrjet1_fpt1 = book<TH1F>("hotvrjet1_fpt1", "Leading HOTVR jet: #it{p}_{T} fraction of leading subjet", 1000, 0, 1);
 
   hist_hotvrjet2_pt = book<TH1F>("hotvrjet2_pt", "Subleading HOTVR jet: #it{p}_{T} [GeV]", 1000, 0, 1000);
-  hist_hotvrjet2_ptlog = book<TH1F>("hotvrjet2_ptlog", "Subleading HOTVR jet: log_{10}(#it{p}_{T} [GeV])", 1000, 0, 4);
+  hist_hotvrjet2_drlepton = book<TH1F>("hotvrjet2_drlepton", "Subleading HOTVR jet: #Delta#it{R}(HOTVR jet, lepton)", 1000, 0, 5);
   hist_hotvrjet2_eta = book<TH1F>("hotvrjet2_eta", "Subleading HOTVR jet: #eta", 1000, -5.0, 5.0);
   hist_hotvrjet2_phi = book<TH1F>("hotvrjet2_phi", "Subleading HOTVR jet: #phi [rad]", 1000, -M_PI, M_PI);
   hist_hotvrjet2_mass = book<TH1F>("hotvrjet2_mass", "Subleading HOTVR jet: #it{m}_{jet} [GeV]", 1000, 0, 500);
@@ -58,6 +59,12 @@ HOTVRHists::HOTVRHists(Context & ctx, const string & dirname, const string & col
 void HOTVRHists::fill(const Event & event) {
 
   const double w = event.weight;
+  FlavorParticle primlep = FlavorParticle();
+  bool valid_primlep(false);
+  if(event.is_valid(h_primlep)) {
+    primlep = event.get(h_primlep);
+    valid_primlep = true;
+  }
 
   vector<TopJet> hotvrjets = event.get(h_hotvrjets);
   sort_by_pt(hotvrjets);
@@ -66,7 +73,7 @@ void HOTVRHists::fill(const Event & event) {
 
   for(const TopJet & hotvrjet : hotvrjets) {
     hist_hotvrjets_pt->Fill(hotvrjet.v4().Pt(), w);
-    hist_hotvrjets_ptlog->Fill(log10(hotvrjet.v4().Pt()), w);
+    if(valid_primlep) hist_hotvrjets_drlepton->Fill(deltaR(hotvrjet.v4(), primlep.v4()), w);
     hist_hotvrjets_eta->Fill(hotvrjet.v4().Eta(), w);
     hist_hotvrjets_phi->Fill(hotvrjet.v4().Phi(), w);
     hist_hotvrjets_mass->Fill(hotvrjet.v4().M(), w);
@@ -86,7 +93,7 @@ void HOTVRHists::fill(const Event & event) {
 
   if(hotvrjets.size() >= 1) {
     hist_hotvrjet1_pt->Fill(hotvrjets.at(0).v4().Pt(), w);
-    hist_hotvrjet1_ptlog->Fill(log10(hotvrjets.at(0).v4().Pt()), w);
+    if(valid_primlep) hist_hotvrjet1_drlepton->Fill(deltaR(hotvrjets.at(0).v4(), primlep.v4()), w);
     hist_hotvrjet1_eta->Fill(hotvrjets.at(0).v4().Eta(), w);
     hist_hotvrjet1_phi->Fill(hotvrjets.at(0).v4().Phi(), w);
     hist_hotvrjet1_mass->Fill(hotvrjets.at(0).v4().M(), w);
@@ -97,7 +104,7 @@ void HOTVRHists::fill(const Event & event) {
 
   if(hotvrjets.size() >= 2) {
     hist_hotvrjet2_pt->Fill(hotvrjets.at(1).v4().Pt(), w);
-    hist_hotvrjet2_ptlog->Fill(log10(hotvrjets.at(1).v4().Pt()), w);
+    if(valid_primlep) hist_hotvrjet2_drlepton->Fill(deltaR(hotvrjets.at(1).v4(), primlep.v4()), w);
     hist_hotvrjet2_eta->Fill(hotvrjets.at(1).v4().Eta(), w);
     hist_hotvrjet2_phi->Fill(hotvrjets.at(1).v4().Phi(), w);
     hist_hotvrjet2_mass->Fill(hotvrjets.at(1).v4().M(), w);
