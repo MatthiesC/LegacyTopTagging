@@ -12,6 +12,7 @@
 
 #include "UHH2/LegacyTopTagging/include/TopJetCorrections.h"
 #include "UHH2/LegacyTopTagging/include/Utils.h"
+#include "UHH2/LegacyTopTagging/include/AK8Hists.h"
 
 using namespace std;
 using namespace uhh2;
@@ -35,6 +36,11 @@ private:
   unique_ptr<TopJetCorrections> ak8_corrections;
   unique_ptr<AnalysisModule> ak8_cleaner;
   unique_ptr<Selection> slct_1ak8;
+
+  unique_ptr<Hists> hists_before_corrections;
+  unique_ptr<Hists> hists_after_corrections;
+  unique_ptr<Hists> hists_after_cleaning;
+  unique_ptr<Hists> hists_after_selection;
 
   Event::Handle<float> event_weight;
 
@@ -127,6 +133,11 @@ WorkingPointModule::WorkingPointModule(Context & ctx) {
     jets_subjets_deepcsv_max = ctx.declare_event_output<vector<float>>("jets_subjets_deepcsv_max");
     jets_tau32 = ctx.declare_event_output<vector<float>>("jets_tau32");
   }
+
+  hists_before_corrections.reset(new AK8Hists(ctx, "AK8Hists_0_before_corrections"));
+  hists_after_corrections.reset(new AK8Hists(ctx, "AK8Hists_1_after_corrections"));
+  hists_after_cleaning.reset(new AK8Hists(ctx, "AK8Hists_2_after_cleaning"));
+  hists_after_selection.reset(new AK8Hists(ctx, "AK8Hists_3_after_selection"));
 }
 
 
@@ -141,9 +152,13 @@ bool WorkingPointModule::process(Event & event) {
 
   sf_lumi->process(event);
   sf_pileup->process(event);
+  hists_before_corrections->fill(event);
   ak8_corrections->process(event);
+  hists_after_corrections->fill(event);
   ak8_cleaner->process(event);
+  hists_after_cleaning->fill(event);
   if(!slct_1ak8->passes(event)) return false;
+  hists_after_selection->fill(event);
   sort_by_pt(*event.topjets);
   const vector<TopJet> & topjets = *event.topjets;
 
