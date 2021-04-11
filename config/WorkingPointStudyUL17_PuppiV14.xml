@@ -3,7 +3,7 @@
 <!DOCTYPE JobConfiguration PUBLIC "" "JobConfig.dtd"[
 
 <!ENTITY TargetLumi "41528.99">
-<!ENTITY OUTPUTdir "/nfs/dust/cms/user/matthies/LegacyTopTagging/WorkingPointStudy/UL17/">
+<!ENTITY OUTPUTdir "/nfs/dust/cms/user/matthies/LegacyTopTagging/WorkingPointStudy/UL17_PuppiV14/">
 <!ENTITY b_Cacheable "False">
 <!ENTITY YEARsuffix "_UL17">
 <!ENTITY PROOFdir "/nfs/dust/cms/user/matthies/.proof2">
@@ -24,7 +24,7 @@
 
 <!--
 <ConfigParse NEventsBreak="0" FileSplit="50" AutoResubmit="5"/>
-<ConfigSGE RAM="4" DISK="3" Mail="matthies@mail.desy.de" Notification="as" Workdir="workdir_WorkingPointStudyUL17"/>
+<ConfigSGE RAM="4" DISK="3" Mail="matthies@mail.desy.de" Notification="as" Workdir="workdir_WorkingPointStudyUL17_PuppiV14"/>
 -->
 
 <!-- OutputLevel controls which messages are printed; set to VERBOSE or DEBUG for more verbosity, to WARNING or ERROR for less -->
