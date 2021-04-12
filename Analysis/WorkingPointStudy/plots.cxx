@@ -88,8 +88,8 @@ WorkingPoint init_working_point(float eff, const TGraph * graph_eff_qcd, const T
 }
 
 
-vector<WorkingPoint> calculate_working_points(const PtBin & pt_bin, const vector<float> & target_effs_qcd, const bool print=false) {
-  string infileBasePath = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/UL17/workdir_npy/"+pt_bin.name+"/";
+vector<WorkingPoint> calculate_working_points(const string & year, const PtBin & pt_bin, const vector<float> & target_effs_qcd, const bool print=false) {
+  string infileBasePath = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/"+year+"/workdir_npy/"+pt_bin.name+"/";
   string infileName = "root_"+pt_bin.name+".root";
   string infilePath = infileBasePath+infileName;
 
@@ -116,8 +116,8 @@ vector<WorkingPoint> calculate_working_points(const PtBin & pt_bin, const vector
 }
 
 
-vector<WorkingPoint> get_reference_working_points(const PtBin & pt_bin, const vector<WorkingPoint> & wps_reference, const bool print=false) {
-  string infileBasePath = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/UL17/workdir_npy/"+pt_bin.name+"/";
+vector<WorkingPoint> get_reference_working_points(const string & year, const PtBin & pt_bin, const vector<WorkingPoint> & wps_reference, const bool print=false) {
+  string infileBasePath = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/"+year+"/workdir_npy/"+pt_bin.name+"/";
   string infileName = "root_"+pt_bin.name+".root";
   string infilePath = infileBasePath+infileName;
 
@@ -167,13 +167,13 @@ TGraph * new_null_graph() {
 }
 
 
-void do_plot(const PtBin & pt_bin, const string & graph_base_name, const bool log_y, const vector<WorkingPoint> & wps_this_bin, const vector<WorkingPoint> & wps_this_bin_ref, const bool do_raw = true, const bool do_msd = true, const bool do_msd_btag = true) {
+void do_plot(const string & year, const PtBin & pt_bin, const string & graph_base_name, const bool log_y, const vector<WorkingPoint> & wps_this_bin, const vector<WorkingPoint> & wps_this_bin_ref, const bool do_raw = true, const bool do_msd = true, const bool do_msd_btag = true) {
   if(!(do_raw || do_msd || do_msd_btag)) cout << "Nothing to plot." << endl;
   bool is_eff_qcd = graph_base_name == "eff_qcd";
   bool is_eff_ttbar = graph_base_name == "eff_ttbar";
   bool is_roc = graph_base_name == "roc";
 
-  string infileBasePath = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/UL17/workdir_npy/"+pt_bin.name+"/";
+  string infileBasePath = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/"+year+"/workdir_npy/"+pt_bin.name+"/";
   string infileName = "root_"+pt_bin.name+".root";
   string infilePath = infileBasePath+infileName;
 
@@ -246,14 +246,15 @@ void do_plot(const PtBin & pt_bin, const string & graph_base_name, const bool lo
 
   legend->Draw();
 
-  TText *text_top_left = new TText(margin_l, 1-(margin_t-0.01), "AK8 PUPPI(v14)");
+  TText *text_top_left = new TText(margin_l, 1-(margin_t-0.01), "AK8 PUPPI(v15)");
   text_top_left->SetTextAlign(11); // left bottom aligned
   text_top_left->SetTextFont(42);
   text_top_left->SetTextSize(0.035);
   text_top_left->SetNDC();
   text_top_left->Draw();
 
-  TText *text_top_right = new TText(1-margin_r, 1-(margin_t-0.01), "UL17 (CMSSW 10.6.X)");
+  string string_text_top_right = year + " (CMSSW 10.6.X)";
+  TText *text_top_right = new TText(1-margin_r, 1-(margin_t-0.01), string_text_top_right.c_str());
   text_top_right->SetTextAlign(31); // right bottom aligned
   text_top_right->SetTextFont(42);
   text_top_right->SetTextSize(0.035);
@@ -324,7 +325,7 @@ void do_plot(const PtBin & pt_bin, const string & graph_base_name, const bool lo
 }
 
 
-void do_summary_plot(const string & tag_type, const vector<PtBin> & pt_bins, const string & graph_base_name, const bool log_y, const vector<WorkingPoint> & wps_ref_pt480to600, const vector<WorkingPoint> & wps_dpnote_pt480to600) {
+void do_summary_plot(const string & year, const string & tag_type, const vector<PtBin> & pt_bins, const string & graph_base_name, const bool log_y, const vector<WorkingPoint> & wps_ref_pt480to600, const vector<WorkingPoint> & wps_dpnote_pt480to600) {
   bool is_eff_qcd = graph_base_name == "eff_qcd";
   bool is_eff_ttbar = graph_base_name == "eff_ttbar";
   bool is_roc = graph_base_name == "roc";
@@ -333,7 +334,7 @@ void do_summary_plot(const string & tag_type, const vector<PtBin> & pt_bins, con
   bool is_msd = tag_type == "msd";
   bool is_msd_btag = tag_type == "msd_btag";
 
-  string infileBaseBasePath = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/UL17/workdir_npy/";
+  string infileBaseBasePath = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/"+year+"/workdir_npy/";
   vector<TGraph*> graphs;
   for(auto pt_bin : pt_bins) {
     string infileBasePath = infileBaseBasePath+pt_bin.name+"/";
@@ -405,14 +406,15 @@ void do_summary_plot(const string & tag_type, const vector<PtBin> & pt_bins, con
 
   legend->Draw();
 
-  TText *text_top_left = new TText(margin_l, 1-(margin_t-0.01), "AK8 PUPPI(v14)");
+  TText *text_top_left = new TText(margin_l, 1-(margin_t-0.01), "AK8 PUPPI(v15)");
   text_top_left->SetTextAlign(11); // left bottom aligned
   text_top_left->SetTextFont(42);
   text_top_left->SetTextSize(0.035);
   text_top_left->SetNDC();
   text_top_left->Draw();
 
-  TText *text_top_right = new TText(1-margin_r, 1-(margin_t-0.01), "UL17 (CMSSW 10.6.X)");
+  string string_text_top_right = year + " (CMSSW 10.6.X)";
+  TText *text_top_right = new TText(1-margin_r, 1-(margin_t-0.01), string_text_top_right.c_str());
   text_top_right->SetTextAlign(31); // right bottom aligned
   text_top_right->SetTextFont(42);
   text_top_right->SetTextSize(0.035);
@@ -513,7 +515,7 @@ vector<WorkingPoint> init_DPnote_WPs() {
 }
 
 
-void plots() {
+void plots(const string & year) {
   vector<PtBin> pt_bins;
   // DO NOT CHANGE THE ORDER !!! .at(i) is used later here to refer to specific pt bins!
   pt_bins.push_back(PtBin{"Pt300to400", "300 < #it{p}_{T}^{jet} [GeV] < 400", kOrange-3, 1});
@@ -528,19 +530,20 @@ void plots() {
   const vector<string> graph_base_names = {"eff_qcd", "eff_ttbar", "roc"};
 
   // access here the target background efficiencies (the code is adaptive - you can freely change these values here and all WPs will correctly be recalculated)
-  const vector<float> working_point_mistag_rates = {0.001, 0.003, 0.01, 0.03, 0.1};
+  // const vector<float> working_point_mistag_rates = {0.001, 0.003, 0.01, 0.03, 0.1}; // old eB values used for the working points, see https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetTopTagging#Previous_working_points
+  const vector<float> working_point_mistag_rates = {0.001, 0.005, 0.01, 0.025, 0.05}; // new WPs synchronized with DeepAK8, see https://twiki.cern.ch/twiki/bin/viewauth/CMS/DeepAK8Tagging2018WPsSFs
   // for(int i = 0; i < pt_bins.size(); i++) cout << pt_bins.at(i).name << endl;
-  const vector<WorkingPoint> wps_reference = calculate_working_points(pt_bins.at(1), working_point_mistag_rates);
+  const vector<WorkingPoint> wps_reference = calculate_working_points(year, pt_bins.at(1), working_point_mistag_rates);
 
   for(const auto & pt_bin : pt_bins) {
     cout << "Working on " << pt_bin.name << endl;
-    const vector<WorkingPoint> wps_this_bin = calculate_working_points(pt_bin, working_point_mistag_rates);
-    const vector<WorkingPoint> wps_this_bin_ref = get_reference_working_points(pt_bin, wps_reference);
+    const vector<WorkingPoint> wps_this_bin = calculate_working_points(year, pt_bin, working_point_mistag_rates);
+    const vector<WorkingPoint> wps_this_bin_ref = get_reference_working_points(year, pt_bin, wps_reference);
     // print_latex_table(wps_this_bin);
     // print_latex_table(wps_this_bin_ref);
     for(const auto & graph_base_name : graph_base_names) {
-      do_plot(pt_bin, graph_base_name, true, wps_this_bin, wps_this_bin_ref);
-      do_plot(pt_bin, graph_base_name, false, wps_this_bin, wps_this_bin_ref);
+      do_plot(year, pt_bin, graph_base_name, true, wps_this_bin, wps_this_bin_ref);
+      do_plot(year, pt_bin, graph_base_name, false, wps_this_bin, wps_this_bin_ref);
     }
   }
 
@@ -551,15 +554,15 @@ void plots() {
   pt_bins_summary_plots.push_back(pt_bins.at(3));
   pt_bins_summary_plots.push_back(pt_bins.at(4));
   const vector<string> tag_types = {"raw", "msd", "msd_btag"};
-  const vector<WorkingPoint> wps_ref_pt480to600 = get_reference_working_points(pt_bins.at(3), wps_reference);
+  const vector<WorkingPoint> wps_ref_pt480to600 = get_reference_working_points(year, pt_bins.at(3), wps_reference);
   const vector<WorkingPoint> wps_dpnote_pt480to600 = init_DPnote_WPs();
   cout << "WPs for Pt480to600: this study (tau32cuts from reference bin) vs. CMS DP 2020-025" << endl;
   print_latex_table(wps_ref_pt480to600);
   print_latex_table(wps_dpnote_pt480to600);
   for(const auto & tag_type : tag_types) {
     for(const auto & graph_base_name : graph_base_names) {
-      do_summary_plot(tag_type, pt_bins_summary_plots, graph_base_name, true, wps_ref_pt480to600, wps_dpnote_pt480to600);
-      do_summary_plot(tag_type, pt_bins_summary_plots, graph_base_name, false, wps_ref_pt480to600, wps_dpnote_pt480to600);
+      do_summary_plot(year, tag_type, pt_bins_summary_plots, graph_base_name, true, wps_ref_pt480to600, wps_dpnote_pt480to600);
+      do_summary_plot(year, tag_type, pt_bins_summary_plots, graph_base_name, false, wps_ref_pt480to600, wps_dpnote_pt480to600);
     }
   }
 }

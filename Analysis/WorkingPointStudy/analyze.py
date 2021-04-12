@@ -1,8 +1,10 @@
 import os
+import sys
 import numpy as np
 from tqdm import tqdm
 import ROOT
 from array import array
+import argparse
 # import matplotlib
 # matplotlib.use('Agg')
 # from matplotlib import pyplot as plt
@@ -10,16 +12,25 @@ from array import array
 
 # true: re-analyze efficiency vs. tau32 cuts and store results in numpy files
 # false: only load previously saved numpy files and store results in ROOT format
-recalculate = False
+options_recalculate = ['True', 'False']
+options_year = ['UL17', 'UL18']
 
+if not sys.argv[1:]: sys.exit('No arguments provided. Exit.')
+parser = argparse.ArgumentParser()
+parser.add_argument('-y', '--year', type=str, choices=options_year)
+parser.add_argument('-r', '--recalculate', action='store_true', help='Recalculate the efficiencies and do not use already existing numpy outfiles for the TGraphs')
+args = parser.parse_args(sys.argv[1:])
 
-outputDirPath = os.environ.get("CMSSW_BASE")+'/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/UL17/'
+recalculate = args.recalculate
+year = args.year
+
+outputDirPath = os.environ.get("CMSSW_BASE")+'/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/'+year+'/'
 fileName_prefix = 'uhh2.AnalysisModuleRunner.MC.'
 fileName_postfix = '.npy'
 
-fileName_qcd = 'QCD_HT300toInf_UL17'
+fileName_qcd = 'QCD_HT300toInf_'+year
 filePath_qcd = outputDirPath+fileName_prefix+fileName_qcd+fileName_postfix
-fileName_ttbar = 'TTbarToHadronic_UL17'
+fileName_ttbar = 'TTbarToHadronic_'+year
 filePath_ttbar = outputDirPath+fileName_prefix+fileName_ttbar+fileName_postfix
 
 workdir = outputDirPath+'workdir_npy/'
@@ -59,42 +70,42 @@ deepcsv = {
 }
 
 # define here which b-tagging selection you want to use
-deepcsv_value = deepcsv['UL17']['loose']
+deepcsv_value = deepcsv[year]['loose']
 
 # define here the jet pt intervals you want to analyze
 pt_intervals = {
-    # '300toInf': {
-    #     'pt_min': 300.,
-    #     'pt_max': np.inf,
-    # },
-    # '400toInf': {
-    #     'pt_min': 400.,
-    #     'pt_max': np.inf,
-    # },
-    # '300to400': {
-    #     'pt_min': 300.,
-    #     'pt_max': 400.,
-    # },
-    # '400to480': {
-    #     'pt_min': 400.,
-    #     'pt_max': 480.,
-    # },
-    # '480to600': {
-    #     'pt_min': 480.,
-    #     'pt_max': 600.,
-    # },
-    # '600toInf': {
-    #     'pt_min': 600.,
-    #     'pt_max': np.inf,
-    # },
-    # '600to620': { # for quick test runs
-    #     'pt_min': 600.,
-    #     'pt_max': 620.,
-    # },
+    '300toInf': {
+        'pt_min': 300.,
+        'pt_max': np.inf,
+    },
+    '400toInf': {
+        'pt_min': 400.,
+        'pt_max': np.inf,
+    },
+    '300to400': {
+        'pt_min': 300.,
+        'pt_max': 400.,
+    },
+    '400to480': {
+        'pt_min': 400.,
+        'pt_max': 480.,
+    },
+    '480to600': {
+        'pt_min': 480.,
+        'pt_max': 600.,
+    },
+    '600toInf': {
+        'pt_min': 600.,
+        'pt_max': np.inf,
+    },
     '1000toInf': {
     'pt_min': 1000.,
     'pt_max': np.inf,
     },
+    # '600to620': { # for quick test runs
+    #     'pt_min': 600.,
+    #     'pt_max': 620.,
+    # },
 }
 
 

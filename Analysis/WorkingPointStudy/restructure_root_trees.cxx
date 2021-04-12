@@ -1,11 +1,11 @@
 #include <vector>
 #include <string>
 
-void restructure_root_trees_qcd() {
+void restructure_root_trees_qcd(const string & year) {
 
-  const string sframe_output_path = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/UL17/";
+  const string sframe_output_path = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/"+year+"/";
   const string file_prefix = "uhh2.AnalysisModuleRunner.MC.";
-  const string file_postfix_qcd = "QCD_HT300toInf_UL17.root";
+  const string file_postfix_qcd = "QCD_HT300toInf_"+year+".root";
 
   const string infile_path_qcd = sframe_output_path+file_prefix+file_postfix_qcd;
   TFile *infile_qcd = TFile::Open(infile_path_qcd.c_str(), "READ");
@@ -57,11 +57,11 @@ void restructure_root_trees_qcd() {
 }
 
 
-void restructure_root_trees_ttbar() {
+void restructure_root_trees_ttbar(const string & year) {
 
-  const string sframe_output_path = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/UL17/";
+  const string sframe_output_path = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/"+year+"/";
   const string file_prefix = "uhh2.AnalysisModuleRunner.MC.";
-  const string file_postfix_ttbar = "TTbarToHadronic_UL17.root";
+  const string file_postfix_ttbar = "TTbarToHadronic_"+year+".root";
 
   const string infile_path_ttbar = sframe_output_path+file_prefix+file_postfix_ttbar;
   TFile *infile_ttbar = TFile::Open(infile_path_ttbar.c_str(), "READ");
@@ -154,8 +154,8 @@ void restructure_root_trees_ttbar() {
 }
 
 
-void restructure_root_trees() {
+void restructure_root_trees(const string & year) {
 
-  restructure_root_trees_qcd();
-  // restructure_root_trees_ttbar();
+  restructure_root_trees_qcd(year);
+  restructure_root_trees_ttbar(year);
 }
