@@ -33,8 +33,8 @@
 <InputData Lumi="102755535.5" NEventsMax="-1" Type="MC" Version="TTbarToHadronic&YEARsuffix;" Cacheable="&b_Cacheable;"> &TTbarToHadronic; <InputTree Name="AnalysisTree"/> <OutputTree Name="AnalysisTree"/> </InputData>
 
 <InputData Lumi="170.5384287" NEventsMax="-1" Type="MC" Version="QCD_HT300to500&YEARsuffix;" Cacheable="&b_Cacheable;"> &QCD_HT300to500; <InputTree Name="AnalysisTree"/> <OutputTree Name="AnalysisTree"/> </InputData>
-<InputData Lumi="1946.123233" NEventsMax="-1" Type="MC" Version="QCD_HT500to700&YEARsuffix;" Cacheable="&b_Cacheable;"> &QCD_HT500to700; <InputTree Name="AnalysisTree"/> <OutputTree Name="AnalysisTree"/> </InputData>
-<InputData Lumi="7416.046173" NEventsMax="-1" Type="MC" Version="QCD_HT700to1000&YEARsuffix;" Cacheable="&b_Cacheable;"> &QCD_HT700to1000; <InputTree Name="AnalysisTree"/> <OutputTree Name="AnalysisTree"/> </InputData>
+<InputData Lumi="1949.572167" NEventsMax="-1" Type="MC" Version="QCD_HT500to700&YEARsuffix;" Cacheable="&b_Cacheable;"> &QCD_HT500to700; <InputTree Name="AnalysisTree"/> <OutputTree Name="AnalysisTree"/> </InputData>
+<InputData Lumi="7543.232132" NEventsMax="-1" Type="MC" Version="QCD_HT700to1000&YEARsuffix;" Cacheable="&b_Cacheable;"> &QCD_HT700to1000; <InputTree Name="AnalysisTree"/> <OutputTree Name="AnalysisTree"/> </InputData>
 <InputData Lumi="14381.32385" NEventsMax="-1" Type="MC" Version="QCD_HT1000to1500&YEARsuffix;" Cacheable="&b_Cacheable;"> &QCD_HT1000to1500; <InputTree Name="AnalysisTree"/> <OutputTree Name="AnalysisTree"/> </InputData>
 <InputData Lumi="105078.0693" NEventsMax="-1" Type="MC" Version="QCD_HT1500to2000&YEARsuffix;" Cacheable="&b_Cacheable;"> &QCD_HT1500to2000; <InputTree Name="AnalysisTree"/> <OutputTree Name="AnalysisTree"/> </InputData>
 <InputData Lumi="220472.932" NEventsMax="-1" Type="MC" Version="QCD_HT2000toInf&YEARsuffix;" Cacheable="&b_Cacheable;"> &QCD_HT2000toInf; <InputTree Name="AnalysisTree"/> <OutputTree Name="AnalysisTree"/> </InputData>
