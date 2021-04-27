@@ -65,6 +65,7 @@ void do_plot(const Variable & var, const bool log_y=false) {
   float margin_r = 0.05;
   float margin_b = 0.12;
   float margin_t = 0.08;
+  float tick_length = 0.015; // fraction of canvas width/height
   c->SetMargin(margin_l, margin_r, margin_b, margin_t); //lrbt
   auto coord = new CoordinateConverter();
   coord->init(margin_l, margin_r, margin_b, margin_t);
@@ -88,7 +89,7 @@ void do_plot(const Variable & var, const bool log_y=false) {
     if(!log_y) hist->SetMinimum(0.);
     if(hist->GetMaximum() > max_maximum) max_maximum = hist->GetMaximum();
   }
-  gStyle->SetLineWidth(2);
+  gStyle->SetLineWidth(1);
   gStyle->SetOptStat(0);
   hist_v14->SetFillColorAlpha(kRed, 0.6);
   hist_v15->SetFillColorAlpha(kBlue, 0.6);
@@ -132,6 +133,16 @@ void do_plot(const Variable & var, const bool log_y=false) {
   prelim->SetTextSize(0.035);
   prelim->SetNDC();
   prelim->Draw();
+
+  // https://root-forum.cern.ch/t/inconsistent-tick-length/18563/8
+  c->Update();
+  double tickScaleX = (c->GetUxmax() - c->GetUxmin()) / (c->GetX2() - c->GetX1()) * (c->GetWh() * c->GetAbsHNDC());
+  double tickScaleY = (c->GetUymax() - c->GetUymin()) / (c->GetY2() - c->GetY1()) * (c->GetWw() * c->GetAbsWNDC());
+  hist_v14->GetYaxis()->SetTickLength(c->GetWw() * tick_length / tickScaleY);
+  hist_v14->GetXaxis()->SetTickLength(c->GetWh() * tick_length / tickScaleX);
+
+  gPad->Update();
+  gPad->RedrawAxis();
 
   // Save to disk
   string plotName = "plot_"+var.hist_name;

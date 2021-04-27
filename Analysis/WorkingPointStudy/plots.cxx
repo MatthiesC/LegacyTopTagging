@@ -189,6 +189,7 @@ void do_plot(const string & year, const PtBin & pt_bin, const string & graph_bas
   float margin_r = 0.05;
   float margin_b = 0.12;
   float margin_t = 0.08;
+  float tick_length = 0.015; // fraction of canvas width/height
   c->SetMargin(margin_l, margin_r, margin_b, margin_t); //lrbt
   auto coord = new CoordinateConverter();
   coord->init(margin_l, margin_r, margin_b, margin_t);
@@ -242,7 +243,7 @@ void do_plot(const string & year, const PtBin & pt_bin, const string & graph_bas
   mg->GetHistogram()->GetYaxis()->SetTitleOffset(1.2);
   // mg->GetHistogram()->GetXaxis()->SetNdivisions(405);
   if(!log_y) mg->GetHistogram()->GetYaxis()->SetNdivisions(405);
-  gStyle->SetLineWidth(2);
+  gStyle->SetLineWidth(1);
 
   legend->Draw();
 
@@ -315,6 +316,16 @@ void do_plot(const string & year, const PtBin & pt_bin, const string & graph_bas
     marker4->Draw();
   }
 
+  // https://root-forum.cern.ch/t/inconsistent-tick-length/18563/8
+  c->Update();
+  double tickScaleX = (c->GetUxmax() - c->GetUxmin()) / (c->GetX2() - c->GetX1()) * (c->GetWh() * c->GetAbsHNDC());
+  double tickScaleY = (c->GetUymax() - c->GetUymin()) / (c->GetY2() - c->GetY1()) * (c->GetWw() * c->GetAbsWNDC());
+  mg->GetHistogram()->GetYaxis()->SetTickLength(c->GetWw() * tick_length / tickScaleY);
+  mg->GetHistogram()->GetXaxis()->SetTickLength(c->GetWh() * tick_length / tickScaleX);
+
+  gPad->Update();
+  gPad->RedrawAxis();
+
   // Save to disk
   string plotName = "plot_"+pt_bin.name+"__"+graph_base_name+"__";
   for(bool do_x : {do_raw, do_msd, do_msd_btag}) { do_x ? plotName += "1" : plotName += "0"; }
@@ -350,6 +361,7 @@ void do_summary_plot(const string & year, const string & tag_type, const vector<
   float margin_r = 0.05;
   float margin_b = 0.12;
   float margin_t = 0.08;
+  float tick_length = 0.015; // fraction of canvas width/height
   c->SetMargin(margin_l, margin_r, margin_b, margin_t); //lrbt
   auto coord = new CoordinateConverter();
   coord->init(margin_l, margin_r, margin_b, margin_t);
@@ -402,7 +414,7 @@ void do_summary_plot(const string & year, const string & tag_type, const vector<
   mg->GetHistogram()->GetYaxis()->SetTitleOffset(1.2);
   // mg->GetHistogram()->GetXaxis()->SetNdivisions(405);
   if(!log_y) mg->GetHistogram()->GetYaxis()->SetNdivisions(405);
-  gStyle->SetLineWidth(2);
+  gStyle->SetLineWidth(1);
 
   legend->Draw();
 
@@ -479,6 +491,16 @@ void do_summary_plot(const string & year, const string & tag_type, const vector<
     }
   }
 
+  // https://root-forum.cern.ch/t/inconsistent-tick-length/18563/8
+  c->Update();
+  double tickScaleX = (c->GetUxmax() - c->GetUxmin()) / (c->GetX2() - c->GetX1()) * (c->GetWh() * c->GetAbsHNDC());
+  double tickScaleY = (c->GetUymax() - c->GetUymin()) / (c->GetY2() - c->GetY1()) * (c->GetWw() * c->GetAbsWNDC());
+  mg->GetHistogram()->GetYaxis()->SetTickLength(c->GetWw() * tick_length / tickScaleY);
+  mg->GetHistogram()->GetXaxis()->SetTickLength(c->GetWh() * tick_length / tickScaleX);
+
+  gPad->Update();
+  gPad->RedrawAxis();
+
   // Save to disk
   string plotName = "plot_summary__"+graph_base_name+"__"+tag_type+"__";
   plotName += (log_y ? string("log") : string("lin"))+".pdf";
@@ -539,8 +561,8 @@ void plots(const string & year) {
     cout << "Working on " << pt_bin.name << endl;
     const vector<WorkingPoint> wps_this_bin = calculate_working_points(year, pt_bin, working_point_mistag_rates);
     const vector<WorkingPoint> wps_this_bin_ref = get_reference_working_points(year, pt_bin, wps_reference);
-    // print_latex_table(wps_this_bin);
-    // print_latex_table(wps_this_bin_ref);
+    print_latex_table(wps_this_bin);
+    print_latex_table(wps_this_bin_ref);
     for(const auto & graph_base_name : graph_base_names) {
       do_plot(year, pt_bin, graph_base_name, true, wps_this_bin, wps_this_bin_ref);
       do_plot(year, pt_bin, graph_base_name, false, wps_this_bin, wps_this_bin_ref);
