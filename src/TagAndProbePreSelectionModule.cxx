@@ -14,6 +14,7 @@
 #include "UHH2/common/include/NSelections.h"
 #include "UHH2/common/include/PrimaryLepton.h"
 #include "UHH2/common/include/TriggerSelection.h"
+#include "UHH2/common/include/CleaningModules.h"
 
 #include "UHH2/LegacyTopTagging/include/Utils.h"
 
@@ -37,6 +38,7 @@ private:
   unique_ptr<CommonModules> common_modules;
   unique_ptr<Selection> slct_elec;
   unique_ptr<Selection> slct_muon;
+  unique_ptr<AnalysisModule> clnr_muon;
   unique_ptr<Selection> slct_met;
   unique_ptr<Selection> slct_ptw;
   unique_ptr<Selection> slct_ak4;
@@ -51,17 +53,19 @@ TagAndProbePreSelectionModule::TagAndProbePreSelectionModule(Context & ctx) {
 
   JetPFID::wp jetPFID = JetPFID::WP_TIGHT_CHS;
   JetId jetID = PtEtaCut(30., 2.4);
-  ElectronId elecID = AndId<Electron>(PtEtaCut(55., 2.4), ElectronID_Fall17_medium_noIso);
-  MuonId muonID = AndId<Muon>(PtEtaCut(55., 2.4), MuonID(Muon::Selector::CutBasedIdTight));
+  // ElectronId elecID = AndId<Electron>(PtEtaCut(55., 2.4), ElectronID_Fall17_medium_noIso);
+  ElectronId elecID_veto = AndId<Electron>(PtEtaCut(30., 2.4), ElectronID_Fall17_veto_noIso);
+  MuonId muonID_veto = AndId<Muon>(PtEtaCut(30., 2.4), MuonID(Muon::Selector::CutBasedIdLoose));
+  MuonId muonID_tag = AndId<Muon>(PtEtaCut(55., 2.4), MuonID(Muon::Selector::CutBasedIdTight));
 
   slct_lumi.reset(new LumiSelection(ctx));
   sf_lumi.reset(new MCLumiWeight(ctx));
 
-  common_modules.reset( new CommonModules());
+  common_modules.reset(new CommonModules());
   common_modules->change_pf_id(jetPFID);
   common_modules->set_jet_id(jetID);
-  common_modules->set_muon_id(muonID);
-  common_modules->set_electron_id(elecID);
+  common_modules->set_muon_id(muonID_veto);
+  common_modules->set_electron_id(elecID_veto);
   common_modules->switch_metcorrection(true);
   common_modules->switch_jetlepcleaner(true);
   common_modules->switch_jetPtSorter(true);
@@ -71,9 +75,10 @@ TagAndProbePreSelectionModule::TagAndProbePreSelectionModule(Context & ctx) {
 
   slct_elec.reset(new NElectronSelection(0, 0));
   slct_muon.reset(new NMuonSelection(1, 1));
+  clnr_muon.reset(new MuonCleaner(muonID_tag));
   slct_met.reset(new METSelection(50.));
   slct_ptw.reset(new PTWSelection(ctx, 150.));
-  slct_ak4.reset(new NJetSelection(2));
+  slct_ak4.reset(new NJetSelection(2, -1));
   slct_trigger.reset(new TriggerSelection("HLT_Mu50_v*"));
 
   primlep.reset(new PrimaryLepton(ctx));
@@ -92,13 +97,16 @@ bool TagAndProbePreSelectionModule::process(Event & event) {
   if(debug) cout << "Lumi selection (need to do this manually before CommonModules)" << endl; // else getting error for some data samples, e.g. "RunSwitcher cannot handle run number 275656 for year 2016"
   if(event.isRealData && !slct_lumi->passes(event)) return false;
   sf_lumi->process(event);
+  // prefiring weights not yet available for UL (for updates on this, see https://twiki.cern.ch/twiki/bin/viewauth/CMS/L1ECALPrefiringWeightRecipe)
 
   if(debug) cout << "CommonModules: jet, electron, muon id cleaning; jet-lepton cleaning; MET+PV filter; AK4+MET corrections; PU weights" << endl;
   if(!common_modules->process(event)) return false;
 
   if(debug) cout << "Lepton selection" << endl;
-  if(!slct_elec->passes(event)) return false;
-  if(!slct_muon->passes(event)) return false;
+  if(!slct_elec->passes(event)) return false; // veto vetoID electrons
+  if(!slct_muon->passes(event)) return false; // veto additional looseID muons
+  clnr_muon->process(event);
+  if(!slct_muon->passes(event)) return false; // require exactly one tightID muon
   primlep->process(event);
   // lepton SF
 
