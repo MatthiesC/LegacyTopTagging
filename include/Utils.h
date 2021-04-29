@@ -5,6 +5,8 @@
 #include "UHH2/core/include/Event.h"
 #include "UHH2/core/include/Utils.h"
 
+#include "UHH2/common/include/YearRunSwitchers.h"
+
 
 namespace uhh2 { namespace ltt {
 
@@ -54,6 +56,23 @@ private:
   double ptrel_min;
   double dr_min;
   uhh2::Event::Handle<FlavorParticle> h_primlep;
+};
+
+class MuonScaleFactors: public uhh2::AnalysisModule {
+public:
+  MuonScaleFactors(uhh2::Context & ctx);
+  virtual bool process(uhh2::Event & event) override;
+private:
+  std::unique_ptr<YearSwitcher> sf_id;
+  // std::unique_ptr<YearSwitcher> sf_iso;
+};
+
+class TriggerScaleFactors: public uhh2::AnalysisModule {
+public:
+  TriggerScaleFactors(uhh2::Context & ctx);
+  virtual bool process(uhh2::Event & event) override;
+private:
+  std::unique_ptr<YearSwitcher> sf_trig;
 };
 
 }}

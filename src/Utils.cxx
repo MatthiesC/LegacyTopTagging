@@ -1,4 +1,5 @@
 #include "UHH2/common/include/Utils.h"
+#include "UHH2/common/include/MCWeight.h"
 
 #include "UHH2/LegacyTopTagging/include/Utils.h"
 
@@ -82,6 +83,46 @@ bool TwoDSelection::passes(const Event & event) {
   bool passed_ptrel_cut = pTrel(primlep, nextjet) > ptrel_min;
   bool passed_dr_cut = deltaR(primlep.v4(), nextjet->v4()) > dr_min;
   return passed_ptrel_cut || passed_dr_cut;
+}
+
+// Twiki: https://twiki.cern.ch/twiki/bin/view/CMS/MuonUL201{6,7,8}
+// SF files: https://gitlab.cern.ch/cms-muonPOG/muonefficiencies/-/tree/master/Run2/UL
+MuonScaleFactors::MuonScaleFactors(Context & ctx) {
+  const string filepath = ctx.get("MuonIDScaleFactorFile");
+  const string direction = ctx.get("SystDirection_MuonID", "nominal");
+  const string weight_name = "id_tight";
+  sf_id.reset(new YearSwitcher(ctx));
+  sf_id->setupUL16preVFP (make_shared<MCMuonScaleFactor>(ctx, filepath, "NUM_TightID_DEN_TrackerMuons_abseta_pt", 0.0, weight_name, false, direction));
+  sf_id->setupUL16postVFP(make_shared<MCMuonScaleFactor>(ctx, filepath, "NUM_TightID_DEN_TrackerMuons_abseta_pt", 0.0, weight_name, false, direction));
+  sf_id->setupUL17       (make_shared<MCMuonScaleFactor>(ctx, filepath, "NUM_TightID_DEN_TrackerMuons_abseta_pt", 0.0, weight_name, false, direction));
+  sf_id->setupUL18       (make_shared<MCMuonScaleFactor>(ctx, filepath, "NUM_TightID_DEN_TrackerMuons_abseta_pt", 0.0, weight_name, false, direction));
+  // No isolation scale factors applied since we do not use PF muon isolation but our custom 2D cut!
+  // sf_iso.reset(new YearSwitcher(ctx));
+  // ...
+}
+
+bool MuonScaleFactors::process(Event & event) {
+  sf_id->process(event);
+  // sf_iso->process(event);
+  return true;
+}
+
+// Twiki: https://twiki.cern.ch/twiki/bin/view/CMS/MuonUL201{6,7,8}
+// SF files: https://gitlab.cern.ch/cms-muonPOG/muonefficiencies/-/tree/master/Run2/UL
+TriggerScaleFactors::TriggerScaleFactors(Context & ctx) {
+  const string filepath = ctx.get("TriggerScaleFactorFile");
+  const string direction = ctx.get("SystDirection_MuonTrigger", "nominal");
+  const string weight_name = "trigger";
+  sf_trig.reset(new YearSwitcher(ctx));
+  sf_trig->setupUL16preVFP (make_shared<MCMuonScaleFactor>(ctx, filepath, "NUM_Mu50_or_TkMu50_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_abseta_pt", 0.0, weight_name, false, direction));
+  sf_trig->setupUL16postVFP(make_shared<MCMuonScaleFactor>(ctx, filepath, "NUM_Mu50_or_TkMu50_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_abseta_pt", 0.0, weight_name, false, direction));
+  sf_trig->setupUL17       (make_shared<MCMuonScaleFactor>(ctx, filepath, "NUM_Mu50_or_OldMu100_or_TkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_abseta_pt", 0.0, weight_name, false, direction));
+  sf_trig->setupUL18       (make_shared<MCMuonScaleFactor>(ctx, filepath, "NUM_Mu50_or_OldMu100_or_TkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_abseta_pt", 0.0, weight_name, false, direction));
+}
+
+bool TriggerScaleFactors::process(Event & event) {
+  sf_trig->process(event);
+  return true;
 }
 
 }}
