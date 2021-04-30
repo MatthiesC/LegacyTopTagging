@@ -137,4 +137,15 @@ bool TriggerScaleFactors::process(Event & event) {
   return true;
 }
 
+ProbeJetHandleSetter::ProbeJetHandleSetter(Context & ctx, const string & jetalgo_name, const string & coll_rec):
+  h_probejet(ctx.get_handle<TopJet>("ProbeJet"+jetalgo_name)),
+  h_topjets(ctx.get_handle<vector<TopJet>>(coll_rec.empty() ? "topjets" : coll_rec)) {}
+
+bool ProbeJetHandleSetter::process(Event & event) {
+  vector<TopJet> topjets = event.get(h_topjets);
+  sort_by_pt(topjets);
+  event.set(h_probejet, topjets.at(0)); // take the leading jet
+  return true;
+}
+
 }}

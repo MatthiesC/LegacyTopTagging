@@ -86,4 +86,13 @@ private:
   std::unique_ptr<YearSwitcher> sf_trig;
 };
 
+class ProbeJetHandleSetter: public uhh2::AnalysisModule {
+public:
+  ProbeJetHandleSetter(uhh2::Context & ctx, const std::string & jetalgo_name, const std::string & coll_rec = "");
+  virtual bool process(uhh2::Event & event) override;
+private:
+  uhh2::Event::Handle<TopJet> h_probejet;
+  uhh2::Event::Handle<std::vector<TopJet>> h_topjets;
+};
+
 }}

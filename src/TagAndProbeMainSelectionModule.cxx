@@ -15,6 +15,7 @@
 
 #include "UHH2/LegacyTopTagging/include/Utils.h"
 #include "UHH2/LegacyTopTagging/include/AndHists.h"
+#include "UHH2/LegacyTopTagging/include/TopJetCorrections.h"
 
 using namespace std;
 using namespace uhh2;
@@ -43,13 +44,24 @@ private:
   unique_ptr<Selection> slct_btag;
   unique_ptr<Selection> slct_twod;
 
+  unique_ptr<TopJetCorrections> corrections_hotvr;
+  unique_ptr<TopJetCorrections> corrections_ak8;
+  unique_ptr<TopJetCleaning> cleaner_hotvr;
+  unique_ptr<TopJetCleaning> cleaner_ak8;
+  unique_ptr<Selection> slct_1hotvr;
+  unique_ptr<Selection> slct_1ak8;
+  unique_ptr<AnalysisModule> probejet_hotvr;
+  unique_ptr<AnalysisModule> probejet_ak8;
+
   unique_ptr<AndHists> hist_presel;
   unique_ptr<AndHists> hist_btag;
   unique_ptr<BTagMCEfficiencyHists> hist_btag_eff;
   unique_ptr<AndHists> hist_before_twod;
   unique_ptr<AndHists> hist_before_trigger;
   unique_ptr<AndHists> hist_after_trigger;
-  unique_ptr<AndHists> hist_full;
+  unique_ptr<AndHists> hist_full_before_corrections;
+  unique_ptr<AndHists> hist_full_after_corrections;
+  unique_ptr<AndHists> hist_full_after_cleaner;
 };
 
 
@@ -60,6 +72,10 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx) {
   run_btag_sf = ctx.has(xml_key_of_btag_eff_file);
 
   const double deltaR_leptonicHemisphere = M_PI*2./3.;
+  const double hotvr_pt_min = 200.;
+  const double hotvr_eta_max = 2.5;
+  const double ak8_pt_min = 300.;
+  const double ak8_eta_max = 2.4;
 
   const MuonId muonID_tag = AndId<Muon>(PtEtaCut(55., 2.4), MuonID(Muon::Selector::CutBasedIdTight));
   const BTag::algo btagALGO = BTag::DEEPJET;
@@ -79,13 +95,32 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx) {
 
   primlep.reset(new PrimaryLepton(ctx));
 
+  corrections_hotvr.reset(new TopJetCorrections());
+  corrections_hotvr->switch_topjet_corrections(false);
+  corrections_hotvr->switch_subjet_corrections(true);
+  corrections_hotvr->switch_rebuilding_topjets_from_subjets(true);
+  corrections_hotvr->init(ctx);
+  corrections_ak8.reset(new TopJetCorrections(ctx.get("AK8Collection_rec"), ctx.get("AK8Collection_gen")));
+  corrections_ak8->init(ctx);
+
+  cleaner_hotvr.reset(new TopJetCleaning(ctx, hotvr_pt_min, hotvr_eta_max, deltaR_leptonicHemisphere));
+  cleaner_ak8.reset(new TopJetCleaning(ctx, ak8_pt_min, ak8_eta_max, deltaR_leptonicHemisphere, ctx.get("AK8Collection_rec")));
+
+  slct_1hotvr.reset(new NTopJetSelection(1, -1));
+  slct_1ak8.reset(new NTopJetSelection(1, -1, boost::none, ctx.get_handle<vector<TopJet>>(ctx.get("AK8Collection_rec"))));
+
+  probejet_hotvr.reset(new ProbeJetHandleSetter(ctx, "HOTVR"));
+  probejet_ak8.reset(new ProbeJetHandleSetter(ctx, "AK8", ctx.get("AK8Collection_rec")));
+
   hist_presel.reset(new AndHists(ctx, "0_PreSel"));
   hist_btag_eff.reset(new BTagMCEfficiencyHists(ctx, "0_BTagMCEff", btagID));
   hist_btag.reset(new AndHists(ctx, "1_BTag"));
   hist_before_twod.reset(new AndHists(ctx, "2_BeforeTwoD"));
   hist_before_trigger.reset(new AndHists(ctx, "2_BeforeTrigger"));
   hist_after_trigger.reset(new AndHists(ctx, "2_AfterTrigger"));
-  hist_full.reset(new AndHists(ctx, "3_TagAndProbeSelection"));
+  hist_full_before_corrections.reset(new AndHists(ctx, "3_TagAndProbeSelection_BeforeCorr", true));
+  hist_full_after_corrections.reset(new AndHists(ctx, "3_TagAndProbeSelection_AfterCorr", true));
+  hist_full_after_cleaner.reset(new AndHists(ctx, "3_TagAndProbeSelection_AfterCleaning", true));
 }
 
 
@@ -131,9 +166,24 @@ bool TagAndProbeMainSelectionModule::process(Event & event) {
     if(passes_trigger) hist_after_trigger->fill(event);
   }
   if(!(passes_trigger && passes_muon && passes_twod)) return false;
-  hist_full->fill(event);
+  hist_full_before_corrections->fill(event);
+  corrections_hotvr->process(event);
+  corrections_ak8->process(event);
+  hist_full_after_corrections->fill(event);
+  cleaner_hotvr->process(event);
+  cleaner_ak8->process(event);
+  hist_full_after_cleaner->fill(event);
 
+  if(debug) cout << "Identify probe jets" << endl;
+  const bool has_hotvr_jet = slct_1hotvr->passes(event);
+  const bool has_ak8_jet = slct_1ak8->passes(event);
 
+  if(has_hotvr_jet) {
+    probejet_hotvr->process(event);
+  }
+  if(has_ak8_jet) {
+    probejet_ak8->process(event);
+  }
 
   if(debug) cout << "End of TagAndProbeMainSelectionModule" << endl;
   return true;
