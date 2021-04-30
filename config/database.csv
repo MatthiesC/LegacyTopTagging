@@ -1,15 +1,15 @@
 use_for_sf,use_for_wp,year,is_data,nick_name,n_das,n_pnfs,pnfs_sum_of_weights,xs_gen,xs_theo,xml_path
 
 
-True,False,UL17,True,DATA_SingleMuon_B,136300266,0,-,-,-,UL17/PuppiV15/
+True,False,UL17,True,DATA_SingleMuon_B,136300266,136300266,-,-,-,UL17/PuppiV15/SingleMuon_Run2017B-09Aug2019_UL2017-v1.xml
 True,False,UL17,True,DATA_SingleMuon_C,165652756,165652756,-,-,-,UL17/PuppiV15/SingleMuon_Run2017C-09Aug2019_UL2017-v1.xml
-True,False,UL17,True,DATA_SingleMuon_D,70361660,0,-,-,-,UL17/PuppiV15/
+True,False,UL17,True,DATA_SingleMuon_D,70361660,70361660,-,-,-,UL17/PuppiV15/SingleMuon_Run2017D-09Aug2019_UL2017-v1.xml
 True,False,UL17,True,DATA_SingleMuon_E,154634289,154634289,-,-,-,UL17/PuppiV15/SingleMuon_Run2017E-09Aug2019_UL2017-v1.xml
-True,False,UL17,True,DATA_SingleMuon_F,242140980,0,-,-,-,UL17/PuppiV15/
+True,False,UL17,True,DATA_SingleMuon_F,242140980,242140980,-,-,-,UL17/PuppiV15/SingleMuon_Run2017F-09Aug2019_UL2017-v1.xml
 
-True,False,UL17,False,TTbarTo2L2Nu,66259900,66259900,4778168532.76,687.1,87.315,UL17/PuppiV15/TTTo2L2Nu_CP5_RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v2.xml
-True,False,UL17,False,TTbarToSemiLeptonic,114058500,114058500,34320777616.7,687.1,364.351,UL17/PuppiV15/TTToSemiLeptonic_CP5_RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v2.xml
-True,True,UL17,False,TTbarToHadronic,129706300,129706300,40716588155.5,687.1,380.094,UL17/PuppiV15/TTToHadronic_CP5_Summer19UL17MiniAOD-106X_mc2017_realistic_v6-v4__PuppiV15.xml
+True,False,UL17,False,TTbarTo2L2Nu,66259900,66259900,4778168532.76,687.100,87.315,UL17/PuppiV15/TTTo2L2Nu_CP5_RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v2.xml
+True,False,UL17,False,TTbarToSemiLeptonic,114058500,114058500,34320777616.7,687.100,364.351,UL17/PuppiV15/TTToSemiLeptonic_CP5_RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v2.xml
+True,True,UL17,False,TTbarToHadronic,129706300,129706300,40716588155.5,687.100,380.094,UL17/PuppiV15/TTToHadronic_CP5_Summer19UL17MiniAOD-106X_mc2017_realistic_v6-v4__PuppiV15.xml
 
 True,False,UL17,False,ST_tW_DR_NoFullyHadronic_T,10041965,10041965,325819205.612,32.450,19.467,UL17/PuppiV15/ST_tW_top_5f_NoFullyHadronicDecays_CP5_RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v3.xml
 True,False,UL17,False,ST_tW_DR_NoFullyHadronic_Tbar,9191369,9191369,298789173.506,32.510,19.467,UL17/PuppiV15/ST_tW_antitop_5f_NoFullyHadronicDecays_CP5_RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v3.xml
@@ -18,7 +18,7 @@ True,False,UL17,False,ST_tChannel_Tbar,3695100,3695100,265124230.583,71.740,80.9
 True,False,UL17,False,ST_sChannel_leptonDecays,19850000,19850000,70465636.83,3.549,3.344,UL17/PuppiV15/ST_s-channel_4f_leptonDecays_CP5_RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v1.xml
 
 True,False,UL17,False,WJetsToLNu_flat,87960604,87960604,10501241225900,53680.000,-,UL17/PuppiV15/WJetsToLNu_CP5_RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v2.xml
-True,False,UL17,False,DYJetsToLL_flat,101077576,101077576,-,5379.000,-,UL17/PuppiV15/DYJetsToLL_M-50_CP5_RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v2.xml
+True,False,UL17,False,DYJetsToLL_flat,101077576,101077576,101077576,5379.000,-,UL17/PuppiV15/DYJetsToLL_M-50_CP5_RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v2.xml
 
 True,False,UL17,False,Diboson_WW,7876200,7876200,-,75.770,118.700,UL17/PuppiV15/WW_CP5_RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v2.xml
 True,False,UL17,False,Diboson_WZ,3970000,3970000,-,27.480,51.110,UL17/PuppiV15/WZ_CP5_RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v2.xml
