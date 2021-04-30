@@ -6,6 +6,7 @@
 #include "UHH2/core/include/Utils.h"
 
 #include "UHH2/common/include/YearRunSwitchers.h"
+#include "UHH2/common/include/JetIds.h"
 
 
 namespace uhh2 { namespace ltt {
@@ -55,6 +56,16 @@ public:
 private:
   double ptrel_min;
   double dr_min;
+  uhh2::Event::Handle<FlavorParticle> h_primlep;
+};
+
+class BTagCloseToLeptonSelection: public uhh2::Selection {
+public:
+  BTagCloseToLeptonSelection(uhh2::Context & ctx, const double _dr_max, const JetId & _btagID);
+  virtual bool passes(const uhh2::Event & event) override;
+private:
+  double dr_max;
+  JetId btagID;
   uhh2::Event::Handle<FlavorParticle> h_primlep;
 };
 

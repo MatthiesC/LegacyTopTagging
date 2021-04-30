@@ -13,10 +13,10 @@
 #include "UHH2/common/include/JetIds.h"
 #include "UHH2/common/include/NSelections.h"
 #include "UHH2/common/include/PrimaryLepton.h"
-#include "UHH2/common/include/TriggerSelection.h"
 #include "UHH2/common/include/CleaningModules.h"
 
 #include "UHH2/LegacyTopTagging/include/Utils.h"
+#include "UHH2/LegacyTopTagging/include/AndHists.h"
 
 using namespace std;
 using namespace uhh2;
@@ -35,6 +35,7 @@ private:
 
   unique_ptr<Selection> slct_lumi;
   unique_ptr<AnalysisModule> sf_lumi;
+  unique_ptr<AnalysisModule> sf_muon;
   unique_ptr<CommonModules> common_modules;
   unique_ptr<Selection> slct_elec;
   unique_ptr<Selection> slct_muon;
@@ -42,8 +43,14 @@ private:
   unique_ptr<Selection> slct_met;
   unique_ptr<Selection> slct_ptw;
   unique_ptr<Selection> slct_ak4;
-  unique_ptr<Selection> slct_trigger;
   unique_ptr<AnalysisModule> primlep;
+
+  unique_ptr<AndHists> hist_nocuts;
+  unique_ptr<AndHists> hist_common;
+  unique_ptr<AndHists> hist_muon;
+  unique_ptr<AndHists> hist_met;
+  unique_ptr<AndHists> hist_ptw;
+  unique_ptr<AndHists> hist_ak4;
 };
 
 
@@ -51,15 +58,16 @@ TagAndProbePreSelectionModule::TagAndProbePreSelectionModule(Context & ctx) {
 
   debug = string2bool(ctx.get("debug"));
 
-  JetPFID::wp jetPFID = JetPFID::WP_TIGHT_CHS;
-  JetId jetID = PtEtaCut(30., 2.4);
-  // ElectronId elecID = AndId<Electron>(PtEtaCut(55., 2.4), ElectronID_Fall17_medium_noIso);
-  ElectronId elecID_veto = AndId<Electron>(PtEtaCut(30., 2.4), ElectronID_Fall17_veto_noIso);
-  MuonId muonID_veto = AndId<Muon>(PtEtaCut(30., 2.4), MuonID(Muon::Selector::CutBasedIdLoose));
-  MuonId muonID_tag = AndId<Muon>(PtEtaCut(55., 2.4), MuonID(Muon::Selector::CutBasedIdTight));
+  const JetPFID::wp jetPFID = JetPFID::WP_TIGHT_CHS;
+  const JetId jetID = PtEtaCut(30., 2.4);
+  // const ElectronId elecID = AndId<Electron>(PtEtaCut(55., 2.4), ElectronID_Fall17_medium_noIso);
+  const ElectronId elecID_veto = AndId<Electron>(PtEtaCut(30., 2.4), ElectronID_Fall17_veto_noIso);
+  const MuonId muonID_veto = AndId<Muon>(PtEtaCut(30., 2.4), MuonID(Muon::Selector::CutBasedIdLoose));
+  const MuonId muonID_tag = AndId<Muon>(PtEtaCut(40., 2.4), MuonID(Muon::Selector::CutBasedIdTight)); // 55. GeV
 
   slct_lumi.reset(new LumiSelection(ctx));
   sf_lumi.reset(new MCLumiWeight(ctx));
+  sf_muon.reset(new MuonScaleFactors(ctx));
 
   common_modules.reset(new CommonModules());
   common_modules->change_pf_id(jetPFID);
@@ -79,9 +87,15 @@ TagAndProbePreSelectionModule::TagAndProbePreSelectionModule(Context & ctx) {
   slct_met.reset(new METSelection(50.));
   slct_ptw.reset(new PTWSelection(ctx, 150.));
   slct_ak4.reset(new NJetSelection(2, -1));
-  slct_trigger.reset(new TriggerSelection("HLT_Mu50_v*"));
 
   primlep.reset(new PrimaryLepton(ctx));
+
+  hist_nocuts.reset(new AndHists(ctx, "0_NoCuts"));
+  hist_common.reset(new AndHists(ctx, "1_Common"));
+  hist_muon.reset(new AndHists(ctx, "2_Muon"));
+  hist_met.reset(new AndHists(ctx, "3_MET"));
+  hist_ptw.reset(new AndHists(ctx, "4_PtW"));
+  hist_ak4.reset(new AndHists(ctx, "5_AK4"));
 }
 
 
@@ -98,9 +112,11 @@ bool TagAndProbePreSelectionModule::process(Event & event) {
   if(event.isRealData && !slct_lumi->passes(event)) return false;
   sf_lumi->process(event);
   // prefiring weights not yet available for UL (for updates on this, see https://twiki.cern.ch/twiki/bin/viewauth/CMS/L1ECALPrefiringWeightRecipe)
+  hist_nocuts->fill(event);
 
   if(debug) cout << "CommonModules: jet, electron, muon id cleaning; jet-lepton cleaning; MET+PV filter; AK4+MET corrections; PU weights" << endl;
   if(!common_modules->process(event)) return false;
+  hist_common->fill(event);
 
   if(debug) cout << "Lepton selection" << endl;
   if(!slct_elec->passes(event)) return false; // veto vetoID electrons
@@ -108,20 +124,20 @@ bool TagAndProbePreSelectionModule::process(Event & event) {
   clnr_muon->process(event);
   if(!slct_muon->passes(event)) return false; // require exactly one tightID muon
   primlep->process(event);
-  // lepton SF
+  sf_muon->process(event);
+  hist_muon->fill(event);
 
   if(debug) cout << "MET selection" << endl;
   if(!slct_met->passes(event)) return false;
+  hist_met->fill(event);
 
   if(debug) cout << "PTW selection" << endl;
   if(!slct_ptw->passes(event)) return false;
+  hist_ptw->fill(event);
 
   if(debug) cout << "AK4 selection" << endl;
   if(!slct_ak4->passes(event)) return false;
-
-  if(debug) cout << "Trigger selection" << endl;
-  if(!slct_trigger->passes(event)) return false;
-  // trigger SF
+  hist_ak4->fill(event);
 
   if(debug) cout << "End of TagAndProbePreSelectionModule" << endl;
   return true;

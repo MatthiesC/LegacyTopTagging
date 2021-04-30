@@ -85,6 +85,18 @@ bool TwoDSelection::passes(const Event & event) {
   return passed_ptrel_cut || passed_dr_cut;
 }
 
+BTagCloseToLeptonSelection::BTagCloseToLeptonSelection(Context & ctx, const double _dr_max, const JetId & _btagID): dr_max(_dr_max), btagID(_btagID), h_primlep(ctx.get_handle<FlavorParticle>("PrimaryLepton")) {}
+
+bool BTagCloseToLeptonSelection::passes(const Event & event) {
+  const FlavorParticle & primlep = event.get(h_primlep);
+  unsigned int btags_close_to_lepton(0);
+  for(const Jet & jet : *event.jets) {
+    if(deltaR(jet.v4(), primlep.v4()) > dr_max) continue;
+    if(btagID(jet, event)) ++btags_close_to_lepton;
+  }
+  return btags_close_to_lepton > 0;
+}
+
 // Twiki: https://twiki.cern.ch/twiki/bin/view/CMS/MuonUL201{6,7,8}
 // SF files: https://gitlab.cern.ch/cms-muonPOG/muonefficiencies/-/tree/master/Run2/UL
 MuonScaleFactors::MuonScaleFactors(Context & ctx) {
