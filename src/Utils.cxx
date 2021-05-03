@@ -148,4 +148,124 @@ bool ProbeJetHandleSetter::process(Event & event) {
   return true;
 }
 
+DecayChannelAndHadronicTopHandleSetter::DecayChannelAndHadronicTopHandleSetter(Context & ctx):
+  output_decay_channel(ctx.declare_event_output<DecayChannel>("output_decay_channel")),
+  h_hadronictop(ctx.get_handle<GenParticle>("HadronicTopQuark")) // will be unset if process is neither ttbar->l+jets nor single t->hadronic
+  {}
+
+bool DecayChannelAndHadronicTopHandleSetter::process(Event & event) {
+  DecayChannel dc = DecayChannel::isNotTopQuarkMC;
+  if(event.isRealData) {
+    event.set(output_decay_channel, dc);
+    return true;
+  }
+
+  unsigned int n_tops(0);
+  for(const GenParticle & gp : *event.genparticles) {
+    if(abs(gp.pdgId()) == 6) ++n_tops;
+  }
+  Process proc = Process::isOther;
+  if(n_tops == 2) proc = Process::isTTbar;
+  else if(n_tops == 1) proc = Process::isST;
+
+  if(proc == Process::isTTbar) {
+    GenParticle (*top)(nullptr), (*antitop)(nullptr);
+    GenParticle (*w_plus)(nullptr), (*w_minus)(nullptr);
+    for(GenParticle & gp : *event.genparticles) {
+      if(gp.pdgId() == 6) top = &gp;
+      else if(gp.pdgId() == -6) antitop = &gp;
+      else if(gp.pdgId() == 24) w_plus = &gp;
+      else if(gp.pdgId() == -24) w_minus = &gp;
+    }
+    const bool w_plus_is_hadronic = abs(w_plus->daughter(event.genparticles, 1)->pdgId()) <= 5;
+    const bool w_minus_is_hadronic = abs(w_minus->daughter(event.genparticles, 1)->pdgId()) <= 5;
+    if(w_plus_is_hadronic && w_minus_is_hadronic) {
+      dc = DecayChannel::isTTbarToHadronic;
+    }
+    else if(w_plus_is_hadronic && !w_minus_is_hadronic) {
+      dc = DecayChannel::isTTbarToSemiLeptonic;
+      event.set(h_hadronictop, *top);
+    }
+    else if(!w_plus_is_hadronic && w_minus_is_hadronic) {
+      dc = DecayChannel::isTTbarToSemiLeptonic;
+      event.set(h_hadronictop, *antitop);
+    }
+    else if(!w_plus_is_hadronic && !w_minus_is_hadronic) {
+      dc = DecayChannel::isTTbarToDiLeptonic;
+    }
+  }
+
+  else if(proc == Process::isST) {
+    GenParticle (*top)(nullptr);
+    for(GenParticle & gp : *event.genparticles) {
+      if(abs(gp.pdgId()) == 6) top = &gp;
+    }
+    GenParticle w_from_top = *(top->daughter(event.genparticles, 1));
+    GenParticle b_from_top = *(top->daughter(event.genparticles, 2));
+    if(abs(w_from_top.pdgId()) != 24) {
+      swap(w_from_top, b_from_top);
+    }
+    if(abs(w_from_top.daughter(event.genparticles, 1)->pdgId()) <= 5) {
+      dc = DecayChannel::isSTToHadronic;
+      event.set(h_hadronictop, *top);
+    }
+    else {
+      dc = DecayChannel::isSTToLeptonic;
+    }
+  }
+
+  event.set(output_decay_channel, dc);
+  return true;
+}
+
+MergeScenarioHandleSetter::MergeScenarioHandleSetter(Context & ctx, const ProbeJetAlgo & _algo): algo(_algo) {
+  string algo_name = "";
+  if(algo == ProbeJetAlgo::isHOTVR) algo_name = "HOTVR";
+  else if(algo == ProbeJetAlgo::isAK8) algo_name = "AK8";
+  else throw runtime_error("MergeScenarioHandleSetter: Requested probejet algorithm not yet implemented in this class!");
+  h_probejet = ctx.get_handle<TopJet>("ProbeJet"+algo_name);
+  h_hadronictop = ctx.get_handle<GenParticle>("HadronicTopQuark"); // will be unset if process is neither ttbar->l+jets nor single t->hadronic
+
+  output_has_probejet = ctx.declare_event_output<bool>("output_has_probejet_"+algo_name);
+  output_merge_scenario = ctx.declare_event_output<MergeScenario>("output_merge_scenario_"+algo_name);
+}
+
+bool MergeScenarioHandleSetter::process(Event & event) {
+  if(event.is_valid(h_probejet)) event.set(output_has_probejet, true);
+  else event.set(output_has_probejet, false);
+
+  MergeScenario msc = MergeScenario::isBackgroundMCorData;
+  if(event.isRealData || !event.is_valid(h_hadronictop) || !event.is_valid(h_probejet)) {
+    event.set(output_merge_scenario, msc);
+    return true;
+  }
+
+  const TopJet probejet = event.get(h_probejet);
+  const GenParticle hadronic_top = event.get(h_hadronictop);
+  double dRmatch(-1.);
+  if(algo == ProbeJetAlgo::isAK8) {
+    dRmatch = 0.8;
+  }
+  else if(algo == ProbeJetAlgo::isHOTVR) {
+    dRmatch = min(1.5, max(0.1, 600./(probejet.v4().pt()*probejet.JEC_factor_raw())));
+  }
+  GenParticle gen_b = *(hadronic_top.daughter(event.genparticles, 1));
+  GenParticle gen_w = *(hadronic_top.daughter(event.genparticles, 2));
+  if(abs(gen_w.pdgId()) != 24) swap(gen_b, gen_w);
+  GenParticle gen_q1 = *(gen_w.daughter(event.genparticles, 1));
+  GenParticle gen_q2 = *(gen_w.daughter(event.genparticles, 2));
+  bool merged_b = deltaR(gen_b.v4(), probejet.v4()) < dRmatch;
+  bool merged_q1 = deltaR(gen_q1.v4(), probejet.v4()) < dRmatch;
+  bool merged_q2 = deltaR(gen_q2.v4(), probejet.v4()) < dRmatch;
+  // now check the merge scenarios:
+  if(merged_b && merged_q1 && merged_q2) msc = MergeScenario::isFullyMerged;
+  else if(!merged_b && merged_q1 && merged_q2) msc = MergeScenario::isWMerged;
+  else if(merged_b && merged_q1 && !merged_q2) msc = MergeScenario::isQBMerged;
+  else if(merged_b && !merged_q1 && merged_q2) msc = MergeScenario::isQBMerged;
+  else msc = MergeScenario::isNotMerged;
+
+  event.set(output_merge_scenario, msc);
+  return true;
+}
+
 }}

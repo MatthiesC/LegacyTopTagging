@@ -8,6 +8,8 @@
 #include "UHH2/common/include/YearRunSwitchers.h"
 #include "UHH2/common/include/JetIds.h"
 
+#include "UHH2/LegacyTopTagging/include/Constants.h"
+
 
 namespace uhh2 { namespace ltt {
 
@@ -93,6 +95,27 @@ public:
 private:
   uhh2::Event::Handle<TopJet> h_probejet;
   uhh2::Event::Handle<std::vector<TopJet>> h_topjets;
+};
+
+class DecayChannelAndHadronicTopHandleSetter: public uhh2::AnalysisModule {
+public:
+  DecayChannelAndHadronicTopHandleSetter(uhh2::Context & ctx);
+  virtual bool process(uhh2::Event & event) override;
+private:
+  uhh2::Event::Handle<DecayChannel> output_decay_channel;
+  uhh2::Event::Handle<GenParticle> h_hadronictop;
+};
+
+class MergeScenarioHandleSetter: public uhh2::AnalysisModule {
+public:
+  MergeScenarioHandleSetter(uhh2::Context & ctx, const ProbeJetAlgo & _algo);
+  virtual bool process(uhh2::Event & event) override;
+private:
+  ProbeJetAlgo algo;
+  uhh2::Event::Handle<TopJet> h_probejet;
+  uhh2::Event::Handle<GenParticle> h_hadronictop;
+  uhh2::Event::Handle<bool> output_has_probejet;
+  uhh2::Event::Handle<MergeScenario> output_merge_scenario;
 };
 
 }}

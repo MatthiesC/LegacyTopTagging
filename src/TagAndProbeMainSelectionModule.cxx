@@ -16,6 +16,7 @@
 #include "UHH2/LegacyTopTagging/include/Utils.h"
 #include "UHH2/LegacyTopTagging/include/AndHists.h"
 #include "UHH2/LegacyTopTagging/include/TopJetCorrections.h"
+#include "UHH2/LegacyTopTagging/include/Constants.h"
 
 using namespace std;
 using namespace uhh2;
@@ -32,6 +33,9 @@ public:
 private:
   bool debug;
   bool run_btag_sf;
+  Process proc;
+  ProbeJetAlgo pjalgo;
+  MergeScenario msc;
 
   unique_ptr<AnalysisModule> primlep;
   unique_ptr<AnalysisModule> scale_variation;
@@ -50,8 +54,11 @@ private:
   unique_ptr<TopJetCleaning> cleaner_ak8;
   unique_ptr<Selection> slct_1hotvr;
   unique_ptr<Selection> slct_1ak8;
+  unique_ptr<AnalysisModule> decay_channel_and_hadronic_top;
   unique_ptr<AnalysisModule> probejet_hotvr;
   unique_ptr<AnalysisModule> probejet_ak8;
+  unique_ptr<AnalysisModule> merge_scenarios_hotvr;
+  unique_ptr<AnalysisModule> merge_scenarios_ak8;
 
   unique_ptr<AndHists> hist_presel;
   unique_ptr<AndHists> hist_btag;
@@ -68,8 +75,9 @@ private:
 TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx) {
 
   debug = string2bool(ctx.get("debug"));
-  const string xml_key_of_btag_eff_file = "BTagMCEffFile";
-  run_btag_sf = ctx.has(xml_key_of_btag_eff_file);
+  const string dv = ctx.get("dataset_version");
+
+  ctx.undeclare_all_event_output();
 
   const double deltaR_leptonicHemisphere = M_PI*2./3.;
   const double hotvr_pt_min = 200.;
@@ -85,6 +93,8 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx) {
   scale_variation.reset(new MCScaleVariation(ctx));
   sf_lumi.reset(new MCLumiWeight(ctx));
   sf_muon.reset(new MuonScaleFactors(ctx));
+  const string xml_key_of_btag_eff_file = "BTagMCEffFile";
+  run_btag_sf = ctx.has(xml_key_of_btag_eff_file);
   if(run_btag_sf) sf_btag.reset(new MCBTagScaleFactor(ctx, btagALGO, btagWP, "jets", ctx.get("SystDirection_BTag", "nominal"), "mujets", "incl", xml_key_of_btag_eff_file, "", "BTagScaleFactorFile"));
   sf_trigger.reset(new TriggerScaleFactors(ctx));
 
@@ -109,8 +119,11 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx) {
   slct_1hotvr.reset(new NTopJetSelection(1, -1));
   slct_1ak8.reset(new NTopJetSelection(1, -1, boost::none, ctx.get_handle<vector<TopJet>>(ctx.get("AK8Collection_rec"))));
 
+  decay_channel_and_hadronic_top.reset(new DecayChannelAndHadronicTopHandleSetter(ctx));
   probejet_hotvr.reset(new ProbeJetHandleSetter(ctx, "HOTVR"));
   probejet_ak8.reset(new ProbeJetHandleSetter(ctx, "AK8", ctx.get("AK8Collection_rec")));
+  merge_scenarios_hotvr.reset(new MergeScenarioHandleSetter(ctx, ProbeJetAlgo::isHOTVR));
+  merge_scenarios_ak8.reset(new MergeScenarioHandleSetter(ctx, ProbeJetAlgo::isAK8));
 
   hist_presel.reset(new AndHists(ctx, "0_PreSel"));
   hist_btag_eff.reset(new BTagMCEfficiencyHists(ctx, "0_BTagMCEff", btagID));
@@ -178,12 +191,13 @@ bool TagAndProbeMainSelectionModule::process(Event & event) {
   const bool has_hotvr_jet = slct_1hotvr->passes(event);
   const bool has_ak8_jet = slct_1ak8->passes(event);
 
-  if(has_hotvr_jet) {
-    probejet_hotvr->process(event);
-  }
-  if(has_ak8_jet) {
-    probejet_ak8->process(event);
-  }
+  if(!(has_hotvr_jet || has_ak8_jet)) return false;
+  decay_channel_and_hadronic_top->process(event);
+
+  if(has_hotvr_jet) probejet_hotvr->process(event);
+  if(has_ak8_jet) probejet_ak8->process(event);
+  merge_scenarios_hotvr->process(event); // needs to be outside of the previous if statement!
+  merge_scenarios_ak8->process(event); // needs to be outside of the previous if statement!
 
   if(debug) cout << "End of TagAndProbeMainSelectionModule" << endl;
   return true;
