@@ -97,7 +97,7 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx) {
 
   scale_variation.reset(new MCScaleVariation(ctx));
   sf_lumi.reset(new MCLumiWeight(ctx));
-  sf_pileup.reset(new MCPileupReweight(ctx));
+  sf_pileup.reset(new MCPileupReweight(ctx, ctx.get("SystDirection_Pileup", "nominal")));
   sf_muon.reset(new MuonScaleFactors(ctx));
   const string xml_key_of_btag_eff_file = "BTagMCEffFile";
   run_btag_sf = ctx.has(xml_key_of_btag_eff_file);
