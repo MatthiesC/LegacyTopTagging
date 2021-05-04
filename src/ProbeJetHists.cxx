@@ -16,8 +16,6 @@ AK8ProbeJetHists::AK8ProbeJetHists(Context & ctx, const string & dirname): Hists
 
   h_primlep = ctx.get_handle<FlavorParticle>("PrimaryLepton");
   h_probejet = ctx.get_handle<TopJet>("ProbeJetAK8");
-  pt_bin_map = kPtBinsAK8;
-  wp_map = kWorkingPointsAK8;
 
   for(const auto & pt_bin : pt_bin_map) {
     const string & pt_bin_string = kPtBinAsString.at(pt_bin.first);

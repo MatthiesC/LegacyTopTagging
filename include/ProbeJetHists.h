@@ -17,7 +17,6 @@ public:
   virtual void fill(const uhh2::Event & event) override;
 
 protected:
-
   enum class PassCategory {
     Pass,
     Fail,
@@ -41,9 +40,9 @@ private:
 
   uhh2::Event::Handle<FlavorParticle> h_primlep;
   uhh2::Event::Handle<TopJet> h_probejet;
-  PtBinMap pt_bin_map;
-  WorkingPointMap wp_map;
-  JetId SubjetBTagID = BTag(BTag::DEEPCSV, BTag::WP_LOOSE);
+  const PtBinMap pt_bin_map = kPtBinsAK8;
+  const WorkingPointMap wp_map = kWorkingPointsAK8;
+  const JetId SubjetBTagID = BTag(BTag::DEEPCSV, BTag::WP_LOOSE);
   double w;
   FlavorParticle primlep;
   TopJet probejet;
