@@ -12,10 +12,11 @@ using namespace ltt;
 
 namespace uhh2 { namespace ltt {
 
-AK8ProbeJetHists::AK8ProbeJetHists(Context & ctx, const string & dirname): Hists(ctx, dirname) {
+AK8ProbeJetHists::AK8ProbeJetHists(Context & ctx, const string & dirname, const MergeScenario & _msc): Hists(ctx, dirname), msc(_msc) {
 
   h_primlep = ctx.get_handle<FlavorParticle>("PrimaryLepton");
   h_probejet = ctx.get_handle<TopJet>("ProbeJetAK8");
+  h_merge_scenario = ctx.get_handle<MergeScenario>("output_merge_scenario_AK8");
 
   for(const auto & pt_bin : pt_bin_map) {
     const string & pt_bin_string = kPtBinAsString.at(pt_bin.first);
@@ -43,6 +44,7 @@ AK8ProbeJetHists::AK8ProbeJetHists(Context & ctx, const string & dirname): Hists
 }
 
 void AK8ProbeJetHists::fill_probe(const vector<TH1F*> & hists) {
+
   unsigned int i(0);
   hists.at(i++)->Fill(probejet.v4().pt(), w);
   hists.at(i++)->Fill(deltaR(probejet.v4(), primlep.v4()), w);
@@ -58,6 +60,7 @@ void AK8ProbeJetHists::fill_probe(const vector<TH1F*> & hists) {
 void AK8ProbeJetHists::fill(const Event & event) {
 
   if(!event.is_valid(h_probejet)) return;
+  if(event.get(h_merge_scenario) != msc) return;
 
   w = event.weight;
   primlep = event.get(h_primlep);
@@ -95,6 +98,20 @@ void AK8ProbeJetHists::fill(const Event & event) {
         else fill_probe(hists_map[pt_bin.first][JetCategory::MassBTag][wp.first][PassCategory::Fail]);
       }
     }
+  }
+}
+
+ProbeJetHistsRunner::ProbeJetHistsRunner(Context & ctx, const string & dirname): Hists(ctx, dirname) {
+
+  for(const auto & msc : kMergeScenarioAsString) {
+    hists_vector.push_back(new ltt::AK8ProbeJetHists(ctx, dirname+"_AK8_"+msc.second, msc.first));
+  }
+}
+
+void ProbeJetHistsRunner::fill(const Event & event) {
+
+  for(Hists *hist : hists_vector) {
+    hist->fill(event);
   }
 }
 

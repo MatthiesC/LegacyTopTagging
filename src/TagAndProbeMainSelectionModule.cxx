@@ -17,6 +17,7 @@
 #include "UHH2/LegacyTopTagging/include/AndHists.h"
 #include "UHH2/LegacyTopTagging/include/TopJetCorrections.h"
 #include "UHH2/LegacyTopTagging/include/Constants.h"
+#include "UHH2/LegacyTopTagging/include/ProbeJetHists.h"
 
 using namespace std;
 using namespace uhh2;
@@ -71,6 +72,8 @@ private:
   unique_ptr<AndHists> hist_full_before_corrections;
   unique_ptr<AndHists> hist_full_after_corrections;
   unique_ptr<AndHists> hist_full_after_cleaner;
+
+  unique_ptr<Hists> probejethists;
 };
 
 
@@ -138,6 +141,8 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx) {
   hist_full_before_corrections.reset(new AndHists(ctx, "3_TagAndProbeSelection_BeforeCorr", true));
   hist_full_after_corrections.reset(new AndHists(ctx, "3_TagAndProbeSelection_AfterCorr", true));
   hist_full_after_cleaner.reset(new AndHists(ctx, "3_TagAndProbeSelection_AfterCleaning", true));
+
+  probejethists.reset(new ProbeJetHistsRunner(ctx, "ProbeJetHists"));
 }
 
 
@@ -206,8 +211,10 @@ bool TagAndProbeMainSelectionModule::process(Event & event) {
 
   main_output->process(event);
 
+  probejethists->fill(event);
+
   if(debug) cout << "End of TagAndProbeMainSelectionModule" << endl;
-  return true;
+  return false;
 }
 
 

@@ -22,6 +22,14 @@ enum class MergeScenario {
   isBackgroundMCorData,
 };
 
+const std::map<MergeScenario, std::string> kMergeScenarioAsString = {
+  {MergeScenario::isFullyMerged, "FullyMerged"},
+  {MergeScenario::isWMerged, "WMerged"},
+  {MergeScenario::isQBMerged, "QBMerged"},
+  {MergeScenario::isNotMerged, "NotMerged"},
+  {MergeScenario::isBackgroundMCorData, "BackgroundMCorData"},
+};
+
 enum class DecayChannel {
   isTTbarToHadronic,
   isTTbarToSemiLeptonic,

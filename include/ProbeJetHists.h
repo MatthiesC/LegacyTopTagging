@@ -12,8 +12,7 @@ namespace uhh2 { namespace ltt {
 
 class AK8ProbeJetHists: public uhh2::Hists {
 public:
-  AK8ProbeJetHists(uhh2::Context & ctx, const std::string & dirname); // TODO arguments
-
+  AK8ProbeJetHists(uhh2::Context & ctx, const std::string & dirname, const MergeScenario & _msc);
   virtual void fill(const uhh2::Event & event) override;
 
 protected:
@@ -40,6 +39,8 @@ private:
 
   uhh2::Event::Handle<FlavorParticle> h_primlep;
   uhh2::Event::Handle<TopJet> h_probejet;
+  uhh2::Event::Handle<MergeScenario> h_merge_scenario;
+  MergeScenario msc;
   const PtBinMap pt_bin_map = kPtBinsAK8;
   const WorkingPointMap wp_map = kWorkingPointsAK8;
   const JetId SubjetBTagID = BTag(BTag::DEEPCSV, BTag::WP_LOOSE);
@@ -58,6 +59,15 @@ private:
     {JetCategory::BTag, "BTag"},
     {JetCategory::MassBTag, "MassBTag"},
   };
+};
+
+class ProbeJetHistsRunner: public uhh2::Hists {
+public:
+  ProbeJetHistsRunner(uhh2::Context & ctx, const std::string & dirname);
+  virtual void fill(const uhh2::Event & event) override;
+
+protected:
+  std::vector<uhh2::Hists*> hists_vector;
 };
 
 }}
