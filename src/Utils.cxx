@@ -268,4 +268,70 @@ bool MergeScenarioHandleSetter::process(Event & event) {
   return true;
 }
 
+MainOutputSetter::MainOutputSetter(Context & ctx) {
+  h_probejet_hotvr = ctx.get_handle<TopJet>("ProbeJetHOTVR");
+  h_probejet_ak8 = ctx.get_handle<TopJet>("ProbeJetAK8");
+
+  vector<string> output_names;
+
+  output_names.push_back("probejet_hotvr_pt");
+  output_names.push_back("probejet_hotvr_eta");
+  output_names.push_back("probejet_hotvr_phi");
+  output_names.push_back("probejet_hotvr_mass");
+  output_names.push_back("probejet_hotvr_nsub");
+  h_probejet_hotvr_nsub_integer = ctx.declare_event_output<int>("output_probejet_hotvr_nsub_integer");
+  output_names.push_back("probejet_hotvr_mpair");
+  output_names.push_back("probejet_hotvr_fpt");
+  output_names.push_back("probejet_hotvr_tau32");
+
+  output_names.push_back("probejet_ak8_pt");
+  output_names.push_back("probejet_ak8_eta");
+  output_names.push_back("probejet_ak8_phi");
+  output_names.push_back("probejet_ak8_mass");
+  output_names.push_back("probejet_ak8_msd");
+  output_names.push_back("probejet_ak8_tau32");
+  output_names.push_back("probejet_ak8_deepcsv");
+
+  for(unsigned int i = 0; i < output_names.size(); i++) {
+    h_mainoutput.push_back(ctx.declare_event_output<float>("output_"+output_names.at(i)));
+  }
+}
+
+bool MainOutputSetter::process(Event & event) {
+  const bool has_hotvr_jet = event.is_valid(h_probejet_hotvr);
+  const bool has_ak8_jet = event.is_valid(h_probejet_ak8);
+  TopJet probejet_hotvr = TopJet();
+  TopJet probejet_ak8 = TopJet();
+  if(has_hotvr_jet) probejet_hotvr = event.get(h_probejet_hotvr);
+  if(has_ak8_jet) probejet_ak8 = event.get(h_probejet_ak8);
+
+  const double zero_padding(-999.);
+  vector<double> values;
+  values.resize(h_mainoutput.size(), zero_padding);
+  unsigned int i(0);
+
+  values.at(i++) = has_hotvr_jet ? probejet_hotvr.v4().pt() : zero_padding;
+  values.at(i++) = has_hotvr_jet ? probejet_hotvr.v4().eta() : zero_padding;
+  values.at(i++) = has_hotvr_jet ? probejet_hotvr.v4().phi() : zero_padding;
+  values.at(i++) = has_hotvr_jet ? probejet_hotvr.v4().mass() : zero_padding;
+  values.at(i++) = has_hotvr_jet ? probejet_hotvr.subjets().size() : zero_padding;
+  event.set(h_probejet_hotvr_nsub_integer, has_hotvr_jet ? probejet_hotvr.subjets().size() : zero_padding);
+  values.at(i++) = has_hotvr_jet ? HOTVR_mpair(probejet_hotvr, false) : zero_padding;
+  values.at(i++) = has_hotvr_jet ? HOTVR_fpt(probejet_hotvr) : zero_padding;
+  values.at(i++) = has_hotvr_jet ? tau32groomed(probejet_hotvr) : zero_padding;
+
+  values.at(i++) = has_ak8_jet ? probejet_ak8.v4().pt() : zero_padding;
+  values.at(i++) = has_ak8_jet ? probejet_ak8.v4().eta() : zero_padding;
+  values.at(i++) = has_ak8_jet ? probejet_ak8.v4().phi() : zero_padding;
+  values.at(i++) = has_ak8_jet ? probejet_ak8.v4().mass() : zero_padding;
+  values.at(i++) = has_ak8_jet ? mSD(probejet_ak8) : zero_padding;
+  values.at(i++) = has_ak8_jet ? tau32(probejet_ak8) : zero_padding;
+  values.at(i++) = has_ak8_jet ? maxDeepCSVSubJetValue(probejet_ak8) : zero_padding;
+
+  for(unsigned int i = 0; i < values.size(); i++) {
+    event.set(h_mainoutput.at(i), values.at(i));
+  }
+  return true;
+}
+
 }}

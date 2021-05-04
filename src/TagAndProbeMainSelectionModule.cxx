@@ -59,6 +59,7 @@ private:
   unique_ptr<AnalysisModule> probejet_ak8;
   unique_ptr<AnalysisModule> merge_scenarios_hotvr;
   unique_ptr<AnalysisModule> merge_scenarios_ak8;
+  unique_ptr<AnalysisModule> main_output;
 
   unique_ptr<AndHists> hist_presel;
   unique_ptr<AndHists> hist_btag;
@@ -124,6 +125,7 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx) {
   probejet_ak8.reset(new ProbeJetHandleSetter(ctx, "AK8", ctx.get("AK8Collection_rec")));
   merge_scenarios_hotvr.reset(new MergeScenarioHandleSetter(ctx, ProbeJetAlgo::isHOTVR));
   merge_scenarios_ak8.reset(new MergeScenarioHandleSetter(ctx, ProbeJetAlgo::isAK8));
+  main_output.reset(new MainOutputSetter(ctx));
 
   hist_presel.reset(new AndHists(ctx, "0_PreSel"));
   hist_btag_eff.reset(new BTagMCEfficiencyHists(ctx, "0_BTagMCEff", btagID));
@@ -198,6 +200,8 @@ bool TagAndProbeMainSelectionModule::process(Event & event) {
   if(has_ak8_jet) probejet_ak8->process(event);
   merge_scenarios_hotvr->process(event); // needs to be outside of the previous if statement!
   merge_scenarios_ak8->process(event); // needs to be outside of the previous if statement!
+
+  main_output->process(event);
 
   if(debug) cout << "End of TagAndProbeMainSelectionModule" << endl;
   return true;

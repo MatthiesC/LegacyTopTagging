@@ -118,4 +118,15 @@ private:
   uhh2::Event::Handle<MergeScenario> output_merge_scenario;
 };
 
+class MainOutputSetter: public uhh2::AnalysisModule {
+public:
+  MainOutputSetter(uhh2::Context & ctx);
+  virtual bool process(uhh2::Event & event) override;
+private:
+  uhh2::Event::Handle<TopJet> h_probejet_hotvr;
+  uhh2::Event::Handle<TopJet> h_probejet_ak8;
+  std::vector<uhh2::Event::Handle<float>> h_mainoutput;
+  uhh2::Event::Handle<int> h_probejet_hotvr_nsub_integer;
+};
+
 }}
