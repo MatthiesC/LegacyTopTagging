@@ -30,6 +30,17 @@ double HOTVR_mpair(const TopJet & topjet, const bool safe = true);
 
 double HOTVR_fpt(const TopJet & topjet, const unsigned int subjet_i = 0);
 
+class HOTVRTopTag {
+public:
+  explicit HOTVRTopTag(const double _mass_min = 140., const double _mass_max = 220., const double _fpt_max = 0.8, const double _mpair_min = 50.);
+  bool operator()(const TopJet & jet, const uhh2::Event & event) const;
+private:
+  double mass_min;
+  double mass_max;
+  double fpt_max;
+  double mpair_min;
+};
+
 const TopJet * nextTopJet(const Particle & p, const std::vector<TopJet> & topjets);
 
 class METSelection: public uhh2::Selection {

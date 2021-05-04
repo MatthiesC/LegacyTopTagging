@@ -53,6 +53,17 @@ double HOTVR_fpt(const TopJet & topjet, const unsigned int subjet_i) {
   return subjets.at(subjet_i).v4().Pt() / topjet.v4().Pt();
 }
 
+HOTVRTopTag::HOTVRTopTag(const double _mass_min, const double _mass_max, const double _fpt_max, const double _mpair_min):
+  mass_min(_mass_min), mass_max(_mass_max), fpt_max(_fpt_max), mpair_min(_mpair_min) {}
+
+bool HOTVRTopTag::operator()(const TopJet & jet, const Event & event) const {
+  if(jet.subjets().size() < 3) return false;
+  if(jet.v4().M() < mass_min || jet.v4().M() > mass_max) return false;
+  if(HOTVR_fpt(jet) > fpt_max) return false;
+  if(HOTVR_mpair(jet) < mpair_min) return false;
+  return true;
+}
+
 const TopJet * nextTopJet(const Particle & p, const vector<TopJet> & topjets) {
   return closestParticle(p, topjets);
 }
