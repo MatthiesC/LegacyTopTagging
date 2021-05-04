@@ -40,6 +40,7 @@ private:
   unique_ptr<AnalysisModule> primlep;
   unique_ptr<AnalysisModule> scale_variation;
   unique_ptr<AnalysisModule> sf_lumi;
+  unique_ptr<AnalysisModule> sf_pileup;
   unique_ptr<AnalysisModule> sf_muon;
   unique_ptr<AnalysisModule> sf_btag;
   unique_ptr<AnalysisModule> sf_trigger;
@@ -93,6 +94,7 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx) {
 
   scale_variation.reset(new MCScaleVariation(ctx));
   sf_lumi.reset(new MCLumiWeight(ctx));
+  sf_pileup.reset(new MCPileupReweight(ctx));
   sf_muon.reset(new MuonScaleFactors(ctx));
   const string xml_key_of_btag_eff_file = "BTagMCEffFile";
   run_btag_sf = ctx.has(xml_key_of_btag_eff_file);
@@ -152,6 +154,7 @@ bool TagAndProbeMainSelectionModule::process(Event & event) {
   primlep->process(event);
   scale_variation->process(event);
   sf_lumi->process(event);
+  sf_pileup->process(event);
   sf_muon->process(event);
   // prefiring weights not yet available for UL (for updates on this, see https://twiki.cern.ch/twiki/bin/viewauth/CMS/L1ECALPrefiringWeightRecipe)
   hist_presel->fill(event);
