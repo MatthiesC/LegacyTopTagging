@@ -294,7 +294,7 @@ class xmlCreator:
          file.write('''<Item Name="uhh2Dir" Value="'''+self.uhh2Dir+'''"/>\n''')
          file.write('''\n''')
          file.write('''<!-- Switch for debugging of the central AnalysisModule -->\n''')
-         file.write('''<Item Name="Debug" Value="false"/>\n''')
+         file.write('''<Item Name="debug" Value="false"/>\n''')
          file.write('''\n''')
          file.write('''</UserConfig>\n''')
          file.write('''\n''')
@@ -376,7 +376,7 @@ if __name__=='__main__':
          if not args.years: args.years = years
       else:
          for p in permutations([args.selections, args.years]):
-            if p[0] and (not p[1] or not p[2]):
+            if p[0] and not p[1]:
                sys.exit('You specified arguments for at least one of the two options: "--selections" or "--years", but not for both of them. Also, you did not specify "--auto-complete" to compensate for this. Exit.')
 
    print('Going to create XML files for:')
