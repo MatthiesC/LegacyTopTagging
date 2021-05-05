@@ -20,8 +20,8 @@ CommonHists::CommonHists(Context & ctx, const string & dirname): Hists(ctx, dirn
   hist_count = book<TH1F>("count", "Event count", 1, 0, 1);
   hist_weights_log10 = book<TH1F>("weights_log10", "log_{10}(event weight)", 1000, -4, 6);
 
-  hist_ntrue = book<TH1F>("ntrue", "Number of true interactions", 11, -0.5, 10.5);
-  hist_npv = book<TH1F>("npv", "Number of primary vertices", 11, -0.5, 10.5);
+  hist_ntrue = book<TH1F>("ntrue", "Number of true interactions", 101, -0.5, 100.5);
+  hist_npv = book<TH1F>("npv", "Number of primary vertices", 101, -0.5, 100.5);
 
   hist_met_pt = book<TH1F>("met_pt", "#it{p}_{T}^{miss} [GeV]", 1000, 0, 1000);
   hist_met_phi = book<TH1F>("met_phi", "MET #phi [rad]", 1000, -M_PI, M_PI);
