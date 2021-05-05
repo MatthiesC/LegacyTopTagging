@@ -42,8 +42,8 @@ private:
   uhh2::Event::Handle<TopJet> h_probejet;
   uhh2::Event::Handle<MergeScenario> h_merge_scenario;
   MergeScenario msc;
-  const PtBinMap pt_bin_map = kPtBinsAK8;
-  const WorkingPointMap wp_map = kWorkingPointsAK8;
+  const std::vector<PtBin> pt_bins = kPtBinsAK8;
+  const WorkingPointMap wps = kWorkingPointsAK8;
   const JetId SubjetBTagID = BTag(BTag::DEEPCSV, BTag::WP_LOOSE);
   double w;
   FlavorParticle primlep;
@@ -93,9 +93,9 @@ private:
   uhh2::Event::Handle<TopJet> h_probejet;
   uhh2::Event::Handle<MergeScenario> h_merge_scenario;
   MergeScenario msc;
-  const PtBinMap pt_bin_map = kPtBinsHOTVR;
-  const WorkingPointMap wp_map = kWorkingPointsHOTVR;
-  const TopJetId HOTVRTopTagID = ltt::HOTVRTopTag(0., std::numeric_limits<double>::infinity());
+  const std::vector<PtBin> pt_bins = kPtBinsHOTVR;
+  const WorkingPointMap wps = kWorkingPointsHOTVR;
+  const TopJetId HOTVRTopTagID = ltt::HOTVRTopTag(0., std::numeric_limits<double>::infinity()); // standard HOTVR t-tag without mass cut and without tau32 cut
   double w;
   FlavorParticle primlep;
   TopJet probejet;

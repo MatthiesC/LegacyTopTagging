@@ -14,12 +14,23 @@ enum class ProbeJetAlgo {
   notValid,
 };
 
+const std::map<ProbeJetAlgo, std::string> kProbeJetAlgoAsString = {
+  {ProbeJetAlgo::isHOTVR, "HOTVR"},
+  {ProbeJetAlgo::isAK8, "AK8"},
+};
+
+const std::map<ProbeJetAlgo, std::pair<double, double>> kProbeJetAlgoMassCuts = {
+  {ProbeJetAlgo::isHOTVR, {140., 220.}},
+  {ProbeJetAlgo::isAK8, {105., 210.}},
+};
+
 enum class MergeScenario {
   isFullyMerged,
   isWMerged,
   isQBMerged,
   isNotMerged,
-  isBackgroundMCorData,
+  isBackground,
+  isAll,
 };
 
 const std::map<MergeScenario, std::string> kMergeScenarioAsString = {
@@ -27,7 +38,7 @@ const std::map<MergeScenario, std::string> kMergeScenarioAsString = {
   {MergeScenario::isWMerged, "WMerged"},
   {MergeScenario::isQBMerged, "QBMerged"},
   {MergeScenario::isNotMerged, "NotMerged"},
-  {MergeScenario::isBackgroundMCorData, "BackgroundMCorData"},
+  {MergeScenario::isBackground, "Background"},
 };
 
 enum class DecayChannel {
@@ -63,29 +74,39 @@ const std::map<PtBin, std::string> kPtBinAsString = {
   {PtBin::Pt400toInf, "Pt400toInf"},
 };
 
-typedef std::map<PtBin, std::pair<double, double>> PtBinMap;
-
-const PtBinMap kPtBinsHOTVR = {
+const std::map<PtBin, std::pair<double, double>> kPtBinAsNumbers = {
   {PtBin::Pt200to250, {200, 250}},
   {PtBin::Pt250to300, {250, 300}},
   {PtBin::Pt300to400, {300, 400}},
   {PtBin::Pt400to480, {400, 480}},
   {PtBin::Pt480to600, {480, 600}},
   {PtBin::Pt600toInf, {600, std::numeric_limits<double>::infinity()}},
-  // only used for control distributions etc.:
   {PtBin::Pt200toInf, {200, std::numeric_limits<double>::infinity()}},
   {PtBin::Pt300toInf, {300, std::numeric_limits<double>::infinity()}},
   {PtBin::Pt400toInf, {400, std::numeric_limits<double>::infinity()}},
 };
 
-const PtBinMap kPtBinsAK8 = {
-  {PtBin::Pt300to400, {300, 400}},
-  {PtBin::Pt400to480, {400, 480}},
-  {PtBin::Pt480to600, {480, 600}},
-  {PtBin::Pt600toInf, {600, std::numeric_limits<double>::infinity()}},
+const std::vector<PtBin> kPtBinsHOTVR = {
+  PtBin::Pt200to250,
+  PtBin::Pt250to300,
+  PtBin::Pt300to400,
+  PtBin::Pt400to480,
+  PtBin::Pt480to600,
+  PtBin::Pt600toInf,
   // only used for control distributions etc.:
-  {PtBin::Pt300toInf, {300, std::numeric_limits<double>::infinity()}},
-  {PtBin::Pt400toInf, {400, std::numeric_limits<double>::infinity()}},
+  PtBin::Pt200toInf,
+  PtBin::Pt300toInf,
+  PtBin::Pt400toInf,
+};
+
+const std::vector<PtBin> kPtBinsAK8 = {
+  PtBin::Pt300to400,
+  PtBin::Pt400to480,
+  PtBin::Pt480to600,
+  PtBin::Pt600toInf,
+  // only used for control distributions etc.:
+  PtBin::Pt300toInf,
+  PtBin::Pt400toInf,
 };
 
 enum class WorkingPoint {

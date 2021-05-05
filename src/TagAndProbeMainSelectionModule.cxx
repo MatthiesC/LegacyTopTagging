@@ -126,8 +126,8 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx) {
   slct_1ak8.reset(new NTopJetSelection(1, -1, boost::none, ctx.get_handle<vector<TopJet>>(ctx.get("AK8Collection_rec"))));
 
   decay_channel_and_hadronic_top.reset(new DecayChannelAndHadronicTopHandleSetter(ctx));
-  probejet_hotvr.reset(new ProbeJetHandleSetter(ctx, "HOTVR"));
-  probejet_ak8.reset(new ProbeJetHandleSetter(ctx, "AK8", ctx.get("AK8Collection_rec")));
+  probejet_hotvr.reset(new ProbeJetHandleSetter(ctx, ProbeJetAlgo::isHOTVR));
+  probejet_ak8.reset(new ProbeJetHandleSetter(ctx, ProbeJetAlgo::isAK8, ctx.get("AK8Collection_rec")));
   merge_scenarios_hotvr.reset(new MergeScenarioHandleSetter(ctx, ProbeJetAlgo::isHOTVR));
   merge_scenarios_ak8.reset(new MergeScenarioHandleSetter(ctx, ProbeJetAlgo::isAK8));
   main_output.reset(new MainOutputSetter(ctx));

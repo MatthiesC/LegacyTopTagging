@@ -101,7 +101,7 @@ private:
 
 class ProbeJetHandleSetter: public uhh2::AnalysisModule {
 public:
-  ProbeJetHandleSetter(uhh2::Context & ctx, const std::string & jetalgo_name, const std::string & coll_rec = "");
+  ProbeJetHandleSetter(uhh2::Context & ctx, const ProbeJetAlgo & _algo, const std::string & coll_rec = "");
   virtual bool process(uhh2::Event & event) override;
 private:
   uhh2::Event::Handle<TopJet> h_probejet;
@@ -129,6 +129,7 @@ private:
   uhh2::Event::Handle<MergeScenario> output_merge_scenario;
 };
 
+// This class can be used to setup an AnalysisTree which contains all variables needed to fill probejet histograms at a later stage than SFrame
 class MainOutputSetter: public uhh2::AnalysisModule {
 public:
   MainOutputSetter(uhh2::Context & ctx);

@@ -148,8 +148,8 @@ bool TriggerScaleFactors::process(Event & event) {
   return true;
 }
 
-ProbeJetHandleSetter::ProbeJetHandleSetter(Context & ctx, const string & jetalgo_name, const string & coll_rec):
-  h_probejet(ctx.get_handle<TopJet>("ProbeJet"+jetalgo_name)),
+ProbeJetHandleSetter::ProbeJetHandleSetter(Context & ctx, const ProbeJetAlgo & _algo, const string & coll_rec):
+  h_probejet(ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgoAsString.at(_algo))),
   h_topjets(ctx.get_handle<vector<TopJet>>(coll_rec.empty() ? "topjets" : coll_rec)) {}
 
 bool ProbeJetHandleSetter::process(Event & event) {
@@ -230,22 +230,18 @@ bool DecayChannelAndHadronicTopHandleSetter::process(Event & event) {
 }
 
 MergeScenarioHandleSetter::MergeScenarioHandleSetter(Context & ctx, const ProbeJetAlgo & _algo): algo(_algo) {
-  string algo_name = "";
-  if(algo == ProbeJetAlgo::isHOTVR) algo_name = "HOTVR";
-  else if(algo == ProbeJetAlgo::isAK8) algo_name = "AK8";
-  else throw runtime_error("MergeScenarioHandleSetter: Requested probejet algorithm not yet implemented in this class!");
-  h_probejet = ctx.get_handle<TopJet>("ProbeJet"+algo_name);
+  h_probejet = ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgoAsString.at(_algo));
   h_hadronictop = ctx.get_handle<GenParticle>("HadronicTopQuark"); // will be unset if process is neither ttbar->l+jets nor single t->hadronic
 
-  output_has_probejet = ctx.declare_event_output<bool>("output_has_probejet_"+algo_name);
-  output_merge_scenario = ctx.declare_event_output<MergeScenario>("output_merge_scenario_"+algo_name);
+  output_has_probejet = ctx.declare_event_output<bool>("output_has_probejet_"+kProbeJetAlgoAsString.at(_algo));
+  output_merge_scenario = ctx.declare_event_output<MergeScenario>("output_merge_scenario_"+kProbeJetAlgoAsString.at(_algo));
 }
 
 bool MergeScenarioHandleSetter::process(Event & event) {
   if(event.is_valid(h_probejet)) event.set(output_has_probejet, true);
   else event.set(output_has_probejet, false);
 
-  MergeScenario msc = MergeScenario::isBackgroundMCorData;
+  MergeScenario msc = MergeScenario::isBackground;
   if(event.isRealData || !event.is_valid(h_hadronictop) || !event.is_valid(h_probejet)) {
     event.set(output_merge_scenario, msc);
     return true;
@@ -280,8 +276,8 @@ bool MergeScenarioHandleSetter::process(Event & event) {
 }
 
 MainOutputSetter::MainOutputSetter(Context & ctx) {
-  h_probejet_hotvr = ctx.get_handle<TopJet>("ProbeJetHOTVR");
-  h_probejet_ak8 = ctx.get_handle<TopJet>("ProbeJetAK8");
+  h_probejet_hotvr = ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgoAsString.at(ProbeJetAlgo::isHOTVR));
+  h_probejet_ak8 = ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgoAsString.at(ProbeJetAlgo::isAK8));
 
   vector<string> output_names;
 

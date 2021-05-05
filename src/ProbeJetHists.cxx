@@ -15,14 +15,14 @@ namespace uhh2 { namespace ltt {
 AK8ProbeJetHists::AK8ProbeJetHists(Context & ctx, const string & dirname, const MergeScenario & _msc): Hists(ctx, dirname), msc(_msc) {
 
   h_primlep = ctx.get_handle<FlavorParticle>("PrimaryLepton");
-  h_probejet = ctx.get_handle<TopJet>("ProbeJetAK8");
-  h_merge_scenario = ctx.get_handle<MergeScenario>("output_merge_scenario_AK8");
+  h_probejet = ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgoAsString.at(ProbeJetAlgo::isAK8));
+  h_merge_scenario = ctx.get_handle<MergeScenario>("output_merge_scenario_"+kProbeJetAlgoAsString.at(ProbeJetAlgo::isAK8));
 
-  for(const auto & pt_bin : pt_bin_map) {
-    const string & pt_bin_string = kPtBinAsString.at(pt_bin.first);
+  for(const auto & pt_bin : pt_bins) {
+    const string & pt_bin_string = kPtBinAsString.at(pt_bin);
     for(const auto & jet_cat : kJetCategoryAsString) {
       const string & jet_cat_string = jet_cat.second;
-      for(const auto & wp : wp_map) {
+      for(const auto & wp : wps) {
         const string & wp_string = kWorkingPointAsString.at(wp.first);
         for(const auto & pass_cat : kPassCategoryAsString) {
           const string & pass_cat_string = pass_cat.second;
@@ -36,7 +36,7 @@ AK8ProbeJetHists::AK8ProbeJetHists(Context & ctx, const string & dirname, const 
           hists.push_back(book<TH1F>((prefix+"mSD").c_str(), "Probe jet #it{m}_{SD} [GeV]", 1000, 0, 500));
           hists.push_back(book<TH1F>((prefix+"tau32").c_str(), "Probe jet #tau_{3}/#tau_{2}", 1000, 0, 1));
           hists.push_back(book<TH1F>((prefix+"maxDeepCSV").c_str(), "Max. #it{O}_{DeepCSV}^{prob(b)+prob(bb)} of probe subjets", 1000, 0, 1));
-          hists_map[pt_bin.first][jet_cat.first][wp.first][pass_cat.first] = hists;
+          hists_map[pt_bin][jet_cat.first][wp.first][pass_cat.first] = hists;
         }
       }
     }
@@ -60,13 +60,13 @@ void AK8ProbeJetHists::fill_probe(const vector<TH1F*> & hists) {
 void AK8ProbeJetHists::fill(const Event & event) {
 
   if(!event.is_valid(h_probejet)) return;
-  if(event.get(h_merge_scenario) != msc) return;
+  if(event.get(h_merge_scenario) != MergeScenario::isAll && event.get(h_merge_scenario) != msc) return;
 
   w = event.weight;
   primlep = event.get(h_primlep);
   probejet = event.get(h_probejet);
 
-  const bool passes_mass_cut = (mSD(probejet) > 105. && mSD(probejet) < 210.);
+  const bool passes_mass_cut = (mSD(probejet) > kProbeJetAlgoMassCuts.at(ProbeJetAlgo::isAK8).first && mSD(probejet) < kProbeJetAlgoMassCuts.at(ProbeJetAlgo::isAK8).second);
   bool passes_btagging(false);
   for(const auto & subjet : probejet.subjets()) {
     if(SubjetBTagID(subjet, event)) {
@@ -75,27 +75,27 @@ void AK8ProbeJetHists::fill(const Event & event) {
     }
   }
 
-  for(const auto & pt_bin : pt_bin_map) {
-    if(probejet.v4().pt() < pt_bin.second.first || probejet.v4().pt() > pt_bin.second.second) continue;
-    for(const auto & wp : wp_map) {
+  for(const auto & pt_bin : pt_bins) {
+    if(probejet.v4().pt() < kPtBinAsNumbers.at(pt_bin).first || probejet.v4().pt() > kPtBinAsNumbers.at(pt_bin).second) continue;
+    for(const auto & wp : wps) {
       const bool passes_tau32_cut = tau32(probejet) < wp.second;
 
-      if(passes_tau32_cut) fill_probe(hists_map[pt_bin.first][JetCategory::All][wp.first][PassCategory::Pass]);
-      else fill_probe(hists_map[pt_bin.first][JetCategory::All][wp.first][PassCategory::Fail]);
+      if(passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::All][wp.first][PassCategory::Pass]);
+      else fill_probe(hists_map[pt_bin][JetCategory::All][wp.first][PassCategory::Fail]);
 
       if(passes_mass_cut) {
-        if(passes_tau32_cut) fill_probe(hists_map[pt_bin.first][JetCategory::Mass][wp.first][PassCategory::Pass]);
-        else fill_probe(hists_map[pt_bin.first][JetCategory::Mass][wp.first][PassCategory::Fail]);
+        if(passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::Mass][wp.first][PassCategory::Pass]);
+        else fill_probe(hists_map[pt_bin][JetCategory::Mass][wp.first][PassCategory::Fail]);
       }
 
       if(passes_btagging) {
-        if(passes_tau32_cut) fill_probe(hists_map[pt_bin.first][JetCategory::BTag][wp.first][PassCategory::Pass]);
-        else fill_probe(hists_map[pt_bin.first][JetCategory::BTag][wp.first][PassCategory::Fail]);
+        if(passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::BTag][wp.first][PassCategory::Pass]);
+        else fill_probe(hists_map[pt_bin][JetCategory::BTag][wp.first][PassCategory::Fail]);
       }
 
       if(passes_mass_cut && passes_btagging) {
-        if(passes_tau32_cut) fill_probe(hists_map[pt_bin.first][JetCategory::MassAndBTag][wp.first][PassCategory::Pass]);
-        else fill_probe(hists_map[pt_bin.first][JetCategory::MassAndBTag][wp.first][PassCategory::Fail]);
+        if(passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::MassAndBTag][wp.first][PassCategory::Pass]);
+        else fill_probe(hists_map[pt_bin][JetCategory::MassAndBTag][wp.first][PassCategory::Fail]);
       }
     }
   }
@@ -104,14 +104,14 @@ void AK8ProbeJetHists::fill(const Event & event) {
 HOTVRProbeJetHists::HOTVRProbeJetHists(Context & ctx, const string & dirname, const MergeScenario & _msc): Hists(ctx, dirname), msc(_msc) {
 
   h_primlep = ctx.get_handle<FlavorParticle>("PrimaryLepton");
-  h_probejet = ctx.get_handle<TopJet>("ProbeJetHOTVR");
-  h_merge_scenario = ctx.get_handle<MergeScenario>("output_merge_scenario_HOTVR");
+  h_probejet = ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgoAsString.at(ProbeJetAlgo::isHOTVR));
+  h_merge_scenario = ctx.get_handle<MergeScenario>("output_merge_scenario_"+kProbeJetAlgoAsString.at(ProbeJetAlgo::isHOTVR));
 
-  for(const auto & pt_bin : pt_bin_map) {
-    const string & pt_bin_string = kPtBinAsString.at(pt_bin.first);
+  for(const auto & pt_bin : pt_bins) {
+    const string & pt_bin_string = kPtBinAsString.at(pt_bin);
     for(const auto & jet_cat : kJetCategoryAsString) {
       const string & jet_cat_string = jet_cat.second;
-      for(const auto & wp : wp_map) {
+      for(const auto & wp : wps) {
         const string & wp_string = kWorkingPointAsString.at(wp.first);
         for(const auto & pass_cat : kPassCategoryAsString) {
           const string & pass_cat_string = pass_cat.second;
@@ -125,7 +125,7 @@ HOTVRProbeJetHists::HOTVRProbeJetHists(Context & ctx, const string & dirname, co
           hists.push_back(book<TH1F>((prefix+"mpair").c_str(), "Min. #it{m}_{ij} [GeV] of leading three probe subjets", 1000, 0, 250));
           hists.push_back(book<TH1F>((prefix+"tau32").c_str(), "Probe jet #tau_{3}/#tau_{2}", 1000, 0, 1));
           hists.push_back(book<TH1F>((prefix+"fpt1").c_str(), "#it{p}_{T} fraction of leading probe subjet", 1000, 0, 1));
-          hists_map[pt_bin.first][jet_cat.first][wp.first][pass_cat.first] = hists;
+          hists_map[pt_bin][jet_cat.first][wp.first][pass_cat.first] = hists;
         }
       }
     }
@@ -149,36 +149,36 @@ void HOTVRProbeJetHists::fill_probe(const vector<TH1F*> & hists) {
 void HOTVRProbeJetHists::fill(const Event & event) {
 
   if(!event.is_valid(h_probejet)) return;
-  if(event.get(h_merge_scenario) != msc) return;
+  if(event.get(h_merge_scenario) != MergeScenario::isAll && event.get(h_merge_scenario) != msc) return;
 
   w = event.weight;
   primlep = event.get(h_primlep);
   probejet = event.get(h_probejet);
 
-  const bool passes_mass_cut = (probejet.v4().M() > 140. && probejet.v4().M() < 220.);
+  const bool passes_mass_cut = (probejet.v4().M() > kProbeJetAlgoMassCuts.at(ProbeJetAlgo::isHOTVR).first && probejet.v4().M() < kProbeJetAlgoMassCuts.at(ProbeJetAlgo::isHOTVR).second);
   const bool passes_hotvr_cuts = HOTVRTopTagID(probejet, event);
 
-  for(const auto & pt_bin : pt_bin_map) {
-    if(probejet.v4().pt() < pt_bin.second.first || probejet.v4().pt() > pt_bin.second.second) continue;
-    for(const auto & wp : wp_map) {
+  for(const auto & pt_bin : pt_bins) {
+    if(probejet.v4().pt() < kPtBinAsNumbers.at(pt_bin).first || probejet.v4().pt() > kPtBinAsNumbers.at(pt_bin).second) continue;
+    for(const auto & wp : wps) {
       const bool passes_tau32_cut = tau32groomed(probejet) < wp.second;
 
-      if(passes_tau32_cut) fill_probe(hists_map[pt_bin.first][JetCategory::All][wp.first][PassCategory::Pass]);
-      else fill_probe(hists_map[pt_bin.first][JetCategory::All][wp.first][PassCategory::Fail]);
+      if(passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::All][wp.first][PassCategory::Pass]);
+      else fill_probe(hists_map[pt_bin][JetCategory::All][wp.first][PassCategory::Fail]);
 
       if(passes_mass_cut) {
-        if(passes_tau32_cut) fill_probe(hists_map[pt_bin.first][JetCategory::Mass][wp.first][PassCategory::Pass]);
-        else fill_probe(hists_map[pt_bin.first][JetCategory::Mass][wp.first][PassCategory::Fail]);
+        if(passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::Mass][wp.first][PassCategory::Pass]);
+        else fill_probe(hists_map[pt_bin][JetCategory::Mass][wp.first][PassCategory::Fail]);
       }
 
       if(passes_hotvr_cuts) {
-        if(passes_tau32_cut) fill_probe(hists_map[pt_bin.first][JetCategory::HOTVRCuts][wp.first][PassCategory::Pass]);
-        else fill_probe(hists_map[pt_bin.first][JetCategory::HOTVRCuts][wp.first][PassCategory::Fail]);
+        if(passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::HOTVRCuts][wp.first][PassCategory::Pass]);
+        else fill_probe(hists_map[pt_bin][JetCategory::HOTVRCuts][wp.first][PassCategory::Fail]);
       }
 
       if(passes_mass_cut && passes_hotvr_cuts) {
-        if(passes_tau32_cut) fill_probe(hists_map[pt_bin.first][JetCategory::HOTVRCutsAndMass][wp.first][PassCategory::Pass]);
-        else fill_probe(hists_map[pt_bin.first][JetCategory::HOTVRCutsAndMass][wp.first][PassCategory::Fail]);
+        if(passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::HOTVRCutsAndMass][wp.first][PassCategory::Pass]);
+        else fill_probe(hists_map[pt_bin][JetCategory::HOTVRCutsAndMass][wp.first][PassCategory::Fail]);
       }
     }
   }
@@ -186,10 +186,35 @@ void HOTVRProbeJetHists::fill(const Event & event) {
 
 ProbeJetHistsRunner::ProbeJetHistsRunner(Context & ctx, const string & dirname): Hists(ctx, dirname) {
 
+  const string dv = ctx.get("dataset_version");
+
+  MergeScenario msc_sample = MergeScenario::isAll;
+  unsigned int mscs_found(0);
   for(const auto & msc : kMergeScenarioAsString) {
-    hists_vector.push_back(new ltt::AK8ProbeJetHists(ctx, dirname+"_AK8_"+msc.second, msc.first));
-    hists_vector.push_back(new ltt::HOTVRProbeJetHists(ctx, dirname+"_HOTVR_"+msc.second, msc.first));
+    if(dv.find(msc.second) != string::npos) {
+      msc_sample = msc.first;
+      mscs_found++;
+    }
   }
+  if(mscs_found > 1) throw runtime_error("ProbeJetHistsRunner: Found more than one MergeScenario by checking the dataset version string. Abort.");
+
+  // ProbeJetAlgo algo_sample = ProbeJetAlgo::notValid;
+  // unsigned int algos_found(0);
+  // for(const auto & algo : kProbeJetAlgoAsString) {
+  //   if(dv.find(algo.second) != string::npos) {
+  //     algo_sample = msc.first;
+  //     algos_found++;
+  //   }
+  // }
+  // if(algos_found > 1) throw runtime_error("ProbeJetHistsRunner: Found more than one ProbeJetAlgo by checking the dataset version string. Abort.");
+
+  hists_vector.push_back(new ltt::AK8ProbeJetHists(ctx, dirname+"_"+kProbeJetAlgoAsString.at(ProbeJetAlgo::isAK8), msc_sample));
+  hists_vector.push_back(new ltt::HOTVRProbeJetHists(ctx, dirname+"_"+kProbeJetAlgoAsString.at(ProbeJetAlgo::isHOTVR), msc_sample));
+
+  // for(const auto & msc : kMergeScenarioAsString) {
+  //   hists_vector.push_back(new ltt::AK8ProbeJetHists(ctx, dirname+"_AK8_"+msc.second, msc.first));
+  //   hists_vector.push_back(new ltt::HOTVRProbeJetHists(ctx, dirname+"_HOTVR_"+msc.second, msc.first));
+  // }
 }
 
 void ProbeJetHistsRunner::fill(const Event & event) {
