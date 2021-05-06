@@ -19,10 +19,15 @@ if not sys.argv[1:]: sys.exit('No arguments provided. Exit.')
 parser = argparse.ArgumentParser()
 parser.add_argument('-y', '--year', type=str, choices=options_year)
 parser.add_argument('-r', '--recalculate', action='store_true', help='Recalculate the efficiencies and do not use already existing numpy outfiles for the TGraphs')
+parser.add_argument('-m', '--massCut', type=float, help='Entirely ignore jets with a SoftDrop mass smaller than the given value.')
 args = parser.parse_args(sys.argv[1:])
 
 recalculate = args.recalculate
 year = args.year
+massCut_given = type(args.massCut) == float
+msd_threshold = None
+if massCut_given:
+    msd_threshold = float(args.massCut)
 
 outputDirPath = os.environ.get("CMSSW_BASE")+'/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/'+year+'/'
 fileName_prefix = 'uhh2.AnalysisModuleRunner.MC.'
@@ -41,6 +46,14 @@ if recalculate:
     array_ttbar_raw = np.load(filePath_ttbar)
     array_qcd_raw = np.load(filePath_qcd)
     print 'Raw numpy files loaded into memory.'
+    if massCut_given:
+        print 'Rejecting jets with SoftDrop mass smaller than', msd_threshold
+        n_ttbar_before = len(array_ttbar_raw)
+        array_ttbar_raw = array_ttbar_raw[array_ttbar_raw[:,2] > msd_threshold]
+        print 'Percentage of top jets fulfilling the mass threshold: %f' % (100.*len(array_ttbar_raw)/n_ttbar_before)
+        n_qcd_before = len(array_qcd_raw)
+        array_qcd_raw = array_qcd_raw[array_qcd_raw[:,2] > msd_threshold]
+        print 'Percentage of QCD jets fulfilling the mass threshold: %f' % (100.*len(array_qcd_raw)/n_qcd_before)
 
 # indices:
 # 0: weight
