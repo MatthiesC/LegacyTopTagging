@@ -127,14 +127,14 @@ class configContainer:
          self.systematics.append(systEntity('mur', 'ScaleVariationMuR'))
          self.systematics.append(systEntity('muf', 'ScaleVariationMuF'))
          self.systematics.append(systEntity('murmuf', 'N/A')) # Need to access ScaleVariationMuR and ScaleVariationMuF in another way
-         self.systematics.append(systEntity('pileup', 'SystDirection_PS', directions=['FSRup_2', 'FSRdown_2', 'ISRup_2', 'ISRdown_2']))
+         self.systematics.append(systEntity('ps', 'SystDirection_PS', directions=['FSRup_2', 'FSRdown_2', 'ISRup_2', 'ISRdown_2']))
          self.systematics.append(systEntity('pileup', 'SystDirection_Pileup'))
          # if year in ['2016', '2017']:
          #    self.systematics.append(systEntity('prefiring', 'SystDirection_Prefiring'))
          self.systematics.append(systEntity('muontrigger', 'SystDirection_MuonTrigger'))
          self.systematics.append(systEntity('muonid', 'SystDirection_MuonID'))
          # self.systematics.append(systEntity('muoniso', 'SystDirection_MuonIso'))
-         self.systematics.append(systEntity('btagging', 'SystDirection_BTag'))
+         self.systematics.append(systEntity('btagging', 'SystDirection_BTag', directions=['up_bc', 'down_bc', 'up_udsg', 'down_udsg']))
 
 
 class sampleEntity:
@@ -248,7 +248,7 @@ class xmlCreator:
          file.write(''']>\n''')
          file.write('''\n''')
          file.write('''<!--\n''')
-         file.write('''<ConfigParse NEventsBreak="'''+('200000' if self.is_mainsel else '0')+'''" FileSplit="'''+('0' if self.is_mainsel else self.yearVars['preselFileSplit'][self.year])+'''" AutoResubmit="5"/>\n''')
+         file.write('''<ConfigParse NEventsBreak="'''+('500000' if self.is_mainsel else '0')+'''" FileSplit="'''+('0' if self.is_mainsel else self.yearVars['preselFileSplit'][self.year])+'''" AutoResubmit="5"/>\n''')
          file.write('''<ConfigSGE RAM="4" DISK="3" Mail="'''+self.userMail+'''" Notification="as" Workdir="'''+'''_'''.join(['workdir', self.selection, self.year])+'''"/>\n''')
          file.write('''-->\n''')
          file.write('''\n''')
@@ -335,14 +335,14 @@ class xmlCreator:
          with open(systXmlFilePath, 'w') as outfile:
             for line in infile:
                newline = line
-               # if newline.startswith('<!ENTITY PRESELdir') or newline.startswith('<!ENTITY OUTPUTdir'):
-                  # newline = newline.replace('/nominal/', '/'+'_'.join(['syst', syst.shortName, direction])+'/')
                if newline.startswith('<!ENTITY PRESELdir') and (syst.shortName == 'jec' or syst.shortName == 'jer'):
                   newline = newline.replace('/nominal/', '/'+'_'.join(['syst', syst.shortName, direction])+'/')
                if newline.startswith('<!ENTITY OUTPUTdir'):
                   newline = newline.replace('/nominal/', '/'+'_'.join(['syst', syst.shortName, direction])+'/')
                if newline.startswith('<ConfigSGE'):
                   newline = newline.replace('"/>', '_'+'_'.join(['syst', syst.shortName, direction])+'"/>')
+               if newline.startswith('<InputData') and 'Type="DATA"' in newline:
+                  continue # skip data for systematics
                if syst.shortName != 'murmuf' and newline.startswith('<Item Name="'+syst.ctxName):
                   newline = newline.replace(syst.defaultValue, direction)
                if syst.shortName == 'murmuf' and newline.startswith('<Item Name="ScaleVariationMu'):
