@@ -60,7 +60,7 @@ void AK8ProbeJetHists::fill_probe(const vector<TH1F*> & hists) {
 void AK8ProbeJetHists::fill(const Event & event) {
 
   if(!event.is_valid(h_probejet)) return;
-  if(event.get(h_merge_scenario) != MergeScenario::isAll && event.get(h_merge_scenario) != msc) return;
+  if(msc != MergeScenario::isAll && msc != event.get(h_merge_scenario)) return;
 
   w = event.weight;
   primlep = event.get(h_primlep);
@@ -149,7 +149,7 @@ void HOTVRProbeJetHists::fill_probe(const vector<TH1F*> & hists) {
 void HOTVRProbeJetHists::fill(const Event & event) {
 
   if(!event.is_valid(h_probejet)) return;
-  if(event.get(h_merge_scenario) != MergeScenario::isAll && event.get(h_merge_scenario) != msc) return;
+  if(msc != MergeScenario::isAll && msc != event.get(h_merge_scenario)) return;
 
   w = event.weight;
   primlep = event.get(h_primlep);
@@ -197,6 +197,7 @@ ProbeJetHistsRunner::ProbeJetHistsRunner(Context & ctx, const string & dirname):
     }
   }
   if(mscs_found > 1) throw runtime_error("ProbeJetHistsRunner: Found more than one MergeScenario by checking the dataset version string. Abort.");
+  cout << "ProbeJetHistsRunner: According to dataset version, this sample is supposed to represent this merge scenario: " << kMergeScenarioAsString.at(msc_sample) << endl;
 
   hists_vector.push_back(new ltt::AK8ProbeJetHists(ctx, dirname+"_"+kProbeJetAlgos.at(ProbeJetAlgo::isAK8).name, msc_sample));
   hists_vector.push_back(new ltt::HOTVRProbeJetHists(ctx, dirname+"_"+kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).name, msc_sample));

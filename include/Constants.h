@@ -40,6 +40,7 @@ const std::map<MergeScenario, std::string> kMergeScenarioAsString = {
   {MergeScenario::isQBMerged, "QBMerged"},
   {MergeScenario::isNotMerged, "NotMerged"},
   {MergeScenario::isBackground, "Background"},
+  {MergeScenario::isAll, "AllMergeScenarios"},
 };
 
 enum class DecayChannel {
