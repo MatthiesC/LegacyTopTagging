@@ -111,7 +111,7 @@ class configContainer:
          self.systematics.append(systEntity('mur', 'ScaleVariationMuR'))
          self.systematics.append(systEntity('muf', 'ScaleVariationMuF'))
          self.systematics.append(systEntity('murmuf', 'N/A')) # Need to access ScaleVariationMuR and ScaleVariationMuF in another way
-         self.systematics.append(systEntity('pileup', 'SystDirection_PS'), directions=['FSRup_2', 'FSRdown_2', 'ISRup_2', 'ISRdown_2'])
+         self.systematics.append(systEntity('pileup', 'SystDirection_PS', directions=['FSRup_2', 'FSRdown_2', 'ISRup_2', 'ISRdown_2']))
          self.systematics.append(systEntity('pileup', 'SystDirection_Pileup'))
          # if year in ['2016', '2017']:
          #    self.systematics.append(systEntity('prefiring', 'SystDirection_Prefiring'))
