@@ -64,28 +64,22 @@ enum class PtBin {
   Pt400toInf,
 };
 
-const std::map<PtBin, std::string> kPtBinAsString = {
-  {PtBin::Pt200to250, "Pt200to250"},
-  {PtBin::Pt250to300, "Pt250to300"},
-  {PtBin::Pt300to400, "Pt300to400"},
-  {PtBin::Pt400to480, "Pt400to480"},
-  {PtBin::Pt480to600, "Pt480to600"},
-  {PtBin::Pt600toInf, "Pt600toInf"},
-  {PtBin::Pt200toInf, "Pt200toInf"},
-  {PtBin::Pt300toInf, "Pt300toInf"},
-  {PtBin::Pt400toInf, "Pt400toInf"},
-};
+typedef struct {
+  std::string name = "";
+  double pt_min = 0.;
+  double pt_max = std::numeric_limits<double>::infinity();
+} PtBinInfo;
 
-const std::map<PtBin, std::pair<double, double>> kPtBinAsNumbers = {
-  {PtBin::Pt200to250, {200, 250}},
-  {PtBin::Pt250to300, {250, 300}},
-  {PtBin::Pt300to400, {300, 400}},
-  {PtBin::Pt400to480, {400, 480}},
-  {PtBin::Pt480to600, {480, 600}},
-  {PtBin::Pt600toInf, {600, std::numeric_limits<double>::infinity()}},
-  {PtBin::Pt200toInf, {200, std::numeric_limits<double>::infinity()}},
-  {PtBin::Pt300toInf, {300, std::numeric_limits<double>::infinity()}},
-  {PtBin::Pt400toInf, {400, std::numeric_limits<double>::infinity()}},
+const std::map<PtBin, PtBinInfo> kPtBins = {
+  {PtBin::Pt200to250, PtBinInfo{"Pt200to250", 200, 250}},
+  {PtBin::Pt250to300, PtBinInfo{"Pt250to300", 250, 300}},
+  {PtBin::Pt300to400, PtBinInfo{"Pt300to400", 300, 400}},
+  {PtBin::Pt400to480, PtBinInfo{"Pt400to480", 400, 480}},
+  {PtBin::Pt480to600, PtBinInfo{"Pt480to600", 480, 600}},
+  {PtBin::Pt600toInf, PtBinInfo{"Pt600toInf", 600}},
+  {PtBin::Pt200toInf, PtBinInfo{"Pt200toInf", 200}},
+  {PtBin::Pt300toInf, PtBinInfo{"Pt300toInf", 300}},
+  {PtBin::Pt400toInf, PtBinInfo{"Pt400toInf", 400}},
 };
 
 const std::vector<PtBin> kPtBinsHOTVR = {

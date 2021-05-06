@@ -19,7 +19,7 @@ AK8ProbeJetHists::AK8ProbeJetHists(Context & ctx, const string & dirname, const 
   h_merge_scenario = ctx.get_handle<MergeScenario>("output_merge_scenario_"+kProbeJetAlgos.at(ProbeJetAlgo::isAK8).name);
 
   for(const auto & pt_bin : pt_bins) {
-    const string & pt_bin_string = kPtBinAsString.at(pt_bin);
+    const string & pt_bin_string = kPtBins.at(pt_bin).name;
     for(const auto & jet_cat : kJetCategoryAsString) {
       const string & jet_cat_string = jet_cat.second;
       for(const auto & wp : wps) {
@@ -76,7 +76,7 @@ void AK8ProbeJetHists::fill(const Event & event) {
   }
 
   for(const auto & pt_bin : pt_bins) {
-    if(probejet.v4().pt() < kPtBinAsNumbers.at(pt_bin).first || probejet.v4().pt() > kPtBinAsNumbers.at(pt_bin).second) continue;
+    if(probejet.v4().pt() < kPtBins.at(pt_bin).pt_min || probejet.v4().pt() > kPtBins.at(pt_bin).pt_max) continue;
     for(const auto & wp : wps) {
       const bool passes_tau32_cut = tau32(probejet) < wp.second;
 
@@ -108,7 +108,7 @@ HOTVRProbeJetHists::HOTVRProbeJetHists(Context & ctx, const string & dirname, co
   h_merge_scenario = ctx.get_handle<MergeScenario>("output_merge_scenario_"+kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).name);
 
   for(const auto & pt_bin : pt_bins) {
-    const string & pt_bin_string = kPtBinAsString.at(pt_bin);
+    const string & pt_bin_string = kPtBins.at(pt_bin).name;
     for(const auto & jet_cat : kJetCategoryAsString) {
       const string & jet_cat_string = jet_cat.second;
       for(const auto & wp : wps) {
@@ -159,7 +159,7 @@ void HOTVRProbeJetHists::fill(const Event & event) {
   const bool passes_hotvr_cuts = HOTVRTopTagID(probejet, event);
 
   for(const auto & pt_bin : pt_bins) {
-    if(probejet.v4().pt() < kPtBinAsNumbers.at(pt_bin).first || probejet.v4().pt() > kPtBinAsNumbers.at(pt_bin).second) continue;
+    if(probejet.v4().pt() < kPtBins.at(pt_bin).pt_min || probejet.v4().pt() > kPtBins.at(pt_bin).pt_max) continue;
     for(const auto & wp : wps) {
       const bool passes_tau32_cut = tau32groomed(probejet) < wp.second;
 
