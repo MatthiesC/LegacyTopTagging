@@ -10,14 +10,17 @@ using namespace ltt;
 
 namespace uhh2 { namespace ltt {
 
+//____________________________________________________________________________________________________
 double tau32(const TopJet & topjet) {
   return min((double)(topjet.tau3() / topjet.tau2()), 0.99999);
 }
 
+//____________________________________________________________________________________________________
 double tau32groomed(const TopJet & topjet) {
   return min((double)(topjet.tau3_groomed() / topjet.tau2_groomed()), 0.99999);
 }
 
+//____________________________________________________________________________________________________
 double mSD(const TopJet & topjet) {
   LorentzVector subjet_sum(0,0,0,0);
   for(auto subjet : topjet.subjets()) {
@@ -26,6 +29,7 @@ double mSD(const TopJet & topjet) {
   return inv_mass_safe(subjet_sum);
 }
 
+//____________________________________________________________________________________________________
 double maxDeepCSVSubJetValue(const TopJet & topjet) {
   double result(-99999.);
   for(auto subjet : topjet.subjets()) {
@@ -34,6 +38,7 @@ double maxDeepCSVSubJetValue(const TopJet & topjet) {
   return min(result, 0.99999);
 }
 
+//____________________________________________________________________________________________________
 double HOTVR_mpair(const TopJet & topjet, const bool safe) {
   vector<Jet> subjets = topjet.subjets();
   if(subjets.size() < 3) {
@@ -47,12 +52,14 @@ double HOTVR_mpair(const TopJet & topjet, const bool safe) {
   return min(m01, min(m02, m12));
 }
 
+//____________________________________________________________________________________________________
 double HOTVR_fpt(const TopJet & topjet, const unsigned int subjet_i) {
   vector<Jet> subjets = topjet.subjets();
   sort_by_pt(subjets);
   return subjets.at(subjet_i).v4().Pt() / topjet.v4().Pt();
 }
 
+//____________________________________________________________________________________________________
 HOTVRTopTag::HOTVRTopTag(const double _mass_min, const double _mass_max, const double _fpt_max, const double _mpair_min):
   mass_min(_mass_min), mass_max(_mass_max), fpt_max(_fpt_max), mpair_min(_mpair_min) {}
 
@@ -64,10 +71,12 @@ bool HOTVRTopTag::operator()(const TopJet & jet, const Event & event) const {
   return true;
 }
 
+//____________________________________________________________________________________________________
 const TopJet * nextTopJet(const Particle & p, const vector<TopJet> & topjets) {
   return closestParticle(p, topjets);
 }
 
+//____________________________________________________________________________________________________
 METSelection::METSelection(const double _met_min, const double _met_max): met_min(_met_min), met_max(_met_max) {}
 
 bool METSelection::passes(const Event & event) {
@@ -76,6 +85,7 @@ bool METSelection::passes(const Event & event) {
   return passed_lower_limit && passed_upper_limit;
 }
 
+//____________________________________________________________________________________________________
 PTWSelection::PTWSelection(Context & ctx, const double _ptw_min, const double _ptw_max): ptw_min(_ptw_min), ptw_max(_ptw_max), h_primlep(ctx.get_handle<FlavorParticle>("PrimaryLepton")) {}
 
 bool PTWSelection::passes(const Event & event) {
@@ -86,6 +96,7 @@ bool PTWSelection::passes(const Event & event) {
   return passed_lower_limit && passed_upper_limit;
 }
 
+//____________________________________________________________________________________________________
 TwoDSelection::TwoDSelection(Context & ctx, const double _ptrel_min, const double _dr_min): ptrel_min(_ptrel_min), dr_min(_dr_min), h_primlep(ctx.get_handle<FlavorParticle>("PrimaryLepton")) {}
 
 bool TwoDSelection::passes(const Event & event) {
@@ -96,6 +107,7 @@ bool TwoDSelection::passes(const Event & event) {
   return passed_ptrel_cut || passed_dr_cut;
 }
 
+//____________________________________________________________________________________________________
 BTagCloseToLeptonSelection::BTagCloseToLeptonSelection(Context & ctx, const double _dr_max, const JetId & _btagID): dr_max(_dr_max), btagID(_btagID), h_primlep(ctx.get_handle<FlavorParticle>("PrimaryLepton")) {}
 
 bool BTagCloseToLeptonSelection::passes(const Event & event) {
@@ -108,6 +120,7 @@ bool BTagCloseToLeptonSelection::passes(const Event & event) {
   return btags_close_to_lepton > 0;
 }
 
+//____________________________________________________________________________________________________
 PartonShowerVariation::PartonShowerVariation(Context & ctx) {
   const string config = ctx.get("SystDirection_PS", "nominal");
   for(const auto & v : kPSVariations) {
@@ -145,6 +158,7 @@ bool PartonShowerVariation::process(Event & event) {
   return true;
 }
 
+//____________________________________________________________________________________________________
 // Twiki: https://twiki.cern.ch/twiki/bin/view/CMS/MuonUL201{6,7,8}
 // SF files: https://gitlab.cern.ch/cms-muonPOG/muonefficiencies/-/tree/master/Run2/UL
 MuonScaleFactors::MuonScaleFactors(Context & ctx) {
@@ -164,6 +178,7 @@ bool MuonScaleFactors::process(Event & event) {
   return true;
 }
 
+//____________________________________________________________________________________________________
 // Twiki: https://twiki.cern.ch/twiki/bin/view/CMS/MuonUL201{6,7,8}
 // SF files: https://gitlab.cern.ch/cms-muonPOG/muonefficiencies/-/tree/master/Run2/UL
 TriggerScaleFactors::TriggerScaleFactors(Context & ctx) {
@@ -179,6 +194,7 @@ bool TriggerScaleFactors::process(Event & event) {
   return true;
 }
 
+//____________________________________________________________________________________________________
 ProbeJetHandleSetter::ProbeJetHandleSetter(Context & ctx, const ProbeJetAlgo & _algo, const string & coll_rec):
   h_probejet(ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgos.at(_algo).name)),
   h_topjets(ctx.get_handle<vector<TopJet>>(coll_rec.empty() ? "topjets" : coll_rec)) {}
@@ -190,6 +206,7 @@ bool ProbeJetHandleSetter::process(Event & event) {
   return true;
 }
 
+//____________________________________________________________________________________________________
 void get_Wb_daughters(GenParticle & w_from_top, GenParticle & b_from_top, const GenParticle & top, const vector<GenParticle> & genparticles) {
   w_from_top = *(top.daughter(&genparticles, 1));
   b_from_top = *(top.daughter(&genparticles, 2));
@@ -229,6 +246,7 @@ void get_Wb_daughters(GenParticle & w_from_top, GenParticle & b_from_top, const 
   }
 }
 
+//____________________________________________________________________________________________________
 DecayChannelAndHadronicTopHandleSetter::DecayChannelAndHadronicTopHandleSetter(Context & ctx):
   output_decay_channel(ctx.declare_event_output<DecayChannel>("output_decay_channel")),
   h_hadronictop(ctx.get_handle<GenParticle>("HadronicTopQuark")) // will be unset if process is neither ttbar->l+jets nor single t->hadronic
@@ -298,6 +316,7 @@ bool DecayChannelAndHadronicTopHandleSetter::process(Event & event) {
   return true;
 }
 
+//____________________________________________________________________________________________________
 MergeScenarioHandleSetter::MergeScenarioHandleSetter(Context & ctx, const ProbeJetAlgo & _algo): algo(_algo) {
   h_probejet = ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgos.at(_algo).name);
   h_hadronictop = ctx.get_handle<GenParticle>("HadronicTopQuark"); // will be unset if process is neither ttbar->l+jets nor single t->hadronic
@@ -344,6 +363,7 @@ bool MergeScenarioHandleSetter::process(Event & event) {
   return true;
 }
 
+//____________________________________________________________________________________________________
 MainOutputSetter::MainOutputSetter(Context & ctx) {
   h_probejet_hotvr = ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).name);
   h_probejet_ak8 = ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgos.at(ProbeJetAlgo::isAK8).name);

@@ -12,23 +12,31 @@
 
 namespace uhh2 { namespace ltt {
 
+//____________________________________________________________________________________________________
 template<typename T, typename U>
 double deltaEta(const T & p1, const U & p2) {
     return fabs(p1.eta() - p2.eta());
 }
 
+//____________________________________________________________________________________________________
 double tau32(const TopJet & topjet);
 
+//____________________________________________________________________________________________________
 double tau32groomed(const TopJet & topjet);
 
+//____________________________________________________________________________________________________
 double mSD(const TopJet & topjet);
 
+//____________________________________________________________________________________________________
 double maxDeepCSVSubJetValue(const TopJet & topjet);
 
+//____________________________________________________________________________________________________
 double HOTVR_mpair(const TopJet & topjet, const bool safe = true);
 
+//____________________________________________________________________________________________________
 double HOTVR_fpt(const TopJet & topjet, const unsigned int subjet_i = 0);
 
+//____________________________________________________________________________________________________
 class HOTVRTopTag {
 public:
   explicit HOTVRTopTag(const double _mass_min = kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).mass_min, const double _mass_max = kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).mass_max, const double _fpt_max = 0.8, const double _mpair_min = 50.);
@@ -40,8 +48,10 @@ private:
   double mpair_min;
 };
 
+//____________________________________________________________________________________________________
 const TopJet * nextTopJet(const Particle & p, const std::vector<TopJet> & topjets);
 
+//____________________________________________________________________________________________________
 class METSelection: public uhh2::Selection {
 public:
   METSelection(const double _met_min = 0., const double _met_max = std::numeric_limits<double>::infinity());
@@ -51,6 +61,7 @@ private:
   double met_max;
 };
 
+//____________________________________________________________________________________________________
 class PTWSelection: public uhh2::Selection {
 public:
   PTWSelection(uhh2::Context & ctx, const double _ptw_min = 0., const double _ptw_max = std::numeric_limits<double>::infinity());
@@ -61,6 +72,7 @@ private:
   uhh2::Event::Handle<FlavorParticle> h_primlep;
 };
 
+//____________________________________________________________________________________________________
 class TwoDSelection: public uhh2::Selection {
 public:
   TwoDSelection(uhh2::Context & ctx, const double _ptrel_min = 0., const double _dr_min = 0.);
@@ -71,6 +83,7 @@ private:
   uhh2::Event::Handle<FlavorParticle> h_primlep;
 };
 
+//____________________________________________________________________________________________________
 class BTagCloseToLeptonSelection: public uhh2::Selection {
 public:
   BTagCloseToLeptonSelection(uhh2::Context & ctx, const double _dr_max, const JetId & _btagID);
@@ -81,6 +94,7 @@ private:
   uhh2::Event::Handle<FlavorParticle> h_primlep;
 };
 
+//____________________________________________________________________________________________________
 class PartonShowerVariation: public uhh2::AnalysisModule {
 public:
   PartonShowerVariation(uhh2::Context & ctx);
@@ -133,6 +147,7 @@ private:
   // std::unique_ptr<AnalysisModule> sf_iso;
 };
 
+//____________________________________________________________________________________________________
 class TriggerScaleFactors: public uhh2::AnalysisModule {
 public:
   TriggerScaleFactors(uhh2::Context & ctx);
@@ -141,6 +156,7 @@ private:
   std::unique_ptr<AnalysisModule> sf_trig;
 };
 
+//____________________________________________________________________________________________________
 class ProbeJetHandleSetter: public uhh2::AnalysisModule {
 public:
   ProbeJetHandleSetter(uhh2::Context & ctx, const ProbeJetAlgo & _algo, const std::string & coll_rec = "");
@@ -150,8 +166,10 @@ private:
   uhh2::Event::Handle<std::vector<TopJet>> h_topjets;
 };
 
+//____________________________________________________________________________________________________
 void get_Wb_daughters(GenParticle & w_from_top, GenParticle & b_from_top, const GenParticle & top, const std::vector<GenParticle> & genparticles);
 
+//____________________________________________________________________________________________________
 class DecayChannelAndHadronicTopHandleSetter: public uhh2::AnalysisModule {
 public:
   DecayChannelAndHadronicTopHandleSetter(uhh2::Context & ctx);
@@ -161,6 +179,7 @@ private:
   uhh2::Event::Handle<GenParticle> h_hadronictop;
 };
 
+//____________________________________________________________________________________________________
 class MergeScenarioHandleSetter: public uhh2::AnalysisModule {
 public:
   MergeScenarioHandleSetter(uhh2::Context & ctx, const ProbeJetAlgo & _algo);
@@ -173,6 +192,7 @@ private:
   uhh2::Event::Handle<MergeScenario> output_merge_scenario;
 };
 
+//____________________________________________________________________________________________________
 // This class can be used to setup an AnalysisTree which contains all variables needed to fill probejet histograms at a later stage than SFrame
 class MainOutputSetter: public uhh2::AnalysisModule {
 public:
