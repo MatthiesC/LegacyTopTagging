@@ -190,6 +190,45 @@ bool ProbeJetHandleSetter::process(Event & event) {
   return true;
 }
 
+void get_Wb_daughters(GenParticle & w_from_top, GenParticle & b_from_top, const GenParticle & top, const vector<GenParticle> & genparticles) {
+  w_from_top = *(top.daughter(&genparticles, 1));
+  b_from_top = *(top.daughter(&genparticles, 2));
+  if(abs(w_from_top.pdgId()) != 24) {
+    swap(w_from_top, b_from_top);
+  }
+  // In rare cases a top-MC event contains more than two genparticles which list a specific top quark as their mother (e.g. due to an additional emission).
+  // In order to correctly identify the W boson daughter of a specific top quark, this workaround is needed:
+  if(abs(w_from_top.pdgId()) != 24) {
+    for(const GenParticle & gp : genparticles) {
+      const GenParticle *m1 = gp.mother(&genparticles, 1);
+      const GenParticle *m2 = gp.mother(&genparticles, 2);
+      const bool has_top_mother = (m1 && m1->index() == top.index()) || (m2 && m2->index() == top.index());
+      if(has_top_mother && abs(gp.pdgId()) == 24) {
+        w_from_top = gp;
+        break;
+      }
+    }
+  }
+  if(abs(w_from_top.pdgId()) != 24) {
+    throw runtime_error("get_Wb_daughters(): Not able to find correct W boson daughter of top quark.");
+  }
+  // Do a similar workaround for the b quark daughter:
+  if(abs(b_from_top.pdgId()) != 5 && abs(b_from_top.pdgId()) != 3 && abs(b_from_top.pdgId()) != 1) {
+    for(const GenParticle & gp : genparticles) {
+      const GenParticle *m1 = gp.mother(&genparticles, 1);
+      const GenParticle *m2 = gp.mother(&genparticles, 2);
+      const bool has_top_mother = (m1 && m1->index() == top.index()) || (m2 && m2->index() == top.index());
+      if(has_top_mother && (abs(gp.pdgId()) == 5 || abs(gp.pdgId()) == 3 || abs(gp.pdgId()) == 1)) {
+        b_from_top = gp;
+        break;
+      }
+    }
+  }
+  if(abs(b_from_top.pdgId()) != 5 && abs(b_from_top.pdgId()) != 3 && abs(b_from_top.pdgId()) != 1) {
+    throw runtime_error("get_Wb_daughters(): Not able to find correct b quark daughter of top quark.");
+  }
+}
+
 DecayChannelAndHadronicTopHandleSetter::DecayChannelAndHadronicTopHandleSetter(Context & ctx):
   output_decay_channel(ctx.declare_event_output<DecayChannel>("output_decay_channel")),
   h_hadronictop(ctx.get_handle<GenParticle>("HadronicTopQuark")) // will be unset if process is neither ttbar->l+jets nor single t->hadronic
@@ -210,6 +249,7 @@ bool DecayChannelAndHadronicTopHandleSetter::process(Event & event) {
   if(n_tops == 2) proc = Process::isTTbar;
   else if(n_tops == 1) proc = Process::isST;
 
+  // TODO: Currently it is not checked whether the two identified W bosons stem from top quarks or not. This will lead to problems when using e.g. ttW samples
   if(proc == Process::isTTbar) {
     GenParticle (*top)(nullptr), (*antitop)(nullptr);
     GenParticle (*w_plus)(nullptr), (*w_minus)(nullptr);
@@ -242,11 +282,9 @@ bool DecayChannelAndHadronicTopHandleSetter::process(Event & event) {
     for(GenParticle & gp : *event.genparticles) {
       if(abs(gp.pdgId()) == 6) top = &gp;
     }
-    GenParticle w_from_top = *(top->daughter(event.genparticles, 1));
-    GenParticle b_from_top = *(top->daughter(event.genparticles, 2));
-    if(abs(w_from_top.pdgId()) != 24) {
-      swap(w_from_top, b_from_top);
-    }
+    GenParticle w_from_top;
+    GenParticle b_from_top;
+    get_Wb_daughters(w_from_top, b_from_top, *top, *event.genparticles);
     if(abs(w_from_top.daughter(event.genparticles, 1)->pdgId()) <= 5) {
       dc = DecayChannel::isSTToHadronic;
       event.set(h_hadronictop, *top);
@@ -287,9 +325,9 @@ bool MergeScenarioHandleSetter::process(Event & event) {
   else if(algo == ProbeJetAlgo::isHOTVR) {
     dRmatch = min(1.5, max(0.1, 600./(probejet.v4().pt()*probejet.JEC_factor_raw())));
   }
-  GenParticle gen_b = *(hadronic_top.daughter(event.genparticles, 1));
-  GenParticle gen_w = *(hadronic_top.daughter(event.genparticles, 2));
-  if(abs(gen_w.pdgId()) != 24) swap(gen_b, gen_w);
+  GenParticle gen_w;
+  GenParticle gen_b;
+  get_Wb_daughters(gen_w, gen_b, hadronic_top, *event.genparticles);
   GenParticle gen_q1 = *(gen_w.daughter(event.genparticles, 1));
   GenParticle gen_q2 = *(gen_w.daughter(event.genparticles, 2));
   bool merged_b = deltaR(gen_b.v4(), probejet.v4()) < dRmatch;

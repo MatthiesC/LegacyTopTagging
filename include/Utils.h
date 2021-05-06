@@ -150,6 +150,8 @@ private:
   uhh2::Event::Handle<std::vector<TopJet>> h_topjets;
 };
 
+void get_Wb_daughters(GenParticle & w_from_top, GenParticle & b_from_top, const GenParticle & top, const std::vector<GenParticle> & genparticles);
+
 class DecayChannelAndHadronicTopHandleSetter: public uhh2::AnalysisModule {
 public:
   DecayChannelAndHadronicTopHandleSetter(uhh2::Context & ctx);
