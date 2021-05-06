@@ -66,13 +66,29 @@ class configContainer:
       }
 
       self.yearVars['triggerSFFiles'] = {
+         'UL16preVFP': self.uhh2Dir+'common/data/UL16preVFP/Efficiencies_muon_generalTracks_Z_Run2016_UL_HIPM_SingleMuonTriggers.root',
+         'UL16postVFP': self.uhh2Dir+'common/data/UL16postVFP/Efficiencies_muon_generalTracks_Z_Run2016_UL_SingleMuonTriggers.root',
          'UL17': self.uhh2Dir+'common/data/UL17/Efficiencies_muon_generalTracks_Z_Run2017_UL_SingleMuonTriggers.root',
          'UL18': self.uhh2Dir+'common/data/UL18/Efficiencies_muon_generalTracks_Z_Run2018_UL_SingleMuonTriggers.root',
       }
+      self.yearVars['triggerSFHists'] = {
+         'UL16preVFP': 'NUM_Mu50_or_TkMu50_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_abseta_pt',
+         'UL16postVFP': 'NUM_Mu50_or_TkMu50_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_abseta_pt',
+         'UL17': 'NUM_Mu50_or_OldMu100_or_TkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_abseta_pt',
+         'UL18': 'NUM_Mu50_or_OldMu100_or_TkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_abseta_pt',
+      }
 
       self.yearVars['muonidSFFiles'] = {
+         'UL16preVFP': self.uhh2Dir+'common/data/UL16preVFP/Efficiencies_muon_generalTracks_Z_Run2016_UL_HIPM_ID.root',
+         'UL16postVFP': self.uhh2Dir+'common/data/UL16postVFP/Efficiencies_muon_generalTracks_Z_Run2016_UL_ID.root',
          'UL17': self.uhh2Dir+'common/data/UL17/Efficiencies_muon_generalTracks_Z_Run2017_UL_ID.root',
          'UL18': self.uhh2Dir+'common/data/UL18/Efficiencies_muon_generalTracks_Z_Run2018_UL_ID.root',
+      }
+      self.yearVars['muonidSFHists'] = {
+         'UL16preVFP': 'NUM_TightID_DEN_TrackerMuons_abseta_pt',
+         'UL16postVFP': 'NUM_TightID_DEN_TrackerMuons_abseta_pt',
+         'UL17': 'NUM_TightID_DEN_TrackerMuons_abseta_pt',
+         'UL18': 'NUM_TightID_DEN_TrackerMuons_abseta_pt',
       }
 
       self.yearVars['deepjetMCEffFiles'] = {
@@ -270,7 +286,9 @@ class xmlCreator:
          file.write('''<Item Name="lumihists_lumi_per_bin" Value="500."/>\n''')
          file.write('''\n''')
          file.write('''<Item Name="MuonIDScaleFactorFile" Value="'''+self.yearVars['muonidSFFiles'][self.year]+'''"/>\n''')
+         file.write('''<Item Name="MuonIDScaleFactorHist" Value="'''+self.yearVars['muonidSFHists'][self.year]+'''"/>\n''')
          file.write('''<Item Name="TriggerScaleFactorFile" Value="'''+self.yearVars['triggerSFFiles'][self.year]+'''"/>\n''')
+         file.write('''<Item Name="TriggerScaleFactorHist" Value="'''+self.yearVars['triggerSFHists'][self.year]+'''"/>\n''')
          file.write('''\n''')
          file.write('''<Item Name="pileup_directory" Value="'''+self.yearVars['pileupFiles']['mc'][self.year]+'''"/>\n''')
          file.write('''<Item Name="pileup_directory_data" Value="'''+self.yearVars['pileupFiles']['data'][self.year]+'''"/>\n''')

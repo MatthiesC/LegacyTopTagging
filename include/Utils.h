@@ -5,7 +5,6 @@
 #include "UHH2/core/include/Event.h"
 #include "UHH2/core/include/Utils.h"
 
-#include "UHH2/common/include/YearRunSwitchers.h"
 #include "UHH2/common/include/JetIds.h"
 
 #include "UHH2/LegacyTopTagging/include/Constants.h"
@@ -130,8 +129,8 @@ public:
   MuonScaleFactors(uhh2::Context & ctx);
   virtual bool process(uhh2::Event & event) override;
 private:
-  std::unique_ptr<YearSwitcher> sf_id;
-  // std::unique_ptr<YearSwitcher> sf_iso;
+  std::unique_ptr<AnalysisModule> sf_id;
+  // std::unique_ptr<AnalysisModule> sf_iso;
 };
 
 class TriggerScaleFactors: public uhh2::AnalysisModule {
@@ -139,7 +138,7 @@ public:
   TriggerScaleFactors(uhh2::Context & ctx);
   virtual bool process(uhh2::Event & event) override;
 private:
-  std::unique_ptr<YearSwitcher> sf_trig;
+  std::unique_ptr<AnalysisModule> sf_trig;
 };
 
 class ProbeJetHandleSetter: public uhh2::AnalysisModule {
