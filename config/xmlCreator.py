@@ -37,8 +37,8 @@ class configContainer:
       }
 
       self.yearVars['targetLumis'] = {
-         'UL17': 41.48,
-         'UL18': 59.83,
+         'UL17': 41480.,
+         'UL18': 59830.,
       }
 
       self.yearVars['lumiFiles'] = {
@@ -111,6 +111,7 @@ class configContainer:
          self.systematics.append(systEntity('mur', 'ScaleVariationMuR'))
          self.systematics.append(systEntity('muf', 'ScaleVariationMuF'))
          self.systematics.append(systEntity('murmuf', 'N/A')) # Need to access ScaleVariationMuR and ScaleVariationMuF in another way
+         self.systematics.append(systEntity('pileup', 'SystDirection_PS'), directions=['FSRup_2', 'FSRdown_2', 'ISRup_2', 'ISRdown_2'])
          self.systematics.append(systEntity('pileup', 'SystDirection_Pileup'))
          # if year in ['2016', '2017']:
          #    self.systematics.append(systEntity('prefiring', 'SystDirection_Prefiring'))
@@ -142,17 +143,14 @@ class sampleEntity:
       self.mainsel_versions = list()
 
       # init mainsel_versions
-      # if self.nickName.startswith('ST_tW'):
-      #     self.mainsel_versions.append(self.nickName.replace('_T', '_Sig_T'))
-      #     self.mainsel_versions.append(self.nickName.replace('_T', '_Bkg_T'))
-      # if self.nickName.startswith('WJets'):
-      #    self.mainsel_versions.append(self.nickName.replace('WJets', 'WJetsHeavy'))
-      #    self.mainsel_versions.append(self.nickName.replace('WJets', 'WJetsLight'))
-      # elif self.nickName.startswith('ST_tW'):
-      #    decays = ['Had', 'Ele', 'Muo', 'Tau']
-      #    for tDecay in decays:
-      #       for wDecay in decays:
-      #          self.mainsel_versions.append(self.nickName.replace('_T', '_TopTo'+tDecay+'_WTo'+wDecay+'_T'))
+      merge_scenarios = ['FullyMerged', 'WMerged', 'QBMerged', 'NotMerged', 'Background']
+      if self.nickName.startswith('ST_tW') or self.nickName.startswith('ST_tChannel') or self.nickName.startswith('ST_sChannel_had'): # in case we ever use the hadronicDecays s-channel sample
+         for m in merge_scenarios:
+            self.mainsel_versions.append('_'.join([self.nickName, m]))
+      elif self.nickName.startswith('TTbarToSemiLeptonic'):
+         for m in merge_scenarios:
+            if m=='Background': continue
+            self.mainsel_versions.append('_'.join([self.nickName, m]))
       # else:
       self.mainsel_versions.append(self.nickName)
 
