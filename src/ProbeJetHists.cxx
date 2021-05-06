@@ -12,7 +12,7 @@ using namespace ltt;
 
 namespace uhh2 { namespace ltt {
 
-AK8ProbeJetHists::AK8ProbeJetHists(Context & ctx, const string & dirname, const MergeScenario & _msc): Hists(ctx, dirname), msc(_msc) {
+AK8ProbeJetHists::AK8ProbeJetHists(Context & ctx, const string & dirname, const MergeScenario & _msc, const optional<double> _mSD_threshold): Hists(ctx, dirname), msc(_msc), mSD_threshold(_mSD_threshold) {
 
   h_primlep = ctx.get_handle<FlavorParticle>("PrimaryLepton");
   h_probejet = ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgos.at(ProbeJetAlgo::isAK8).name);
@@ -59,12 +59,15 @@ void AK8ProbeJetHists::fill_probe(const vector<TH1F*> & hists) {
 
 void AK8ProbeJetHists::fill(const Event & event) {
 
-  if(!event.is_valid(h_probejet)) return;
-  if(msc != MergeScenario::isAll && msc != event.get(h_merge_scenario)) return;
-
-  w = event.weight;
-  primlep = event.get(h_primlep);
+  if(!event.is_valid(h_probejet))
+    return;
+  if(msc != MergeScenario::isAll && msc != event.get(h_merge_scenario))
+    return;
   probejet = event.get(h_probejet);
+  if(mSD_threshold && mSD(probejet) < *mSD_threshold) // dereferencing required, else types 'double' and 'std::optional<double>' would be compared
+    return;
+  primlep = event.get(h_primlep);
+  w = event.weight;
 
   const bool passes_mass_cut = (mSD(probejet) > kProbeJetAlgos.at(ProbeJetAlgo::isAK8).mass_min && mSD(probejet) < kProbeJetAlgos.at(ProbeJetAlgo::isAK8).mass_max);
   bool passes_btagging(false);
@@ -148,12 +151,13 @@ void HOTVRProbeJetHists::fill_probe(const vector<TH1F*> & hists) {
 
 void HOTVRProbeJetHists::fill(const Event & event) {
 
-  if(!event.is_valid(h_probejet)) return;
-  if(msc != MergeScenario::isAll && msc != event.get(h_merge_scenario)) return;
-
-  w = event.weight;
-  primlep = event.get(h_primlep);
+  if(!event.is_valid(h_probejet))
+    return;
+  if(msc != MergeScenario::isAll && msc != event.get(h_merge_scenario))
+    return;
   probejet = event.get(h_probejet);
+  primlep = event.get(h_primlep);
+  w = event.weight;
 
   const bool passes_mass_cut = (probejet.v4().M() > kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).mass_min && probejet.v4().M() < kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).mass_max);
   const bool passes_hotvr_cuts = HOTVRTopTagID(probejet, event);
@@ -200,12 +204,8 @@ ProbeJetHistsRunner::ProbeJetHistsRunner(Context & ctx, const string & dirname):
   cout << "ProbeJetHistsRunner: According to dataset version, this sample is supposed to represent this merge scenario: " << kMergeScenarioAsString.at(msc_sample) << endl;
 
   hists_vector.push_back(new ltt::AK8ProbeJetHists(ctx, dirname+"_"+kProbeJetAlgos.at(ProbeJetAlgo::isAK8).name, msc_sample));
+  hists_vector.push_back(new ltt::AK8ProbeJetHists(ctx, dirname+"_"+kProbeJetAlgos.at(ProbeJetAlgo::isAK8).name+"_mSD10", msc_sample, 10.));
   hists_vector.push_back(new ltt::HOTVRProbeJetHists(ctx, dirname+"_"+kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).name, msc_sample));
-
-  // for(const auto & msc : kMergeScenarioAsString) {
-  //   hists_vector.push_back(new ltt::AK8ProbeJetHists(ctx, dirname+"_AK8_"+msc.second, msc.first));
-  //   hists_vector.push_back(new ltt::HOTVRProbeJetHists(ctx, dirname+"_HOTVR_"+msc.second, msc.first));
-  // }
 }
 
 void ProbeJetHistsRunner::fill(const Event & event) {

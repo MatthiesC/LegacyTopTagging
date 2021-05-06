@@ -13,7 +13,7 @@ namespace uhh2 { namespace ltt {
 
 class AK8ProbeJetHists: public uhh2::Hists {
 public:
-  AK8ProbeJetHists(uhh2::Context & ctx, const std::string & dirname, const MergeScenario & _msc);
+  AK8ProbeJetHists(uhh2::Context & ctx, const std::string & dirname, const MergeScenario & _msc, const std::optional<double> _mSD_threshold = std::nullopt);
   virtual void fill(const uhh2::Event & event) override;
 
 protected:
@@ -42,12 +42,13 @@ private:
   uhh2::Event::Handle<TopJet> h_probejet;
   uhh2::Event::Handle<MergeScenario> h_merge_scenario;
   MergeScenario msc;
+  const std::optional<double> mSD_threshold;
   const std::vector<PtBin> pt_bins = kPtBinsAK8;
   const WorkingPointMap wps = kWorkingPointsAK8;
   const JetId SubjetBTagID = BTag(BTag::DEEPCSV, BTag::WP_LOOSE);
-  double w;
-  FlavorParticle primlep;
   TopJet probejet;
+  FlavorParticle primlep;
+  double w;
 
   std::map<PassCategory, std::string> kPassCategoryAsString = {
     {PassCategory::Pass, "Pass"},
@@ -96,9 +97,9 @@ private:
   const std::vector<PtBin> pt_bins = kPtBinsHOTVR;
   const WorkingPointMap wps = kWorkingPointsHOTVR;
   const TopJetId HOTVRTopTagID = ltt::HOTVRTopTag(0., std::numeric_limits<double>::infinity()); // standard HOTVR t-tag without mass cut and without tau32 cut
-  double w;
-  FlavorParticle primlep;
   TopJet probejet;
+  FlavorParticle primlep;
+  double w;
 
   std::map<PassCategory, std::string> kPassCategoryAsString = {
     {PassCategory::Pass, "Pass"},
