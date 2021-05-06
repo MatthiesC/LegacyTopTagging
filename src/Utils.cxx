@@ -108,6 +108,43 @@ bool BTagCloseToLeptonSelection::passes(const Event & event) {
   return btags_close_to_lepton > 0;
 }
 
+PartonShowerVariation::PartonShowerVariation(Context & ctx) {
+  const string config = ctx.get("SystDirection_PS", "nominal");
+  for(const auto & v : kPSVariations) {
+    weights_map[v.first] = ctx.declare_event_output<double>("weight_partonshower_"+v.second.name);
+    if(v.second.name == config) applied_variation = v.first;
+  }
+  if(applied_variation != PSVariation::None) {
+    cout << "PartonShowerVariation will apply this variation to event weights: " << kPSVariations.at(applied_variation).name << endl;
+  }
+  else {
+    cout << "PartonShowerVariation will only write the weights to the AnalysisTree but not apply any weight." << endl;
+  }
+}
+
+bool PartonShowerVariation::process(Event & event) {
+  bool skip(false);
+  if(event.isRealData) skip = true;
+  else if(event.genInfo->weights().size() <= 1) {
+    if(!warning_thrown) {
+      cout << "PartonShowerVariation::process(): No parton shower weights stored for this sample. Doing nothing for all events." << endl;
+      warning_thrown = true;
+    }
+    skip = true;
+  }
+  if(skip) {
+    for(const auto & v : kPSVariations) {
+      event.set(weights_map[v.first], 1.);
+    }
+    return true;
+  }
+  for(const auto & v : kPSVariations) {
+    event.set(weights_map[v.first], event.genInfo->weights().at(v.second.index) / event.genInfo->weights().at(0));
+  }
+  if(applied_variation != PSVariation::None) event.weight *= event.get(weights_map.at(applied_variation));
+  return true;
+}
+
 // Twiki: https://twiki.cern.ch/twiki/bin/view/CMS/MuonUL201{6,7,8}
 // SF files: https://gitlab.cern.ch/cms-muonPOG/muonefficiencies/-/tree/master/Run2/UL
 MuonScaleFactors::MuonScaleFactors(Context & ctx) {
@@ -149,7 +186,7 @@ bool TriggerScaleFactors::process(Event & event) {
 }
 
 ProbeJetHandleSetter::ProbeJetHandleSetter(Context & ctx, const ProbeJetAlgo & _algo, const string & coll_rec):
-  h_probejet(ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgoAsString.at(_algo))),
+  h_probejet(ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgos.at(_algo).name)),
   h_topjets(ctx.get_handle<vector<TopJet>>(coll_rec.empty() ? "topjets" : coll_rec)) {}
 
 bool ProbeJetHandleSetter::process(Event & event) {
@@ -230,11 +267,11 @@ bool DecayChannelAndHadronicTopHandleSetter::process(Event & event) {
 }
 
 MergeScenarioHandleSetter::MergeScenarioHandleSetter(Context & ctx, const ProbeJetAlgo & _algo): algo(_algo) {
-  h_probejet = ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgoAsString.at(_algo));
+  h_probejet = ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgos.at(_algo).name);
   h_hadronictop = ctx.get_handle<GenParticle>("HadronicTopQuark"); // will be unset if process is neither ttbar->l+jets nor single t->hadronic
 
-  output_has_probejet = ctx.declare_event_output<bool>("output_has_probejet_"+kProbeJetAlgoAsString.at(_algo));
-  output_merge_scenario = ctx.declare_event_output<MergeScenario>("output_merge_scenario_"+kProbeJetAlgoAsString.at(_algo));
+  output_has_probejet = ctx.declare_event_output<bool>("output_has_probejet_"+kProbeJetAlgos.at(_algo).name);
+  output_merge_scenario = ctx.declare_event_output<MergeScenario>("output_merge_scenario_"+kProbeJetAlgos.at(_algo).name);
 }
 
 bool MergeScenarioHandleSetter::process(Event & event) {
@@ -276,31 +313,34 @@ bool MergeScenarioHandleSetter::process(Event & event) {
 }
 
 MainOutputSetter::MainOutputSetter(Context & ctx) {
-  h_probejet_hotvr = ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgoAsString.at(ProbeJetAlgo::isHOTVR));
-  h_probejet_ak8 = ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgoAsString.at(ProbeJetAlgo::isAK8));
+  h_probejet_hotvr = ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).name);
+  h_probejet_ak8 = ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgos.at(ProbeJetAlgo::isAK8).name);
 
   vector<string> output_names;
+  const string preprefix = "output_probejet_"; string prefix = "";
 
-  output_names.push_back("probejet_hotvr_pt");
-  output_names.push_back("probejet_hotvr_eta");
-  output_names.push_back("probejet_hotvr_phi");
-  output_names.push_back("probejet_hotvr_mass");
-  output_names.push_back("probejet_hotvr_nsub");
-  h_probejet_hotvr_nsub_integer = ctx.declare_event_output<int>("output_probejet_hotvr_nsub_integer");
-  output_names.push_back("probejet_hotvr_mpair");
-  output_names.push_back("probejet_hotvr_fpt");
-  output_names.push_back("probejet_hotvr_tau32");
+  prefix = preprefix+kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).name+"_";
+  output_names.push_back(prefix+"pt");
+  output_names.push_back(prefix+"eta");
+  output_names.push_back(prefix+"phi");
+  output_names.push_back(prefix+"mass");
+  output_names.push_back(prefix+"nsub");
+  h_probejet_hotvr_nsub_integer = ctx.declare_event_output<int>(prefix+"nsub_integer");
+  output_names.push_back(prefix+"mpair");
+  output_names.push_back(prefix+"fpt1");
+  output_names.push_back(prefix+"tau32");
 
-  output_names.push_back("probejet_ak8_pt");
-  output_names.push_back("probejet_ak8_eta");
-  output_names.push_back("probejet_ak8_phi");
-  output_names.push_back("probejet_ak8_mass");
-  output_names.push_back("probejet_ak8_msd");
-  output_names.push_back("probejet_ak8_tau32");
-  output_names.push_back("probejet_ak8_deepcsv");
+  prefix = preprefix+kProbeJetAlgos.at(ProbeJetAlgo::isAK8).name+"_";
+  output_names.push_back(prefix+"pt");
+  output_names.push_back(prefix+"eta");
+  output_names.push_back(prefix+"phi");
+  output_names.push_back(prefix+"mass");
+  output_names.push_back(prefix+"mSD");
+  output_names.push_back(prefix+"tau32");
+  output_names.push_back(prefix+"maxDeepCSV");
 
   for(unsigned int i = 0; i < output_names.size(); i++) {
-    h_mainoutput.push_back(ctx.declare_event_output<float>("output_"+output_names.at(i)));
+    h_mainoutput.push_back(ctx.declare_event_output<float>(output_names.at(i)));
   }
 }
 

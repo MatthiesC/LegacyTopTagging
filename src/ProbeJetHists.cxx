@@ -15,8 +15,8 @@ namespace uhh2 { namespace ltt {
 AK8ProbeJetHists::AK8ProbeJetHists(Context & ctx, const string & dirname, const MergeScenario & _msc): Hists(ctx, dirname), msc(_msc) {
 
   h_primlep = ctx.get_handle<FlavorParticle>("PrimaryLepton");
-  h_probejet = ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgoAsString.at(ProbeJetAlgo::isAK8));
-  h_merge_scenario = ctx.get_handle<MergeScenario>("output_merge_scenario_"+kProbeJetAlgoAsString.at(ProbeJetAlgo::isAK8));
+  h_probejet = ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgos.at(ProbeJetAlgo::isAK8).name);
+  h_merge_scenario = ctx.get_handle<MergeScenario>("output_merge_scenario_"+kProbeJetAlgos.at(ProbeJetAlgo::isAK8).name);
 
   for(const auto & pt_bin : pt_bins) {
     const string & pt_bin_string = kPtBinAsString.at(pt_bin);
@@ -66,7 +66,7 @@ void AK8ProbeJetHists::fill(const Event & event) {
   primlep = event.get(h_primlep);
   probejet = event.get(h_probejet);
 
-  const bool passes_mass_cut = (mSD(probejet) > kProbeJetAlgoMassCuts.at(ProbeJetAlgo::isAK8).first && mSD(probejet) < kProbeJetAlgoMassCuts.at(ProbeJetAlgo::isAK8).second);
+  const bool passes_mass_cut = (mSD(probejet) > kProbeJetAlgos.at(ProbeJetAlgo::isAK8).mass_min && mSD(probejet) < kProbeJetAlgos.at(ProbeJetAlgo::isAK8).mass_max);
   bool passes_btagging(false);
   for(const auto & subjet : probejet.subjets()) {
     if(SubjetBTagID(subjet, event)) {
@@ -104,8 +104,8 @@ void AK8ProbeJetHists::fill(const Event & event) {
 HOTVRProbeJetHists::HOTVRProbeJetHists(Context & ctx, const string & dirname, const MergeScenario & _msc): Hists(ctx, dirname), msc(_msc) {
 
   h_primlep = ctx.get_handle<FlavorParticle>("PrimaryLepton");
-  h_probejet = ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgoAsString.at(ProbeJetAlgo::isHOTVR));
-  h_merge_scenario = ctx.get_handle<MergeScenario>("output_merge_scenario_"+kProbeJetAlgoAsString.at(ProbeJetAlgo::isHOTVR));
+  h_probejet = ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).name);
+  h_merge_scenario = ctx.get_handle<MergeScenario>("output_merge_scenario_"+kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).name);
 
   for(const auto & pt_bin : pt_bins) {
     const string & pt_bin_string = kPtBinAsString.at(pt_bin);
@@ -155,7 +155,7 @@ void HOTVRProbeJetHists::fill(const Event & event) {
   primlep = event.get(h_primlep);
   probejet = event.get(h_probejet);
 
-  const bool passes_mass_cut = (probejet.v4().M() > kProbeJetAlgoMassCuts.at(ProbeJetAlgo::isHOTVR).first && probejet.v4().M() < kProbeJetAlgoMassCuts.at(ProbeJetAlgo::isHOTVR).second);
+  const bool passes_mass_cut = (probejet.v4().M() > kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).mass_min && probejet.v4().M() < kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).mass_max);
   const bool passes_hotvr_cuts = HOTVRTopTagID(probejet, event);
 
   for(const auto & pt_bin : pt_bins) {
@@ -198,18 +198,8 @@ ProbeJetHistsRunner::ProbeJetHistsRunner(Context & ctx, const string & dirname):
   }
   if(mscs_found > 1) throw runtime_error("ProbeJetHistsRunner: Found more than one MergeScenario by checking the dataset version string. Abort.");
 
-  // ProbeJetAlgo algo_sample = ProbeJetAlgo::notValid;
-  // unsigned int algos_found(0);
-  // for(const auto & algo : kProbeJetAlgoAsString) {
-  //   if(dv.find(algo.second) != string::npos) {
-  //     algo_sample = msc.first;
-  //     algos_found++;
-  //   }
-  // }
-  // if(algos_found > 1) throw runtime_error("ProbeJetHistsRunner: Found more than one ProbeJetAlgo by checking the dataset version string. Abort.");
-
-  hists_vector.push_back(new ltt::AK8ProbeJetHists(ctx, dirname+"_"+kProbeJetAlgoAsString.at(ProbeJetAlgo::isAK8), msc_sample));
-  hists_vector.push_back(new ltt::HOTVRProbeJetHists(ctx, dirname+"_"+kProbeJetAlgoAsString.at(ProbeJetAlgo::isHOTVR), msc_sample));
+  hists_vector.push_back(new ltt::AK8ProbeJetHists(ctx, dirname+"_"+kProbeJetAlgos.at(ProbeJetAlgo::isAK8).name, msc_sample));
+  hists_vector.push_back(new ltt::HOTVRProbeJetHists(ctx, dirname+"_"+kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).name, msc_sample));
 
   // for(const auto & msc : kMergeScenarioAsString) {
   //   hists_vector.push_back(new ltt::AK8ProbeJetHists(ctx, dirname+"_AK8_"+msc.second, msc.first));

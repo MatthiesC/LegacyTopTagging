@@ -40,6 +40,7 @@ private:
 
   unique_ptr<AnalysisModule> primlep;
   unique_ptr<AnalysisModule> scale_variation;
+  unique_ptr<AnalysisModule> ps_variation;
   unique_ptr<AnalysisModule> sf_lumi;
   unique_ptr<AnalysisModule> sf_pileup;
   unique_ptr<AnalysisModule> sf_muon;
@@ -96,6 +97,7 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx) {
   const JetId btagID = BTag(btagALGO, btagWP);
 
   scale_variation.reset(new MCScaleVariation(ctx));
+  ps_variation.reset(new PartonShowerVariation(ctx));
   sf_lumi.reset(new MCLumiWeight(ctx));
   sf_pileup.reset(new MCPileupReweight(ctx, ctx.get("SystDirection_Pileup", "nominal")));
   sf_muon.reset(new MuonScaleFactors(ctx));
@@ -158,6 +160,7 @@ bool TagAndProbeMainSelectionModule::process(Event & event) {
   if(debug) cout << "PreSelection scale factors" << endl; // else getting error for some data samples, e.g. "RunSwitcher cannot handle run number 275656 for year 2016"
   primlep->process(event);
   scale_variation->process(event);
+  ps_variation->process(event);
   sf_lumi->process(event);
   sf_pileup->process(event);
   sf_muon->process(event);

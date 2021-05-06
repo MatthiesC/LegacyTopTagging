@@ -14,14 +14,15 @@ enum class ProbeJetAlgo {
   notValid,
 };
 
-const std::map<ProbeJetAlgo, std::string> kProbeJetAlgoAsString = {
-  {ProbeJetAlgo::isHOTVR, "HOTVR"},
-  {ProbeJetAlgo::isAK8, "AK8"},
-};
+typedef struct {
+  std::string name = "";
+  double mass_min = 0.;
+  double mass_max = std::numeric_limits<double>::infinity();
+} ProbeJetAlgoInfo;
 
-const std::map<ProbeJetAlgo, std::pair<double, double>> kProbeJetAlgoMassCuts = {
-  {ProbeJetAlgo::isHOTVR, {140., 220.}},
-  {ProbeJetAlgo::isAK8, {105., 210.}},
+const std::map<ProbeJetAlgo, ProbeJetAlgoInfo> kProbeJetAlgos = {
+  {ProbeJetAlgo::isHOTVR, ProbeJetAlgoInfo{"HOTVR", 140., 220.}},
+  {ProbeJetAlgo::isAK8, ProbeJetAlgoInfo{"AK8", 105., 210.}},
 };
 
 enum class MergeScenario {

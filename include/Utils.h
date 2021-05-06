@@ -32,7 +32,7 @@ double HOTVR_fpt(const TopJet & topjet, const unsigned int subjet_i = 0);
 
 class HOTVRTopTag {
 public:
-  explicit HOTVRTopTag(const double _mass_min = 140., const double _mass_max = 220., const double _fpt_max = 0.8, const double _mpair_min = 50.);
+  explicit HOTVRTopTag(const double _mass_min = kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).mass_min, const double _mass_max = kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).mass_max, const double _fpt_max = 0.8, const double _mpair_min = 50.);
   bool operator()(const TopJet & jet, const uhh2::Event & event) const;
 private:
   double mass_min;
@@ -80,6 +80,49 @@ private:
   double dr_max;
   JetId btagID;
   uhh2::Event::Handle<FlavorParticle> h_primlep;
+};
+
+class PartonShowerVariation: public uhh2::AnalysisModule {
+public:
+  PartonShowerVariation(uhh2::Context & ctx);
+  virtual bool process(uhh2::Event & event) override;
+private:
+  enum class PSVariation {
+    None,
+    ISRup_sqrt2,
+    ISRup_2,
+    ISRup_4,
+    ISRdown_sqrt2,
+    ISRdown_2,
+    ISRdown_4,
+    FSRup_sqrt2,
+    FSRup_2,
+    FSRup_4,
+    FSRdown_sqrt2,
+    FSRdown_2,
+    FSRdown_4,
+  };
+  typedef struct {
+    std::string name = "";
+    unsigned int index = 0;
+  } PSVariationInfo;
+  const std::map<PSVariation, PSVariationInfo> kPSVariations = {
+    {PSVariation::ISRup_sqrt2, PSVariationInfo{"ISRup_sqrt2", 2}},
+    {PSVariation::ISRup_2, PSVariationInfo{"ISRup_2", 6}},
+    {PSVariation::ISRup_4, PSVariationInfo{"ISRup_4", 10}},
+    {PSVariation::ISRdown_sqrt2, PSVariationInfo{"ISRdown_sqrt2", 4}},
+    {PSVariation::ISRdown_2, PSVariationInfo{"ISRdown_2", 8}},
+    {PSVariation::ISRdown_4, PSVariationInfo{"ISRdown_4", 12}},
+    {PSVariation::FSRup_sqrt2, PSVariationInfo{"FSRup_sqrt2", 3}},
+    {PSVariation::FSRup_2, PSVariationInfo{"FSRup_2", 7}},
+    {PSVariation::FSRup_4, PSVariationInfo{"FSRup_4", 11}},
+    {PSVariation::FSRdown_sqrt2, PSVariationInfo{"FSRdown_sqrt2", 5}},
+    {PSVariation::FSRdown_2, PSVariationInfo{"FSRdown_2", 9}},
+    {PSVariation::FSRdown_4, PSVariationInfo{"FSRdown_4", 13}},
+  };
+  bool warning_thrown = false;
+  PSVariation applied_variation = PSVariation::None;
+  std::map<PSVariation, uhh2::Event::Handle<double>> weights_map;
 };
 
 class MuonScaleFactors: public uhh2::AnalysisModule {
