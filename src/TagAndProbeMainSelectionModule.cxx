@@ -176,14 +176,28 @@ bool TagAndProbeMainSelectionModule::process(Event & event) {
   const bool passes_btag = slct_btag->passes(event);
   const bool passes_twod = slct_twod->passes(event);
 
-  if(passes_trigger) sf_trigger->process(event);
+  if(passes_trigger) {
+    if(debug) cout << "Apply trigger scale factor" << endl;
+    sf_trigger->process(event);
+  }
+  else {
+    if(debug) cout << "Skipped trigger scale factor application" << endl;
+  }
   if(passes_trigger && passes_muon && passes_twod) {
+    if(debug) cout << "Fill b-tagging efficiency histograms" << endl;
     hist_btag_eff->fill(event);
+  }
+  else {
+    if(debug) cout << "Skipped filling b-tagging efficiency histograms" << endl;
   }
   if(!passes_btag) return false;
   if(!(passes_trigger || passes_muon || passes_twod)) return false;
+
+  if(debug) cout << "Apply b-tagging scale factors (if possible)" << endl;
   if(run_btag_sf) sf_btag->process(event);
   hist_btag->fill(event);
+
+  if(debug) cout << "Fill some control histograms regarding trigger efficiency and 2D cut" << endl;
   if(passes_muon && passes_trigger) {
     hist_before_twod->fill(event);
   }
@@ -192,6 +206,8 @@ bool TagAndProbeMainSelectionModule::process(Event & event) {
     if(passes_trigger) hist_after_trigger->fill(event);
   }
   if(!(passes_trigger && passes_muon && passes_twod)) return false;
+
+  if(debug) cout << "Apply corrections to top jet collections" << endl;
   hist_full_before_corrections->fill(event);
   corrections_hotvr->process(event);
   corrections_ak8->process(event);
@@ -200,20 +216,24 @@ bool TagAndProbeMainSelectionModule::process(Event & event) {
   cleaner_ak8->process(event);
   hist_full_after_cleaner->fill(event);
 
-  if(debug) cout << "Identify probe jets" << endl;
+  if(debug) cout << "Check whether event has probe jets or not" << endl;
   const bool has_hotvr_jet = slct_1hotvr->passes(event);
   const bool has_ak8_jet = slct_1ak8->passes(event);
-
   if(!(has_hotvr_jet || has_ak8_jet)) return false;
+
+  if(debug) cout << "Find out decay channel and identify generated hadronic top quark (only valid for top-MC)" << endl;
   decay_channel_and_hadronic_top->process(event);
 
+  if(debug) cout << "Set probe jet handles and find out merge scenario" << endl;
   if(has_hotvr_jet) probejet_hotvr->process(event);
   if(has_ak8_jet) probejet_ak8->process(event);
   merge_scenarios_hotvr->process(event); // needs to be outside of the previous if statement!
   merge_scenarios_ak8->process(event); // needs to be outside of the previous if statement!
 
+  if(debug) cout << "Add probe jet properties to output tree" << endl;
   main_output->process(event);
 
+  if(debug) cout << "Fill probe jet histograms" << endl;
   probejethists->fill(event);
 
   if(debug) cout << "End of TagAndProbeMainSelectionModule" << endl;
