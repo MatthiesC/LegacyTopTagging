@@ -92,8 +92,8 @@ class configContainer:
       }
 
       self.yearVars['deepjetMCEffFiles'] = {
-         'UL17': self.uhh2Dir+'LegacyTopTagging/data/',
-         'UL18': self.uhh2Dir+'LegacyTopTagging/data/',
+         'UL17': self.uhh2Dir+'LegacyTopTagging/Analysis/BTagMCEff/files/BTagMCEfficiencyHists_UL17.root',
+         # 'UL18': self.uhh2Dir+'LegacyTopTagging/data/',
       }
 
       self.yearVars['deepjetSFFiles'] = {
@@ -159,16 +159,16 @@ class sampleEntity:
       self.mainsel_versions = list()
 
       # init mainsel_versions
-      merge_scenarios = ['FullyMerged', 'WMerged', 'QBMerged', 'NotMerged', 'Background']
+      merge_scenarios = ['FullyMerged', 'WMerged', 'QBMerged', 'NotMerged', 'Background'] # Need to be the same strings as in include/Constants.h to properly work
       if self.nickName.startswith('ST_tW') or self.nickName.startswith('ST_tChannel') or self.nickName.startswith('ST_sChannel_had'): # in case we ever use the hadronicDecays s-channel sample
          for m in merge_scenarios:
-            self.mainsel_versions.append('_'.join([self.nickName, m]))
+            self.mainsel_versions.append('__'.join([self.nickName, m]))
       elif self.nickName.startswith('TTbarToSemiLeptonic'):
          for m in merge_scenarios:
             if m=='Background': continue
-            self.mainsel_versions.append('_'.join([self.nickName, m]))
+            self.mainsel_versions.append('__'.join([self.nickName, m]))
       # else:
-      self.mainsel_versions.append(self.nickName)
+      self.mainsel_versions.append('__'.join([self.nickName, 'AllMergeScenarios']))
 
 
 class systEntity:
@@ -296,7 +296,7 @@ class xmlCreator:
             file.write('''<Item Name="pileup_directory_data_up" Value="'''+self.yearVars['pileupFiles']['dataUp'][self.year]+'''"/>\n''')
             file.write('''<Item Name="pileup_directory_data_down" Value="'''+self.yearVars['pileupFiles']['dataDown'][self.year]+'''"/>\n''')
             file.write('''\n''')
-            # file.write('''<Item Name="BTagMCEffFile" Value="'''+self.yearVars['deepjetMCEffFiles'][self.year]+'''"/>\n''')
+            file.write('''<Item Name="BTagMCEffFile" Value="'''+self.yearVars['deepjetMCEffFiles'][self.year]+'''"/>\n''')
             file.write('''<Item Name="BTagScaleFactorFile" Value="'''+self.yearVars['deepjetSFFiles'][self.year]+'''"/>\n''')
          file.write('''\n''')
          file.write('''<!-- Keys for systematic uncertainties -->\n''')
