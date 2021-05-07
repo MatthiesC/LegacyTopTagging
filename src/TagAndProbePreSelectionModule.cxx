@@ -42,7 +42,6 @@ private:
   unique_ptr<AnalysisModule> clnr_muon;
   unique_ptr<Selection> slct_met;
   unique_ptr<Selection> slct_ptw;
-  unique_ptr<Selection> slct_ak4;
   unique_ptr<AnalysisModule> primlep;
 
   unique_ptr<AndHists> hist_nocuts;
@@ -50,7 +49,6 @@ private:
   unique_ptr<AndHists> hist_muon;
   unique_ptr<AndHists> hist_met;
   unique_ptr<AndHists> hist_ptw;
-  unique_ptr<AndHists> hist_ak4;
 };
 
 
@@ -60,10 +58,17 @@ TagAndProbePreSelectionModule::TagAndProbePreSelectionModule(Context & ctx) {
 
   const JetPFID::wp jetPFID = JetPFID::WP_TIGHT_CHS;
   const JetId jetID = PtEtaCut(30., 2.4);
-  // const ElectronId elecID = AndId<Electron>(PtEtaCut(55., 2.4), ElectronID_Fall17_medium_noIso);
-  const ElectronId elecID_veto = AndId<Electron>(PtEtaCut(30., 2.4), ElectronID_Fall17_veto_noIso);
-  const MuonId muonID_veto = AndId<Muon>(PtEtaCut(30., 2.4), MuonID(Muon::Selector::CutBasedIdLoose));
-  const MuonId muonID_tag = AndId<Muon>(PtEtaCut(40., 2.4), MuonID(Muon::Selector::CutBasedIdTight)); // 55. GeV
+
+  // const ElectronId elecID = AndId<Electron>(PtEtaCut(55., 2.4), ElectronID_Fall17_medium_noIso); // used in RunII EOY studies
+  // const ElectronId elecID_veto = AndId<Electron>(PtEtaCut(30., 2.4), ElectronID_Fall17_veto_noIso);
+  // const MuonId muonID_veto = AndId<Muon>(PtEtaCut(30., 2.4), MuonID(Muon::Selector::CutBasedIdLoose));
+  // for more selection efficiency, use medium lepton IDs for the lepton vetoes:
+  const ElectronId elecID_veto = AndId<Electron>(PtEtaCut(30., 2.4), ElectronID_Fall17_medium_noIso);
+  const MuonId muonID_veto = AndId<Muon>(PtEtaCut(30., 2.4), MuonID(Muon::Selector::CutBasedIdMedium));
+
+  const MuonId muonID_tag = AndId<Muon>(PtEtaCut(40., 2.4), MuonID(Muon::Selector::CutBasedIdTight));
+  // pT(tag muon) = 55 GeV should be the final value (will be required in the TagAndProbeMainSelectionModule);
+  // in order to plot trigger efficiency histograms starting at values lower than the trigger threshold, we use a looser cut here
 
   slct_lumi.reset(new LumiSelection(ctx));
   sf_lumi.reset(new MCLumiWeight(ctx));
@@ -86,7 +91,6 @@ TagAndProbePreSelectionModule::TagAndProbePreSelectionModule(Context & ctx) {
   clnr_muon.reset(new MuonCleaner(muonID_tag));
   slct_met.reset(new METSelection(50.));
   slct_ptw.reset(new PTWSelection(ctx, 150.));
-  slct_ak4.reset(new NJetSelection(2, -1));
 
   primlep.reset(new PrimaryLepton(ctx));
 
@@ -95,7 +99,6 @@ TagAndProbePreSelectionModule::TagAndProbePreSelectionModule(Context & ctx) {
   hist_muon.reset(new AndHists(ctx, "2_Muon"));
   hist_met.reset(new AndHists(ctx, "3_MET"));
   hist_ptw.reset(new AndHists(ctx, "4_PtW"));
-  hist_ak4.reset(new AndHists(ctx, "5_AK4"));
 }
 
 
@@ -134,10 +137,6 @@ bool TagAndProbePreSelectionModule::process(Event & event) {
   if(debug) cout << "PTW selection" << endl;
   if(!slct_ptw->passes(event)) return false;
   hist_ptw->fill(event);
-
-  if(debug) cout << "AK4 selection" << endl;
-  if(!slct_ak4->passes(event)) return false;
-  hist_ak4->fill(event);
 
   if(debug) cout << "End of TagAndProbePreSelectionModule" << endl;
   return true;

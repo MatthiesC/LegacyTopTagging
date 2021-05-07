@@ -46,6 +46,7 @@ private:
   unique_ptr<AnalysisModule> sf_muon;
   unique_ptr<AnalysisModule> sf_btag;
   unique_ptr<AnalysisModule> sf_trigger;
+  unique_ptr<Selection> slct_ak4;
   unique_ptr<Selection> slct_trigger;
   unique_ptr<Selection> slct_muon;
   unique_ptr<Selection> slct_btag;
@@ -65,12 +66,14 @@ private:
   unique_ptr<AnalysisModule> main_output;
 
   unique_ptr<AndHists> hist_presel;
+  unique_ptr<AndHists> hist_ak4;
   unique_ptr<AndHists> hist_btag;
   unique_ptr<BTagMCEfficiencyHists> hist_btag_eff;
   unique_ptr<AndHists> hist_before_twod;
-  unique_ptr<AndHists> hist_before_trigger;
-  unique_ptr<AndHists> hist_after_trigger;
-  unique_ptr<AndHists> hist_full_before_corrections;
+  unique_ptr<AndHists> hist_before_trigger_incl_low_muon_pt;
+  unique_ptr<AndHists> hist_before_trigger_excl_low_muon_pt;
+  unique_ptr<AndHists> hist_after_trigger_incl_low_muon_pt;
+  unique_ptr<AndHists> hist_after_trigger_excl_low_muon_pt;
   unique_ptr<AndHists> hist_full_after_corrections;
   unique_ptr<AndHists> hist_full_after_cleaner;
 
@@ -106,6 +109,7 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx) {
   if(run_btag_sf) sf_btag.reset(new MCBTagScaleFactor(ctx, btagALGO, btagWP, "jets", ctx.get("SystDirection_BTag", "nominal"), "mujets", "incl", xml_key_of_btag_eff_file, "", "BTagScaleFactorFile"));
   sf_trigger.reset(new TriggerScaleFactors(ctx));
 
+  slct_ak4.reset(new NJetSelection(1, -1));
   slct_trigger.reset(new TriggerSelection("HLT_Mu50_v*"));
   slct_muon.reset(new NMuonSelection(1, 1, muonID_tag));
   slct_btag.reset(new BTagCloseToLeptonSelection(ctx, deltaR_leptonicHemisphere, btagID));
@@ -135,14 +139,16 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx) {
   main_output.reset(new MainOutputSetter(ctx));
 
   hist_presel.reset(new AndHists(ctx, "0_PreSel"));
-  hist_btag_eff.reset(new BTagMCEfficiencyHists(ctx, "0_BTagMCEff", btagID));
-  hist_btag.reset(new AndHists(ctx, "1_BTag"));
-  hist_before_twod.reset(new AndHists(ctx, "2_BeforeTwoD"));
-  hist_before_trigger.reset(new AndHists(ctx, "2_BeforeTrigger"));
-  hist_after_trigger.reset(new AndHists(ctx, "2_AfterTrigger"));
-  hist_full_before_corrections.reset(new AndHists(ctx, "3_TagAndProbeSelection_BeforeCorr", true));
-  hist_full_after_corrections.reset(new AndHists(ctx, "3_TagAndProbeSelection_AfterCorr", true));
-  hist_full_after_cleaner.reset(new AndHists(ctx, "3_TagAndProbeSelection_AfterCleaning", true));
+  hist_ak4.reset(new AndHists(ctx, "1_AK4"));
+  hist_btag_eff.reset(new BTagMCEfficiencyHists(ctx, "2_BTagMCEff", btagID));
+  hist_btag.reset(new AndHists(ctx, "3_BTag"));
+  hist_before_twod.reset(new AndHists(ctx, "4_BeforeTwoD"));
+  hist_before_trigger_incl_low_muon_pt.reset(new AndHists(ctx, "4_BeforeTriggerInclLowMuonPt"));
+  hist_before_trigger_excl_low_muon_pt.reset(new AndHists(ctx, "4_BeforeTriggerExclLowMuonPt"));
+  hist_after_trigger_incl_low_muon_pt.reset(new AndHists(ctx, "4_AfterTriggerInclLowMuonPt"));
+  hist_after_trigger_excl_low_muon_pt.reset(new AndHists(ctx, "5_AfterTriggerExclLowMuonPt", true)); // include AK8 and HOTVR plots from here on
+  hist_full_after_corrections.reset(new AndHists(ctx, "5_AfterTopJetCorrections", true));
+  hist_full_after_cleaner.reset(new AndHists(ctx, "5_AfterTopJetCleaning", true));
 
   probejethists.reset(new ProbeJetHistsRunner(ctx, "ProbeJetHists"));
 }
@@ -157,18 +163,24 @@ bool TagAndProbeMainSelectionModule::process(Event & event) {
     cout << "+-----------+" << endl;
   }
 
-  if(debug) cout << "PreSelection scale factors" << endl; // else getting error for some data samples, e.g. "RunSwitcher cannot handle run number 275656 for year 2016"
+  if(debug) cout << "PreSelection scale factors" << endl;
   primlep->process(event);
   scale_variation->process(event);
   ps_variation->process(event);
   sf_lumi->process(event);
   sf_pileup->process(event);
   sf_muon->process(event);
-  // prefiring weights not yet available for UL (for updates on this, see https://twiki.cern.ch/twiki/bin/viewauth/CMS/L1ECALPrefiringWeightRecipe)
+  // TODO: Prefiring weights not yet available for UL (for updates on this, see https://twiki.cern.ch/twiki/bin/viewauth/CMS/L1ECALPrefiringWeightRecipe)
   hist_presel->fill(event);
 
+   // It is required to have >= 1 AK4 jet to calculate values like dR(jet, lepton) for the TwoDSelection.
+   // Later on, the BTagCloseToLeptonSelection will require >= 1 AK4 jet anyway.
+  if(debug) cout << "AK4 selection" << endl;
+  if(!slct_ak4->passes(event)) return false;
+  hist_ak4->fill(event);
+
   if(debug) cout << "2018 HEM15/16 issue selection" << endl;
-  //TODO
+  // TODO
 
   if(debug) cout << "Booleans for further selections" << endl;
   const bool passes_trigger = slct_trigger->passes(event);
@@ -202,13 +214,14 @@ bool TagAndProbeMainSelectionModule::process(Event & event) {
     hist_before_twod->fill(event);
   }
   if(passes_twod) {
-    hist_before_trigger->fill(event);
-    if(passes_trigger) hist_after_trigger->fill(event);
+    hist_before_trigger_incl_low_muon_pt->fill(event);
+    if(passes_muon) hist_before_trigger_excl_low_muon_pt->fill(event);
+    if(passes_trigger) hist_after_trigger_incl_low_muon_pt->fill(event);
   }
   if(!(passes_trigger && passes_muon && passes_twod)) return false;
+  hist_after_trigger_excl_low_muon_pt->fill(event);
 
   if(debug) cout << "Apply corrections to top jet collections" << endl;
-  hist_full_before_corrections->fill(event);
   corrections_hotvr->process(event);
   corrections_ak8->process(event);
   hist_full_after_corrections->fill(event);
@@ -227,8 +240,10 @@ bool TagAndProbeMainSelectionModule::process(Event & event) {
   if(debug) cout << "Set probe jet handles and find out merge scenario" << endl;
   if(has_hotvr_jet) probejet_hotvr->process(event);
   if(has_ak8_jet) probejet_ak8->process(event);
-  merge_scenarios_hotvr->process(event); // needs to be outside of the previous if statement!
-  merge_scenarios_ak8->process(event); // needs to be outside of the previous if statement!
+
+  // Following modules need to be outside of the previous if statements! MergeScenario for event w/o probe jet will be "isBackground"
+  merge_scenarios_hotvr->process(event);
+  merge_scenarios_ak8->process(event);
 
   if(debug) cout << "Add probe jet properties to output tree" << endl;
   main_output->process(event);
