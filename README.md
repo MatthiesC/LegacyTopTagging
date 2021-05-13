@@ -12,6 +12,7 @@ NB: This repo is not dependent on other UHH2 sub-frameworks like https://github.
 
 ## Code conventions / tips
 
+- Keep the code user-independent! Only declare relative paths, using e.g. `os.environ.get('CMSSW_BASE')` (python) or `std::getenv('CMSSW_BASE')` (C++). Note that these methods will be able to find the `CMSSW_BASE` only after you set up the environment
 - All SFrame-related C++ code (i.e. everything in `src/` and `include/`) is to be nested in the `uhh2::ltt` namespace
 - All types of constants (working point cuts, mass cuts, etc.) are to be declared in `include/Constants.h`
 - String comparisons within `uhh2::AnalysisModule::process()`, `uhh2::Selection::passes()`, and `uhh2::Hists::fill()` methods are to be avoided! Rather use enumerators and, if needed, map them to strings (cf. `include/Constants.h` for examples)
