@@ -54,7 +54,7 @@ void AK8ProbeJetHists::fill_probe(const vector<TH1F*> & hists) {
   hists.at(i++)->Fill(mSD(probejet), w);
   hists.at(i++)->Fill(tau32(probejet), w);
   hists.at(i++)->Fill(maxDeepCSVSubJetValue(probejet), w);
-  if(i != hists.size()) throw runtime_error("AK8ProbeJetHists::fill_probe(): Number of declared and filled histograms do not match. Please check!");
+  if(i != hists.size()) throw range_error("AK8ProbeJetHists::fill_probe(): Number of declared and filled histograms do not match. Please check!");
 }
 
 void AK8ProbeJetHists::fill(const Event & event) {
