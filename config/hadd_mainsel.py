@@ -38,6 +38,8 @@ possible_systs = [
 'ps_FSRup_2',
 'ps_ISRdown_2',
 'ps_ISRup_2',
+'wp_down',
+'wp_up',
 ]
 
 dict_sourceFiles = {
@@ -178,7 +180,7 @@ for year in args.years:
             logFilePath = os.path.join(logDir, 'log.'+key+'.txt')
             hadd_tasks.append([command_string, logFilePath])
 
-print hadd_tasks
+# print hadd_tasks
 
 FNULL = open(os.devnull, 'w')
 

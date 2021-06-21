@@ -18,6 +18,11 @@ AK8ProbeJetHists::AK8ProbeJetHists(Context & ctx, const string & dirname, const 
   h_probejet = ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgos.at(ProbeJetAlgo::isAK8).name);
   h_merge_scenario = ctx.get_handle<MergeScenario>("output_merge_scenario_"+kProbeJetAlgos.at(ProbeJetAlgo::isAK8).name);
 
+  wp_variation = 0;
+  const string wp_variation_direction = ctx.get("SystDirection_WP", "nominal");
+  if(wp_variation_direction == "up") wp_variation += kWorkingPointVariation; // more events will fall into the pass category and less into the fail category since the WP is looser
+  else if(wp_variation_direction == "down") wp_variation -= kWorkingPointVariation; // less events will fall into the pass category and more into the fail category since the WP is tighter
+
   for(const auto & pt_bin : pt_bins) {
     const string & pt_bin_string = kPtBins.at(pt_bin).name;
     for(const auto & jet_cat : kJetCategoryAsString) {
@@ -81,7 +86,7 @@ void AK8ProbeJetHists::fill(const Event & event) {
   for(const auto & pt_bin : pt_bins) {
     if(probejet.v4().pt() < kPtBins.at(pt_bin).pt_min || probejet.v4().pt() > kPtBins.at(pt_bin).pt_max) continue;
     for(const auto & wp : wps) {
-      const bool passes_tau32_cut = tau32(probejet) < wp.second;
+      const bool passes_tau32_cut = tau32(probejet) < wp.second + wp_variation;
 
       if(passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::All][wp.first][PassCategory::Pass]);
       else fill_probe(hists_map[pt_bin][JetCategory::All][wp.first][PassCategory::Fail]);
@@ -109,6 +114,11 @@ HOTVRProbeJetHists::HOTVRProbeJetHists(Context & ctx, const string & dirname, co
   h_primlep = ctx.get_handle<FlavorParticle>("PrimaryLepton");
   h_probejet = ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).name);
   h_merge_scenario = ctx.get_handle<MergeScenario>("output_merge_scenario_"+kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).name);
+
+  wp_variation = 0;
+  const string wp_variation_direction = ctx.get("SystDirection_WP", "nominal");
+  if(wp_variation_direction == "up") wp_variation += kWorkingPointVariation; // more events will fall into the pass category and less into the fail category since the WP is looser
+  else if(wp_variation_direction == "down") wp_variation -= kWorkingPointVariation; // less events will fall into the pass category and more into the fail category since the WP is tighter
 
   for(const auto & pt_bin : pt_bins) {
     const string & pt_bin_string = kPtBins.at(pt_bin).name;
@@ -165,7 +175,7 @@ void HOTVRProbeJetHists::fill(const Event & event) {
   for(const auto & pt_bin : pt_bins) {
     if(probejet.v4().pt() < kPtBins.at(pt_bin).pt_min || probejet.v4().pt() > kPtBins.at(pt_bin).pt_max) continue;
     for(const auto & wp : wps) {
-      const bool passes_tau32_cut = tau32groomed(probejet) < wp.second;
+      const bool passes_tau32_cut = tau32groomed(probejet) < wp.second + wp_variation;
 
       if(passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::All][wp.first][PassCategory::Pass]);
       else fill_probe(hists_map[pt_bin][JetCategory::All][wp.first][PassCategory::Fail]);

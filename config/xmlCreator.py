@@ -135,6 +135,7 @@ class configContainer:
          self.systematics.append(systEntity('muonid', 'SystDirection_MuonID'))
          # self.systematics.append(systEntity('muoniso', 'SystDirection_MuonIso'))
          self.systematics.append(systEntity('btagging', 'SystDirection_BTag', directions=['up_bc', 'down_bc', 'up_udsg', 'down_udsg']))
+         self.systematics.append(systEntity('wp', 'SystDirection_WP'))
 
 
 class sampleEntity:

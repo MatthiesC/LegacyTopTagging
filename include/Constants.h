@@ -160,4 +160,6 @@ const WorkingPointMap kWorkingPointsAK8_old = {
   {WorkingPoint::NoTau32Cut, std::numeric_limits<double>::infinity()},
 };
 
+const double kWorkingPointVariation = 0.02;
+
 }}

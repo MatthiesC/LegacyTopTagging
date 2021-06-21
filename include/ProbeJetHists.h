@@ -49,6 +49,7 @@ private:
   TopJet probejet;
   FlavorParticle primlep;
   double w;
+  double wp_variation;
 
   std::map<PassCategory, std::string> kPassCategoryAsString = {
     {PassCategory::Pass, "Pass"},
@@ -100,6 +101,7 @@ private:
   TopJet probejet;
   FlavorParticle primlep;
   double w;
+  double wp_variation;
 
   std::map<PassCategory, std::string> kPassCategoryAsString = {
     {PassCategory::Pass, "Pass"},
