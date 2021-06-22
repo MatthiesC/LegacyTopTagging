@@ -113,6 +113,10 @@ dict_sourceFiles = {
     'Diboson': [
         'Diboson*',
     ],
+    'DYJetsToLLAndDiboson': [
+        'DYJetsToLL_HT*',
+        'Diboson*',
+    ],
     'QCD_Mu': [
         'QCD_Mu_Pt*',
     ],
