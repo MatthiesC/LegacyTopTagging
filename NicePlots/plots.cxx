@@ -1,3 +1,8 @@
+#include <TROOT.h>
+#include <iostream>
+
+using namespace std;
+
 class CoordinateConverter {
 public:
   CoordinateConverter() {};
@@ -27,22 +32,55 @@ float CoordinateConverter::ConvertGraphYToPadY(const float graph_y) {
 }
 
 
-THStack * create_stack() {
+typedef struct {
+  string name;
+  int color;
+} Process;
+
+const vector<Process> processes = {
+{"QCD_Mu", kAzure+10},
+{"TTbar_FullyMerged", kPink-3},
+{"TTbar_WMerged", kPink+5},
+{"TTbar_QBMerged", kPink+4},
+{"TTbar_BkgOrNotMerged", kPink-7},
+{"ST_FullyMerged", kOrange},
+{"ST_WMerged", kOrange-3},
+{"ST_QBMerged", kOrange+4},
+{"ST_BkgOrNotMerged", kOrange+3},
+{"WJetsToLNu", kSpring-3},
+{"DYJetsToLLAndDiboson", kSpring-7},
+};
+
+const vector<string> syst_names = {
+  "btaggingbc",
+  "btaggingudsg",
+  "jec",
+  "jer",
+  "scale",
+  "pileup",
+  "fsr",
+  "tageff3prong",
+  "tageff2prong",
+  "tageff1prong",
+};
+
+THStack * create_stack(TFile * rootFile, const string & folderName, const bool divide_by_bin_width) {
 
   THStack *stack = new THStack("stack", "");
 
-  const vector<string> h_name = { "ttbar_merged", "ttbar_semimerged", "ttbar_unmerged", "st_merged", "st_semimerged", "st_ummerged", "wjets", "dyjets", "vv", "qcd" };
-  // const vector<int> h_color = { kMagenta, kMagenta-3, kMagenta+3, kYellow, kYellow-3, kYellow+3, kCyan, kAzure };
-  const vector<int> h_color = { kPink-3, kPink+4, kPink-7, kOrange, kOrange-3, kOrange+4, kSpring-3, kSpring+4, kSpring-7, kAzure+10 };
-
-  for(int i = h_name.size()-1; i >= 0; i--) {
-    TH1F *h = new TH1F(h_name.at(i).c_str(), "", 20, 0, 1);
-    // int n_process = (int)(100000/(int)(1+TMath::Sqrt(i*10)));
-    int n_process = 500;
-    h->FillRandom("gaus", n_process);
-    h->SetFillColorAlpha(h_color.at(i), 1.);
+  for(int i = processes.size()-1; i >= 0; i--) {
+    TH1F *h = (TH1F*)rootFile->Get((folderName+"/"+processes.at(i).name).c_str());
+    if(divide_by_bin_width) {
+      for(unsigned int j = 1; j <= h->GetNbinsX(); j++) {
+        if(h->GetBinContent(j) == 0) continue;
+        h->SetBinContent(j, h->GetBinContent(j) / h->GetBinWidth(j));
+        h->SetBinError(j, h->GetBinError(j) / h->GetBinWidth(j));
+      }
+    }
+    h->SetFillColorAlpha(processes.at(i).color, 1.);
     h->SetLineColor(kWhite);
     h->SetLineWidth(i == 0 ? 0 : 0);
+    h->SetMarkerSize(0);
     stack->Add(h);
   }
 
@@ -59,29 +97,92 @@ TH1F * create_th1f(const int n_events) {
 }
 
 
-TGraphAsymmErrors * get_stack_unc(const TH1F * last) {
+double get_syst_unc_for_bin(const unsigned int ibin, TFile * rootFile, const string & folderName, const string pm) {
+  double squarederr(0);
+  // vector<Process> processes;
+  // processes.push_back({"QCD_Mu", kAzure+10});
+  // processes.push_back({"TTbar_FullyMerged", kPink-3});
+  // processes.push_back({"TTbar_WMerged", kPink+5});
+  // processes.push_back({"TTbar_QBMerged", kPink+4});
+  // processes.push_back({"TTbar_BkgOrNotMerged", kPink-7});
+  // processes.push_back({"ST_FullyMerged", kOrange});
+  // processes.push_back({"ST_WMerged", kOrange-3});
+  // processes.push_back({"ST_QBMerged", kOrange+4});
+  // processes.push_back({"ST_BkgOrNotMerged", kOrange+3});
+  // processes.push_back({"WJetsToLNu", kSpring-3});
+  // processes.push_back({"DYJetsToLLAndDiboson", kSpring-7});
+
+  for(Process p : processes) {
+    TH1F *hNominal = (TH1F*)rootFile->Get((folderName+"/"+p.name).c_str());
+    double nominal = hNominal->GetBinContent(ibin);
+    for(auto s : syst_names) {
+    // unc_hists.push_back((TH1F*)rootFile->Get((folderName+"/"+s+"Down")));
+      TH1F *hSysDown = (TH1F*)rootFile->Get((folderName+"/"+p.name+"_"+s+"Down").c_str());
+      TH1F *hSysUp = (TH1F*)rootFile->Get((folderName+"/"+p.name+"_"+s+"Up").c_str());
+      const double errDown = hSysDown->GetBinContent(ibin) - nominal;
+      const double errUp = hSysUp->GetBinContent(ibin) - nominal;
+      const bool errDown_is_positive = errDown >= 0;
+      const bool errUp_is_positive = errUp >= 0;
+      if(pm == "plus") {
+        if(errDown_is_positive && !errUp_is_positive) squarederr += errDown*errDown;
+        else if(!errDown_is_positive && errUp_is_positive) squarederr += errUp*errUp;
+        else if(errDown_is_positive && errUp_is_positive) {
+          if(errDown < errUp) squarederr += errUp*errUp;
+          else squarederr += errDown*errDown;
+        }
+        // else: nothing added to squarederr
+      }
+      else if(pm == "minus") {
+        if(errDown_is_positive && !errUp_is_positive) squarederr += errUp*errUp;
+        else if(!errDown_is_positive && errUp_is_positive) squarederr += errDown*errDown;
+        else if(!errDown_is_positive && !errUp_is_positive) {
+          if(errDown > errUp) squarederr += errUp*errUp;
+          else squarederr += errDown*errDown;
+        }
+        // else: nothing added to squarederr
+      }
+    }
+  }
+  return TMath::Sqrt(squarederr);
+}
+
+
+TGraphAsymmErrors * get_stack_unc(const TH1F * last, TFile * rootFile, const string & folderName, const bool divide_by_bin_width) {
   unsigned int n = last->GetNbinsX();
   double x[n], y[n], exl[n], eyl[n], exh[n], eyh[n];
   for(unsigned int i = 0; i < n; i++) {
-    x[i] = last->GetBinCenter(i+1);
-    y[i] = last->GetBinContent(i+1);
-    exl[i] = last->GetBinWidth(i+1) / 2.;
-    eyl[i] = last->GetBinError(i+1) * 2; // *2 entfernen!
-    exh[i] = last->GetBinWidth(i+1) / 2.;
-    eyh[i] = last->GetBinError(i+1) * 2; // *2 entfernen!
+    unsigned int ibin = i+1;
+    x[i] = last->GetBinCenter(ibin);
+    y[i] = last->GetBinContent(ibin);
+    exl[i] = last->GetBinWidth(ibin) / 2.;
+    eyl[i] = TMath::Sqrt(TMath::Power(last->GetBinError(ibin)*(divide_by_bin_width ? last->GetBinWidth(ibin) : 1.), 2) + TMath::Power(get_syst_unc_for_bin(ibin, rootFile, folderName, "minus"), 2)) / (divide_by_bin_width ? last->GetBinWidth(ibin) : 1.);
+    exh[i] = last->GetBinWidth(ibin) / 2.;
+    eyh[i] = TMath::Sqrt(TMath::Power(last->GetBinError(ibin)*(divide_by_bin_width ? last->GetBinWidth(ibin) : 1.), 2) + TMath::Power(get_syst_unc_for_bin(ibin, rootFile, folderName, "plus"), 2)) / (divide_by_bin_width ? last->GetBinWidth(ibin) : 1.);
   }
   return new TGraphAsymmErrors(n, x, y, exl, exh, eyl, eyh);
 }
 
 
+// TGraphAsymmErrors * create_ratio_totalunc(const TGraphAsymmErrors * total_unc) {
+//   TGraphAsymmErrors * ratio_totalunc = new TGraphAsymmErrors(*total_unc);
+//   ratio_totalunc->SetTitle("DummyTitleToAvoidMemoryLeak");
+//   for(unsigned int i = 0; i < ratio_totalunc->GetN(); i++) {
+//     double x, y;
+//     ratio_totalunc->GetPoint(i, x, y);
+//     ratio_totalunc->SetPointEYlow(i, ratio_totalunc->GetErrorYlow(i) / y);
+//     ratio_totalunc->SetPointEYhigh(i, ratio_totalunc->GetErrorYhigh(i) / y);
+//     ratio_totalunc->SetPoint(i, x, 1.);
+//   }
+//   return ratio_totalunc;
+// }
+
 TGraphAsymmErrors * create_ratio_totalunc(const TGraphAsymmErrors * total_unc) {
-  TGraphAsymmErrors * ratio_totalunc = new TGraphAsymmErrors(*total_unc);
-  for(unsigned int i = 0; i < ratio_totalunc->GetN(); i++) {
+  TGraphAsymmErrors * ratio_totalunc = new TGraphAsymmErrors(total_unc->GetN());
+  for(unsigned int i = 0; i < total_unc->GetN(); i++) {
     double x, y;
-    ratio_totalunc->GetPoint(i, x, y);
-    ratio_totalunc->SetPointEYlow(i, ratio_totalunc->GetErrorYlow(i) / y);
-    ratio_totalunc->SetPointEYhigh(i, ratio_totalunc->GetErrorYhigh(i) / y);
+    total_unc->GetPoint(i, x, y);
     ratio_totalunc->SetPoint(i, x, 1.);
+    ratio_totalunc->SetPointError(i, total_unc->GetErrorXlow(i), total_unc->GetErrorXhigh(i), total_unc->GetErrorYlow(i) / y, total_unc->GetErrorYhigh(i) / y);
   }
   return ratio_totalunc;
 }
@@ -118,7 +219,7 @@ void redrawBorder() { // https://root-forum.cern.ch/t/how-to-redraw-axis-and-plo
 }
 
 
-void plots() {
+void plotter(TFile * rootFile, const string & folderName, const string & workDir, const bool divide_by_bin_width=true) {
 
   float margin_l = 0.15;
   float margin_r = 0.05;
@@ -136,6 +237,7 @@ void plots() {
   // p_main->SetMargin();
   // p_main->SetFrameFillColor(kGreen);
   p_main->Draw();
+  // p_main->SetLogy();
   c->cd();
   TPad *p_ratio = new TPad("pad_ratio", "pad title", 0, 0, 1, border_y);
   p_ratio->SetTopMargin(0.015/border_y);
@@ -156,10 +258,11 @@ void plots() {
   }
 
   p_main->cd();
-  THStack *stack = create_stack();
-  stack->Draw();
+  THStack *stack = create_stack(rootFile, folderName, divide_by_bin_width);
+  stack->Draw("hist");
 
-  stack->GetHistogram()->GetYaxis()->SetTitle("Events / bin");
+  if(divide_by_bin_width) stack->GetHistogram()->GetYaxis()->SetTitle("Events / GeV");
+  else stack->GetHistogram()->GetYaxis()->SetTitle("Events / bin");
   stack->GetHistogram()->GetYaxis()->SetLabelSize(stack->GetHistogram()->GetYaxis()->GetLabelSize()/(1.-border_y));
   stack->GetHistogram()->GetYaxis()->SetTitleSize(stack->GetHistogram()->GetYaxis()->GetTitleSize()/(1.-border_y));
   // stack->GetHistogram()->GetYaxis()->SetTitleOffset(stack->GetHistogram()->GetYaxis()->GetTitleOffset()/(1.-border_y));
@@ -175,13 +278,21 @@ void plots() {
 
   TH1F *last = (TH1F*)stack->GetStack()->Last();
 
-  TGraphAsymmErrors *stack_totalunc = get_stack_unc(last);
+  TGraphAsymmErrors *stack_totalunc = get_stack_unc(last, rootFile, folderName, divide_by_bin_width);
   stack_totalunc->Draw("2");
   stack_totalunc->SetLineWidth(0);
   stack_totalunc->SetFillColor(kGray+1);
   stack_totalunc->SetFillStyle(3254); //3354
 
-  TH1F *data = create_th1f(5000);
+  // TH1F *data = create_th1f(5000);
+  TH1F *data = (TH1F*)rootFile->Get((folderName+"/data_obs").c_str());
+  if(divide_by_bin_width) {
+    for(unsigned int j = 1; j <= data->GetNbinsX(); j++) {
+      if(data->GetBinContent(j) == 0) continue;
+      data->SetBinContent(j, data->GetBinContent(j) / data->GetBinWidth(j));
+      data->SetBinError(j, data->GetBinError(j) / data->GetBinWidth(j));
+    }
+  }
   data->Draw("same e x0");
   data->SetLineWidth(1);
   data->SetLineColor(kBlack);
@@ -199,7 +310,8 @@ void plots() {
   TH1F *null_hist = new TH1F(*data); null_hist->Reset();
   null_hist->Draw(); // option for data points, need to change this later
 
-  null_hist->GetXaxis()->SetTitle("Probe jet #it{p}_{T} [GeV]");
+  null_hist->GetXaxis()->SetTitle(null_hist->GetTitle());
+  null_hist->SetTitle("");
   null_hist->GetXaxis()->SetLabelSize(null_hist->GetXaxis()->GetLabelSize()/border_y);
   null_hist->GetXaxis()->SetTitleSize(null_hist->GetXaxis()->GetTitleSize()/border_y);
   null_hist->GetXaxis()->SetTitleOffset(1.3);
@@ -220,16 +332,21 @@ void plots() {
   null_hist->GetXaxis()->SetTickLength(c->GetWh() * tick_length / tickScaleX);
 
   TGraphAsymmErrors *ratio_totalunc = create_ratio_totalunc(stack_totalunc);
+  // ratio_totalunc->SetTitle("DummyTitleToAvoidMemoryLeak");
   ratio_totalunc->Draw("same 2");
   ratio_totalunc->SetFillColor(kGray+1);
-  // ratio_totalunc->SetFillStyle(3254);
-  ratio_totalunc->SetFillStyle(1001);
+  ratio_totalunc->SetFillStyle(3254);
+  stack_totalunc->SetLineWidth(0);
+  stack_totalunc->SetMarkerStyle(0);
+  // ratio_totalunc->SetFillStyle(1001); // if using this fill style, the plot bugs out and many of the following texts are not drawn. Only God knows why.
 
   TH1F *ratio_mc_stat = create_ratio_mc_stat(last);
   ratio_mc_stat->Draw("same e2");
   ratio_mc_stat->SetFillColor(kGray);
   ratio_mc_stat->SetFillStyle(1001);
-
+  ratio_mc_stat->SetTitle("MC stat. unc.");
+  ratio_mc_stat->SetLineWidth(0);
+  ratio_mc_stat->SetMarkerStyle(0);
 
   TH1F *ratio_data = create_ratio_data(last, data);
   ratio_data->Draw("same e0 x0");
@@ -237,6 +354,34 @@ void plots() {
   TLine *ratio_line = new TLine(null_hist->GetXaxis()->GetXmin(), 1., null_hist->GetXaxis()->GetXmax(), 1.);
   ratio_line->SetLineStyle(2);
   ratio_line->Draw();
+
+  // const double height_of_ratio_plot_in_pixels = p_ratio->GetWh()*p_ratio->GetAbsHNDC()*(1 - p_ratio->GetTopMargin() - p_ratio->GetBottomMargin());
+  // const double ratio_plot_y_height_corresponding_to_half_marker_size = 8*(null_hist->GetMaximum() - null_hist->GetMinimum()) * (0.5*ratio_data->GetMarkerSize() / height_of_ratio_plot_in_pixels);
+  // A marker size of 1 corresponds to 8 pixels (https://root.cern.ch/doc/master/classTAttMarker.html)
+  for(unsigned int i = 1; i <= ratio_data->GetNbinsX(); i++) {
+    const double binc = ratio_data->GetBinContent(i);
+    if(binc <= 0) continue;
+    if(binc > null_hist->GetMaximum()) {
+      TMarker *marker = new TMarker();
+      marker->SetMarkerStyle(22);
+      marker->SetMarkerSize(ratio_data->GetMarkerSize());
+      // marker->DrawMarker(ratio_data->GetBinCenter(i), null_hist->GetMaximum() - ratio_plot_y_height_corresponding_to_half_marker_size); //  - 4/p_ratio->GetWh()
+      marker->DrawMarker(ratio_data->GetBinCenter(i), null_hist->GetMaximum());
+    }
+    else if(binc < null_hist->GetMinimum()) {
+      TMarker *marker = new TMarker();
+      marker->SetMarkerStyle(23);
+      marker->SetMarkerSize(ratio_data->GetMarkerSize());
+      // marker->DrawMarker(ratio_data->GetBinCenter(i), null_hist->GetMinimum() + ratio_plot_y_height_corresponding_to_half_marker_size);
+      marker->DrawMarker(ratio_data->GetBinCenter(i), null_hist->GetMinimum());
+    }
+  }
+
+  // TLegend *leg_mcstat = new TLegend();
+  // leg_mcstat->SetTextSize(0.02);
+  // leg_mcstat->SetBorderSize(0);
+  // leg_mcstat->SetFillStyle(0);
+  // leg_mcstat->AddEntry(ratio_mc_stat);
 
   redrawBorder();
 
@@ -246,14 +391,14 @@ void plots() {
   coord->init(margin_l, margin_r, margin_b, margin_t);
 
   // TLatex *text_top_left = new TLatex(margin_l, 1-(margin_t-0.01), "#mu+jets, 1b0t1W region");
-  TLatex *text_top_left = new TLatex(margin_l, 1-(margin_t-0.01), "AK8 PUPPI");
+  TLatex *text_top_left = new TLatex(margin_l, 1-(margin_t-0.01), "AK8 PUPPI"); // todo: hotvr puppi
   text_top_left->SetTextAlign(11); // left bottom aligned
   text_top_left->SetTextFont(42);
   text_top_left->SetTextSize(0.035);
   text_top_left->SetNDC();
   text_top_left->Draw();
 
-  string string_text_top_right = "41.5 fb^{#minus1} (13 TeV)";
+  string string_text_top_right = "41.5 fb^{#minus1} (13 TeV)"; // todo: other years have other lumis!
   TLatex *text_top_right = new TLatex(1-margin_r, 1-(margin_t-0.01), string_text_top_right.c_str());
   text_top_right->SetTextAlign(31); // right bottom aligned
   text_top_right->SetTextFont(42);
@@ -268,21 +413,35 @@ void plots() {
   cms->SetNDC();
   cms->Draw();
 
-  TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.87), "Preliminary"); //Work in Progress
+  TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.87), "Work in Progress"); //Work in Progress //Preliminary
   prelim->SetTextAlign(13); // left top
   prelim->SetTextFont(52);
   prelim->SetTextSize(0.035);
   prelim->SetNDC();
   prelim->Draw();
 
+  TText *text_mcstat = new TText(1-(margin_r-0.02), border_y*0.75, ratio_mc_stat->GetTitle());
+  text_mcstat->SetTextAlign(22); // center center
+  text_mcstat->SetTextFont(42);
+  text_mcstat->SetTextSize(0.018);
+  text_mcstat->SetTextAngle(90);
+  text_mcstat->SetNDC();
+  text_mcstat->Draw();
+
+  TBox *box_mcstat = new TBox(1-(margin_r-0.012), border_y*0.45, 1-(margin_r-0.030), border_y*0.53);
+  box_mcstat->SetFillColor(ratio_mc_stat->GetFillColor());
+  box_mcstat->SetLineWidth(ratio_mc_stat->GetLineWidth());
+  // box_mcstat->SetNDC();
+  box_mcstat->Draw();
+
 
   // float legend_x1 = coord->ConvertGraphXToPadX(0.43);
   // float legend_y1 = coord->ConvertGraphYToPadY(0.7);
   // float legend_x2 = coord->ConvertGraphXToPadX(0.65); //71
   // float legend_y2 = coord->ConvertGraphYToPadY(0.96);
-  float legend_x1 = coord->ConvertGraphXToPadX(0.75);
+  float legend_x1 = coord->ConvertGraphXToPadX(0.74);
   float legend_y1 = coord->ConvertGraphYToPadY(0.71);
-  float legend_x2 = coord->ConvertGraphXToPadX(0.97); //71
+  float legend_x2 = coord->ConvertGraphXToPadX(0.96); //71
   float legend_y2 = coord->ConvertGraphYToPadY(0.97);
   TLegend *legend = new TLegend(legend_x1, legend_y1, legend_x2, legend_y2); // x1 y1 x2 y2
   legend->SetTextSize(0.025);
@@ -292,17 +451,17 @@ void plots() {
 
   TH1F *leg_wjets = new TH1F();
   leg_wjets->SetFillColor(kSpring-3); leg_wjets->SetLineWidth(0); leg_wjets->SetLineColor(kWhite);
-  TH1F *leg_dyjets = new TH1F();
-  leg_dyjets->SetFillColor(kSpring+4); leg_dyjets->SetLineWidth(0); leg_dyjets->SetLineColor(kWhite);
-  TH1F *leg_vv = new TH1F();
-  leg_vv->SetFillColor(kSpring-7); leg_vv->SetLineWidth(0); leg_vv->SetLineColor(kWhite);
+  TH1F *leg_dyjetsvv = new TH1F();
+  leg_dyjetsvv->SetFillColor(kSpring-7); leg_dyjetsvv->SetLineWidth(0); leg_dyjetsvv->SetLineColor(kWhite);
+  // TH1F *leg_vv = new TH1F();
+  // leg_vv->SetFillColor(kSpring-7); leg_vv->SetLineWidth(0); leg_vv->SetLineColor(kWhite);
   TH1F *leg_qcd = new TH1F();
   leg_qcd->SetFillColor(kAzure+10); leg_qcd->SetLineWidth(0); leg_qcd->SetLineColor(kWhite);
 
-
+  legend->AddEntry(data, "Data", "ep");
   legend->AddEntry(leg_wjets, "W + jets", "f");
-  legend->AddEntry(leg_dyjets, "Z/#gamma* + jets", "f");
-  legend->AddEntry(leg_vv, "WW, WZ, ZZ", "f");
+  legend->AddEntry(leg_dyjetsvv, "Z/#gamma* + jets, VV", "f");
+  // legend->AddEntry(leg_vv, "WW, WZ, ZZ", "f");
   legend->AddEntry(leg_qcd, "QCD multijet", "f");
   legend->AddEntry(stack_totalunc, "Uncertainty", "f");
 
@@ -325,16 +484,19 @@ void plots() {
   // legend2->SetHeader("t#bar{t} / single t:");
 
   TH1F *leg_merged_ttbar = new TH1F();
-  leg_merged_ttbar->SetFillColor(kPink-3); leg_merged_ttbar->SetLineWidth(0); leg_merged_ttbar->SetLineColor(kWhite);
-  TH1F *leg_semimerged_ttbar = new TH1F();
-  leg_semimerged_ttbar->SetFillColor(kPink+4); leg_semimerged_ttbar->SetLineWidth(0); leg_semimerged_ttbar->SetLineColor(kWhite);
+  leg_merged_ttbar->SetFillColor(kPink); leg_merged_ttbar->SetLineWidth(0); leg_merged_ttbar->SetLineColor(kWhite);
+  TH1F *leg_wmerged_ttbar = new TH1F();
+  leg_wmerged_ttbar->SetFillColor(kPink+5); leg_wmerged_ttbar->SetLineWidth(0); leg_wmerged_ttbar->SetLineColor(kWhite);
+  TH1F *leg_qbmerged_ttbar = new TH1F();
+  leg_qbmerged_ttbar->SetFillColor(kPink+4); leg_qbmerged_ttbar->SetLineWidth(0); leg_qbmerged_ttbar->SetLineColor(kWhite);
   TH1F *leg_unmerged_ttbar = new TH1F();
   leg_unmerged_ttbar->SetFillColor(kPink-7); leg_unmerged_ttbar->SetLineWidth(0); leg_unmerged_ttbar->SetLineColor(kWhite);
 
-  legend2->AddEntry(data, "Data", "ep");
+  // legend2->AddEntry(data, "Data", "ep");
   legend2->AddEntry((TObject*)0, "", "");
   legend2->AddEntry(leg_merged_ttbar, "", "f");
-  legend2->AddEntry(leg_semimerged_ttbar, "", "f");
+  legend2->AddEntry(leg_wmerged_ttbar, "", "f");
+  legend2->AddEntry(leg_qbmerged_ttbar, "", "f");
   legend2->AddEntry(leg_unmerged_ttbar, "", "f");
 
   legend2->Draw();
@@ -357,16 +519,19 @@ void plots() {
 
   TH1F *leg_merged_singlet = new TH1F();
   leg_merged_singlet->SetFillColor(kOrange); leg_merged_singlet->SetLineWidth(0); leg_merged_singlet->SetLineColor(kWhite);
-  TH1F *leg_semimerged_singlet = new TH1F();
-  leg_semimerged_singlet->SetFillColor(kOrange-3); leg_semimerged_singlet->SetLineWidth(0); leg_semimerged_singlet->SetLineColor(kWhite);
+  TH1F *leg_wmerged_singlet = new TH1F();
+  leg_wmerged_singlet->SetFillColor(kOrange-3); leg_wmerged_singlet->SetLineWidth(0); leg_wmerged_singlet->SetLineColor(kWhite);
+  TH1F *leg_qbmerged_singlet = new TH1F();
+  leg_qbmerged_singlet->SetFillColor(kOrange+4); leg_qbmerged_singlet->SetLineWidth(0); leg_qbmerged_singlet->SetLineColor(kWhite);
   TH1F *leg_unmerged_singlet = new TH1F();
-  leg_unmerged_singlet->SetFillColor(kOrange+4); leg_unmerged_singlet->SetLineWidth(0); leg_unmerged_singlet->SetLineColor(kWhite);
+  leg_unmerged_singlet->SetFillColor(kOrange+3); leg_unmerged_singlet->SetLineWidth(0); leg_unmerged_singlet->SetLineColor(kWhite);
 
+  // legend3->AddEntry((TObject*)0, "", "");
   legend3->AddEntry((TObject*)0, "", "");
-  legend3->AddEntry((TObject*)0, "", "");
-  legend3->AddEntry(leg_merged_singlet, "Merged t", "f");
-  legend3->AddEntry(leg_semimerged_singlet, "Semimerged t", "f");
-  legend3->AddEntry(leg_unmerged_singlet, "Unmerged t", "f");
+  legend3->AddEntry(leg_merged_singlet, "Fully merged", "f");
+  legend3->AddEntry(leg_wmerged_singlet, "W merged", "f");
+  legend3->AddEntry(leg_qbmerged_singlet, "q + b merged", "f");
+  legend3->AddEntry(leg_unmerged_singlet, "Other / bkg.", "f");
 
   legend3->Draw();
 
@@ -382,8 +547,9 @@ void plots() {
   legend4->SetFillStyle(0);
   // legend3->SetHeader("");
 
-  legend4->AddEntry((TObject*)0, "", "");
+  // legend4->AddEntry((TObject*)0, "", "");
   legend4->AddEntry((TObject*)0, "t#bar{t}, single t categories:", "");
+  legend4->AddEntry((TObject*)0, "", "");
   legend4->AddEntry((TObject*)0, "", "");
   legend4->AddEntry((TObject*)0, "", "");
   legend4->AddEntry((TObject*)0, "", "");
@@ -395,10 +561,63 @@ void plots() {
 
 
   // Save to disk
-  string infileBasePath = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/test/";
-  string plotName = "plot_test.eps";
+  // string infileBasePath = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/test/";
+  // string infileBasePath = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel/UL17/combine/";
+  string plotDir = workDir+"/plots/";
+  gSystem->Exec(((string)"mkdir -p "+plotDir).c_str());
+  string plotName = folderName+"_prefit.pdf";
   // plotName += (log_y ? string("_log") : string("_lin"))+".pdf";
-  string plotPath = infileBasePath+plotName;
+  string plotPath = plotDir+plotName;
   c->SaveAs(plotPath.c_str());
   delete c;
+}
+
+
+void plots() {
+  vector<string> pt_bins = {
+    "Pt300to400",
+    "Pt400to480",
+    "Pt480to600",
+    "Pt600toInf",
+    "Pt300toInf",
+  };
+  vector<string> jet_versions = {
+    "All",
+    "BTag",
+  };
+  vector<string> wps = {
+    "BkgEff0p001",
+    "BkgEff0p005",
+    "BkgEff0p010",
+    "BkgEff0p025",
+    "BkgEff0p050",
+    "NoTau32Cut",
+  };
+  vector<string> regions = {
+    "Pass",
+    "Fail",
+  };
+
+  string outputBaseDir = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel/UL17/combine/AK8/";
+  for(const auto & pt_bin : pt_bins) {
+    for(const auto & jet_version : jet_versions) {
+      for(const auto & wp : wps) {
+        string task_name = pt_bin+"_"+jet_version+"_"+wp;
+        string workDir = outputBaseDir+"/"+task_name;
+        string inputFilePath = workDir+"/"+task_name+"__input_histograms.root";
+        TFile *rootFile = TFile::Open(inputFilePath.c_str(), "READ");
+        for(const auto & region : regions) {
+          string folderName = task_name+"_"+region+"_mSD";
+          plotter(rootFile, folderName, workDir);
+        }
+      }
+    }
+  }
+  // string folderName = "Pt480to600_All_BkgEff0p050_Pass_mSD";
+
+}
+
+int main() {
+  plots()
+  return 0;
 }
