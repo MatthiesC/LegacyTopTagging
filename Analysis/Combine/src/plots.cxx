@@ -1,4 +1,22 @@
 #include <TROOT.h>
+#include <TFile.h>
+#include <TH1.h>
+#include <TBox.h>
+#include <TLine.h>
+#include <TText.h>
+#include <TLatex.h>
+#include <TGraphAsymmErrors.h>
+#include <TLegend.h>
+#include <THStack.h>
+#include <TMath.h>
+#include <TMarker.h>
+#include <TPad.h>
+#include <TCanvas.h>
+#include <TEnv.h>
+#include <TStyle.h>
+#include <TSystem.h>
+#include <TObjString.h>
+#include <THashList.h>
 #include <iostream>
 
 using namespace std;
@@ -40,13 +58,15 @@ typedef struct {
 const vector<Process> processes = {
 {"QCD_Mu", kAzure+10},
 {"TTbar_FullyMerged", kPink-3},
-{"TTbar_WMerged", kPink+5},
-{"TTbar_QBMerged", kPink+4},
+{"TTbar_SemiMerged", kPink+4},
+// {"TTbar_WMerged", kPink+5},
+// {"TTbar_QBMerged", kPink+4},
 {"TTbar_BkgOrNotMerged", kPink-7},
 {"ST_FullyMerged", kOrange},
-{"ST_WMerged", kOrange-3},
-{"ST_QBMerged", kOrange+4},
-{"ST_BkgOrNotMerged", kOrange+3},
+{"ST_SemiMerged", kOrange-3},
+// {"ST_WMerged", kOrange-3},
+// {"ST_QBMerged", kOrange+4},
+{"ST_BkgOrNotMerged", kOrange+4},
 {"WJetsToLNu", kSpring-3},
 {"DYJetsToLLAndDiboson", kSpring-7},
 };
@@ -85,6 +105,22 @@ THStack * create_stack(TFile * rootFile, const string & folderName, const bool d
   }
 
   return stack;
+}
+
+
+THStack * scale_stack(const THStack * stack, const double scale_factor) {
+
+  // Caveat: Does not copy over any members like cosmetics settings of the input stack, only the histograms within the stack (with an applied scaling)
+
+  THStack *new_stack = new THStack(((string)stack->GetName()+"_scaled").c_str(), "");
+  for(unsigned int i = 0; i < stack->GetNhists(); i++) {
+    TH1F *hist = (TH1F*)stack->GetHists()->At(i);
+    TH1F *scaled_hist = new TH1F(*hist);
+    scaled_hist->Scale(scale_factor);
+    new_stack->Add(scaled_hist);
+  }
+
+  return new_stack;
 }
 
 
@@ -147,17 +183,17 @@ double get_syst_unc_for_bin(const unsigned int ibin, TFile * rootFile, const str
 }
 
 
-TGraphAsymmErrors * get_stack_unc(const TH1F * last, TFile * rootFile, const string & folderName, const bool divide_by_bin_width) {
+TGraphAsymmErrors * get_stack_unc(const TH1F * last, TFile * rootFile, const string & folderName, const bool divide_by_bin_width, const double scale_factor) {
   unsigned int n = last->GetNbinsX();
   double x[n], y[n], exl[n], eyl[n], exh[n], eyh[n];
   for(unsigned int i = 0; i < n; i++) {
     unsigned int ibin = i+1;
     x[i] = last->GetBinCenter(ibin);
-    y[i] = last->GetBinContent(ibin);
+    y[i] = last->GetBinContent(ibin) * scale_factor;
     exl[i] = last->GetBinWidth(ibin) / 2.;
-    eyl[i] = TMath::Sqrt(TMath::Power(last->GetBinError(ibin)*(divide_by_bin_width ? last->GetBinWidth(ibin) : 1.), 2) + TMath::Power(get_syst_unc_for_bin(ibin, rootFile, folderName, "minus"), 2)) / (divide_by_bin_width ? last->GetBinWidth(ibin) : 1.);
+    eyl[i] = scale_factor * TMath::Sqrt(TMath::Power(last->GetBinError(ibin)*(divide_by_bin_width ? last->GetBinWidth(ibin) : 1.), 2) + TMath::Power(get_syst_unc_for_bin(ibin, rootFile, folderName, "minus"), 2)) / (divide_by_bin_width ? last->GetBinWidth(ibin) : 1.);
     exh[i] = last->GetBinWidth(ibin) / 2.;
-    eyh[i] = TMath::Sqrt(TMath::Power(last->GetBinError(ibin)*(divide_by_bin_width ? last->GetBinWidth(ibin) : 1.), 2) + TMath::Power(get_syst_unc_for_bin(ibin, rootFile, folderName, "plus"), 2)) / (divide_by_bin_width ? last->GetBinWidth(ibin) : 1.);
+    eyh[i] = scale_factor * TMath::Sqrt(TMath::Power(last->GetBinError(ibin)*(divide_by_bin_width ? last->GetBinWidth(ibin) : 1.), 2) + TMath::Power(get_syst_unc_for_bin(ibin, rootFile, folderName, "plus"), 2)) / (divide_by_bin_width ? last->GetBinWidth(ibin) : 1.);
   }
   return new TGraphAsymmErrors(n, x, y, exl, exh, eyl, eyh);
 }
@@ -182,7 +218,8 @@ TGraphAsymmErrors * create_ratio_totalunc(const TGraphAsymmErrors * total_unc) {
     double x, y;
     total_unc->GetPoint(i, x, y);
     ratio_totalunc->SetPoint(i, x, 1.);
-    ratio_totalunc->SetPointError(i, total_unc->GetErrorXlow(i), total_unc->GetErrorXhigh(i), total_unc->GetErrorYlow(i) / y, total_unc->GetErrorYhigh(i) / y);
+    if(y <= 0) ratio_totalunc->SetPointError(i, total_unc->GetErrorXlow(i), total_unc->GetErrorXhigh(i), 0, 0); // like SFramePlotter's IgnoreEmptyBins
+    else ratio_totalunc->SetPointError(i, total_unc->GetErrorXlow(i), total_unc->GetErrorXhigh(i), total_unc->GetErrorYlow(i) / y, total_unc->GetErrorYhigh(i) / y);
   }
   return ratio_totalunc;
 }
@@ -191,16 +228,17 @@ TGraphAsymmErrors * create_ratio_totalunc(const TGraphAsymmErrors * total_unc) {
 TH1F * create_ratio_mc_stat(const TH1F * last) {
   TH1F *ratio_mc_stat = new TH1F(*last);
   for(unsigned int i = 0; i <= ratio_mc_stat->GetNbinsX()+1; i++) {
-    ratio_mc_stat->SetBinError(i, ratio_mc_stat->GetBinError(i) / ratio_mc_stat->GetBinContent(i));
     ratio_mc_stat->SetBinContent(i, 1.);
+    if(last->GetBinContent(i) <= 0) ratio_mc_stat->SetBinError(i, 0); // like SFramePlotter's IgnoreEmptyBins
+    else ratio_mc_stat->SetBinError(i, last->GetBinError(i) / last->GetBinContent(i));
   }
   return ratio_mc_stat;
 }
 
 
-TH1F * create_ratio_data(const TH1F * hist1, const TH1F * hist2) {
+TH1F * create_ratio_data(const TH1F * hist1, const TH1F * hist2) { // hist1 = last of stack, hist2 = data
   TH1F *ratio = new TH1F(*hist2);
-  ratio->Reset();
+  // ratio->Reset();
   for(unsigned int i = 0; i <= ratio->GetNbinsX()+1; i++) {
     if(hist1->GetBinContent(i) <= 0 || hist2->GetBinContent(i) <= 0) continue;
     ratio->SetBinContent(i, hist2->GetBinContent(i) / hist1->GetBinContent(i));
@@ -219,7 +257,63 @@ void redrawBorder() { // https://root-forum.cern.ch/t/how-to-redraw-axis-and-plo
 }
 
 
-void plotter(TFile * rootFile, const string & folderName, const string & workDir, const bool divide_by_bin_width=true) {
+typedef struct {
+  TString fInputFilePath;
+  TString fFolderName;
+  TString fPlotDir;
+  TString fPlotName;
+  TString fTextTopLeft = "???";
+  TString fTextTopRight = "??? fb^{#minus1} (??? TeV)";
+  TString fTextPrelim = "Work in Progress";
+  bool fDivideByBinWidth = true;
+} PlotterArguments;
+
+
+typedef struct {
+  TString fName;
+  TString fXAxisTitle;
+  TString fYAxisTitle;
+} Variable;
+
+
+// const map<TString, Variable> kVariables = {
+//   {"pt", Variable{"pt", "Probe jet #it{p}_{T} [GeV]", "d(Events) / d#it{p}_{T} [GeV^{#minus1}]"}},
+//   {"drlepton", Variable{"drlepton", "#Delta#it{R}(probe jet, #mu)", "d(Events) / d(#Delta#it{R})"}},
+//   {"eta", Variable{"eta", "Probe jet #eta", "d(Events) / d#eta"}},
+//   {"phi", Variable{"phi", "Probe jet #phi [rad]", "d(Events) / d#phi [rad^{#minus1}]"}},
+//   {"mass", Variable{"mass", "Probe jet #it{m}_{jet} [GeV]", "d(Events) / d#it{m}_{jet} [GeV^{#minus1}]"}},
+//   {"mSD", Variable{"mSD", "Probe jet #it{m}_{SD} [GeV]", "d(Events) / d#it{m}_{SD} [GeV^{#minus1}]"}},
+//   {"tau32", Variable{"tau32", "Probe jet #tau_{3}/#tau_{2}", "d(Events) / d(#tau_{3}/#tau_{2})"}},
+//   {"maxDeepCSV", Variable{"maxDeepCSV", "Max. #it{O}_{DeepCSV}^{prob(b)+prob(bb)} of probe subjets", "d(Events) / d#it{O}_{DeepCSV}^{prob(b)+prob(bb)}"}},
+//   {"mpair", Variable{"mpair", "Min. #it{m}_{ij} [GeV] of leading three probe subjets", "d(Events) / d#it{m}_{ij} [GeV^{#minus1}]"}},
+//   {"fpt1", Variable{"fpt1", "#it{p}_{T} fraction of leading probe subjet", "d(Events) / d(#it{p}_{T} fraction)"}},
+// };
+
+const map<TString, Variable> kVariables = {
+  {"pt", Variable{"pt", "Probe jet #it{p}_{T} [GeV]", "Events / GeV"}},
+  {"drlepton", Variable{"drlepton", "#Delta#it{R}(probe jet, #mu)", "Events / unit"}},
+  {"eta", Variable{"eta", "Probe jet #eta", "Events / unit"}},
+  {"phi", Variable{"phi", "Probe jet #phi [rad]", "Events / rad"}},
+  {"mass", Variable{"mass", "Probe jet #it{m}_{jet} [GeV]", "Events / GeV"}},
+  {"mSD", Variable{"mSD", "Probe jet #it{m}_{SD} [GeV]", "Events / GeV"}},
+  {"tau32", Variable{"tau32", "Probe jet #tau_{3}/#tau_{2}", "Events / unit"}},
+  {"maxDeepCSV", Variable{"maxDeepCSV", "Max. #it{O}_{DeepCSV}^{prob(b)+prob(bb)} of probe subjets", "Events / unit"}},
+  {"mpair", Variable{"mpair", "Min. #it{m}_{ij} [GeV] of leading three probe subjets", "Events / GeV"}},
+  {"fpt1", Variable{"fpt1", "#it{p}_{T} fraction of leading probe subjet", "Events / unit"}},
+};
+
+
+// void plotter(TFile * rootFile, const TString & folderName, const string & workDir, const bool divide_by_bin_width=true) {
+void plotter(const PlotterArguments & args) {
+
+  TFile * rootFile = TFile::Open(args.fInputFilePath.Data(), "READ");
+  const TString & folderName = args.fFolderName;
+  const bool divide_by_bin_width = args.fDivideByBinWidth;
+
+  TString variable = ((TObjString*)folderName.Tokenize("_")->Last())->GetString();
+
+  // bool log_y(false);
+  // if(folderName.Contains("mSD") && folderName.Contains("Fail")) log_y = true;
 
   float margin_l = 0.15;
   float margin_r = 0.05;
@@ -237,7 +331,7 @@ void plotter(TFile * rootFile, const string & folderName, const string & workDir
   // p_main->SetMargin();
   // p_main->SetFrameFillColor(kGreen);
   p_main->Draw();
-  // p_main->SetLogy();
+  // if(log_y) p_main->SetLogy();
   c->cd();
   TPad *p_ratio = new TPad("pad_ratio", "pad title", 0, 0, 1, border_y);
   p_ratio->SetTopMargin(0.015/border_y);
@@ -258,14 +352,68 @@ void plotter(TFile * rootFile, const string & folderName, const string & workDir
   }
 
   p_main->cd();
-  THStack *stack = create_stack(rootFile, folderName, divide_by_bin_width);
-  stack->Draw("hist");
+  THStack *stack = create_stack(rootFile, (string)folderName, divide_by_bin_width);
+  // stack = scale_stack(stack, 1000);
 
-  if(divide_by_bin_width) stack->GetHistogram()->GetYaxis()->SetTitle("Events / GeV");
+  TH1F *data = (TH1F*)rootFile->Get(((string)folderName+"/data_obs").c_str());
+  if(divide_by_bin_width) {
+    for(unsigned int j = 1; j <= data->GetNbinsX(); j++) {
+      if(data->GetBinContent(j) == 0) continue;
+      data->SetBinContent(j, data->GetBinContent(j) / data->GetBinWidth(j));
+      data->SetBinError(j, data->GetBinError(j) / data->GetBinWidth(j));
+    }
+  }
+  data->SetLineWidth(1);
+  data->SetLineColor(kBlack);
+  data->SetMarkerStyle(8);
+
+  const double maximum_stack_saved = ((TH1F*)stack->GetStack()->Last())->GetBinContent(((TH1F*)stack->GetStack()->Last())->GetMaximumBin());
+  const double maximum_data_saved = data->GetBinContent(data->GetMaximumBin());
+  const double maximum = max(maximum_stack_saved, maximum_data_saved) * 1.5;
+
+  // Re-scale the stack such that the y axis labels do not have higher values than O(100)
+  // Changes y axis title: Events -> 10^N Events (N = multiple of 3)
+  // THIS PROBABLY ONLY WORKS AS INTENDED WHEN USING LINEAR SCALE
+  // ONLY WORKS FOR POSITIVE EXPONENTS (BIG NUMBERS)
+  // // stack->GetHistogram()->GetYaxis()->SetNoExponent(); // disable default 10^N at the top of y axis
+  THStack *original_stack = new THStack(*stack);
+  int exponent(0);
+  const int exponent_increment(3);
+  const double exp_result(TMath::Power(10, exponent_increment));
+  const double scale_factor = 1./exp_result;
+  double total_scale_factor(1.);
+  double new_maximum = maximum;
+  while(new_maximum >= exp_result*10) {
+    exponent += exponent_increment;
+    total_scale_factor *= scale_factor;
+    new_maximum = new_maximum * scale_factor;
+  }
+  stack = scale_stack(stack, total_scale_factor);
+  data->Scale(total_scale_factor);
+
+  TGraphAsymmErrors *stack_totalunc = get_stack_unc((TH1F*)original_stack->GetStack()->Last(), rootFile, (string)folderName, divide_by_bin_width, total_scale_factor);
+  stack_totalunc->SetLineWidth(0);
+  stack_totalunc->SetFillColor(kGray+1);
+  stack_totalunc->SetFillStyle(3254); //3354
+
+  stack->Draw("hist");
+  stack_totalunc->Draw("2");
+  data->Draw("same e x0");
+
+  // Segmentation violation if stack is not drawn before calling the following cosmetics settings
+  TH1F *last = (TH1F*)stack->GetStack()->Last();
+  last->SetMaximum(new_maximum);
+  if(divide_by_bin_width) stack->GetHistogram()->GetYaxis()->SetTitle(kVariables.at(variable).fYAxisTitle.Data());
   else stack->GetHistogram()->GetYaxis()->SetTitle("Events / bin");
+  if(exponent > 0) {
+    // stack->GetHistogram()->GetYaxis()->SetTitle(((TString)("10^{")+exponent+"} "+stack->GetHistogram()->GetYaxis()->GetTitle()).Data()); // Events -> 10^N Events
+    TString old_title = stack->GetHistogram()->GetYaxis()->GetTitle();
+    TString unit_name = ((TObjString*)old_title.Tokenize(" ")->Last())->GetString();
+    TString new_title = old_title.ReplaceAll(unit_name, (TString)"10^{#minus"+exponent+"} "+unit_name).ReplaceAll("unit", "units");
+    stack->GetHistogram()->GetYaxis()->SetTitle(new_title.Data());
+  }
   stack->GetHistogram()->GetYaxis()->SetLabelSize(stack->GetHistogram()->GetYaxis()->GetLabelSize()/(1.-border_y));
   stack->GetHistogram()->GetYaxis()->SetTitleSize(stack->GetHistogram()->GetYaxis()->GetTitleSize()/(1.-border_y));
-  // stack->GetHistogram()->GetYaxis()->SetTitleOffset(stack->GetHistogram()->GetYaxis()->GetTitleOffset()/(1.-border_y));
   stack->GetHistogram()->GetXaxis()->SetLabelOffset(5); // hack to let the x axis labels vanish under ratio pad
 
   // https://root-forum.cern.ch/t/inconsistent-tick-length/18563/8
@@ -274,35 +422,6 @@ void plotter(TFile * rootFile, const string & folderName, const string & workDir
   double tickScaleY = (p_main->GetUymax() - p_main->GetUymin()) / (p_main->GetY2() - p_main->GetY1()) * (p_main->GetWw() * p_main->GetAbsWNDC());
   stack->GetYaxis()->SetTickLength(c->GetWw() * tick_length / tickScaleY);
   stack->GetXaxis()->SetTickLength(c->GetWh() * tick_length / tickScaleX);
-
-
-  TH1F *last = (TH1F*)stack->GetStack()->Last();
-
-  TGraphAsymmErrors *stack_totalunc = get_stack_unc(last, rootFile, folderName, divide_by_bin_width);
-  stack_totalunc->Draw("2");
-  stack_totalunc->SetLineWidth(0);
-  stack_totalunc->SetFillColor(kGray+1);
-  stack_totalunc->SetFillStyle(3254); //3354
-
-  // TH1F *data = create_th1f(5000);
-  TH1F *data = (TH1F*)rootFile->Get((folderName+"/data_obs").c_str());
-  if(divide_by_bin_width) {
-    for(unsigned int j = 1; j <= data->GetNbinsX(); j++) {
-      if(data->GetBinContent(j) == 0) continue;
-      data->SetBinContent(j, data->GetBinContent(j) / data->GetBinWidth(j));
-      data->SetBinError(j, data->GetBinError(j) / data->GetBinWidth(j));
-    }
-  }
-  data->Draw("same e x0");
-  data->SetLineWidth(1);
-  data->SetLineColor(kBlack);
-  data->SetMarkerStyle(8);
-
-  const double maximum_stack_saved = last->GetBinContent(last->GetMaximumBin());
-  const double maximum_data_saved = data->GetBinContent(data->GetMaximumBin());
-  const double maximum = max(maximum_stack_saved, maximum_data_saved);
-  last->SetMaximum(maximum*1.5);
-
   redrawBorder();
 
 
@@ -316,9 +435,10 @@ void plotter(TFile * rootFile, const string & folderName, const string & workDir
   null_hist->GetXaxis()->SetTitleSize(null_hist->GetXaxis()->GetTitleSize()/border_y);
   null_hist->GetXaxis()->SetTitleOffset(1.3);
   null_hist->GetYaxis()->SetTitle("Data / pred.");
+  // null_hist->GetYaxis()->SetTitle("#frac{Data}{Prediction}");
   null_hist->GetYaxis()->SetLabelSize(null_hist->GetYaxis()->GetLabelSize()/border_y);
   null_hist->GetYaxis()->SetTitleSize(null_hist->GetYaxis()->GetTitleSize()/border_y);
-  null_hist->GetYaxis()->SetTitleOffset(0.5);
+  null_hist->GetYaxis()->SetTitleOffset(0.45);
   null_hist->GetYaxis()->CenterTitle();
   null_hist->SetMinimum(0.7);
   null_hist->SetMaximum(1.3);
@@ -331,6 +451,14 @@ void plotter(TFile * rootFile, const string & folderName, const string & workDir
   null_hist->GetYaxis()->SetTickLength(c->GetWw() * tick_length / tickScaleY);
   null_hist->GetXaxis()->SetTickLength(c->GetWh() * tick_length / tickScaleX);
 
+  TH1F *ratio_mc_stat = create_ratio_mc_stat(last);
+  ratio_mc_stat->Draw("same e2");
+  ratio_mc_stat->SetFillColor(kGray);
+  ratio_mc_stat->SetFillStyle(1001);
+  ratio_mc_stat->SetTitle("MC stat. unc.");
+  ratio_mc_stat->SetLineWidth(0);
+  ratio_mc_stat->SetMarkerStyle(0);
+
   TGraphAsymmErrors *ratio_totalunc = create_ratio_totalunc(stack_totalunc);
   // ratio_totalunc->SetTitle("DummyTitleToAvoidMemoryLeak");
   ratio_totalunc->Draw("same 2");
@@ -340,20 +468,36 @@ void plotter(TFile * rootFile, const string & folderName, const string & workDir
   stack_totalunc->SetMarkerStyle(0);
   // ratio_totalunc->SetFillStyle(1001); // if using this fill style, the plot bugs out and many of the following texts are not drawn. Only God knows why.
 
-  TH1F *ratio_mc_stat = create_ratio_mc_stat(last);
-  ratio_mc_stat->Draw("same e2");
-  ratio_mc_stat->SetFillColor(kGray);
-  ratio_mc_stat->SetFillStyle(1001);
-  ratio_mc_stat->SetTitle("MC stat. unc.");
-  ratio_mc_stat->SetLineWidth(0);
-  ratio_mc_stat->SetMarkerStyle(0);
-
   TH1F *ratio_data = create_ratio_data(last, data);
-  ratio_data->Draw("same e0 x0");
+  ratio_data->Draw("same e x0");
 
   TLine *ratio_line = new TLine(null_hist->GetXaxis()->GetXmin(), 1., null_hist->GetXaxis()->GetXmax(), 1.);
   ratio_line->SetLineStyle(2);
   ratio_line->Draw();
+
+  // Minimize the "outliers" of Data in ratio plot by adjusting the y axis range:
+  int data_ratio_outliers(0);
+  for(unsigned int i = 1; i <= ratio_data->GetNbinsX(); i++) {
+    const double binc = ratio_data->GetBinContent(i);
+    if(binc <= 0) continue;
+    if(binc < null_hist->GetMinimum() || binc > null_hist->GetMaximum()) data_ratio_outliers++;
+  }
+  if(data_ratio_outliers > 3) {
+    null_hist->SetMinimum(0.3);
+    null_hist->SetMaximum(1.7);
+    null_hist->GetYaxis()->SetNdivisions(503);
+  }
+  data_ratio_outliers = 0;
+  for(unsigned int i = 1; i <= ratio_data->GetNbinsX(); i++) {
+    const double binc = ratio_data->GetBinContent(i);
+    if(binc <= 0) continue;
+    if(binc < null_hist->GetMinimum() || binc > null_hist->GetMaximum()) data_ratio_outliers++;
+  }
+  if(data_ratio_outliers > 3) {
+    null_hist->SetMinimum(0.0);
+    null_hist->SetMaximum(2.0);
+    null_hist->GetYaxis()->SetNdivisions(503);
+  }
 
   // const double height_of_ratio_plot_in_pixels = p_ratio->GetWh()*p_ratio->GetAbsHNDC()*(1 - p_ratio->GetTopMargin() - p_ratio->GetBottomMargin());
   // const double ratio_plot_y_height_corresponding_to_half_marker_size = 8*(null_hist->GetMaximum() - null_hist->GetMinimum()) * (0.5*ratio_data->GetMarkerSize() / height_of_ratio_plot_in_pixels);
@@ -391,15 +535,15 @@ void plotter(TFile * rootFile, const string & folderName, const string & workDir
   coord->init(margin_l, margin_r, margin_b, margin_t);
 
   // TLatex *text_top_left = new TLatex(margin_l, 1-(margin_t-0.01), "#mu+jets, 1b0t1W region");
-  TLatex *text_top_left = new TLatex(margin_l, 1-(margin_t-0.01), "AK8 PUPPI"); // todo: hotvr puppi
+  TLatex *text_top_left = new TLatex(margin_l, 1-(margin_t-0.01), args.fTextTopLeft.Data()); // todo: hotvr puppi
   text_top_left->SetTextAlign(11); // left bottom aligned
   text_top_left->SetTextFont(42);
   text_top_left->SetTextSize(0.035);
   text_top_left->SetNDC();
   text_top_left->Draw();
 
-  string string_text_top_right = "41.5 fb^{#minus1} (13 TeV)"; // todo: other years have other lumis!
-  TLatex *text_top_right = new TLatex(1-margin_r, 1-(margin_t-0.01), string_text_top_right.c_str());
+  // string string_text_top_right = "41.5 fb^{#minus1} (13 TeV)"; // todo: other years have other lumis!
+  TLatex *text_top_right = new TLatex(1-margin_r, 1-(margin_t-0.01), args.fTextTopRight.Data());
   text_top_right->SetTextAlign(31); // right bottom aligned
   text_top_right->SetTextFont(42);
   text_top_right->SetTextSize(0.035);
@@ -413,7 +557,7 @@ void plotter(TFile * rootFile, const string & folderName, const string & workDir
   cms->SetNDC();
   cms->Draw();
 
-  TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.87), "Work in Progress"); //Work in Progress //Preliminary
+  TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.87), args.fTextPrelim.Data()); //Work in Progress //Preliminary
   prelim->SetTextAlign(13); // left top
   prelim->SetTextFont(52);
   prelim->SetTextSize(0.035);
@@ -485,19 +629,26 @@ void plotter(TFile * rootFile, const string & folderName, const string & workDir
 
   TH1F *leg_merged_ttbar = new TH1F();
   leg_merged_ttbar->SetFillColor(kPink); leg_merged_ttbar->SetLineWidth(0); leg_merged_ttbar->SetLineColor(kWhite);
-  TH1F *leg_wmerged_ttbar = new TH1F();
-  leg_wmerged_ttbar->SetFillColor(kPink+5); leg_wmerged_ttbar->SetLineWidth(0); leg_wmerged_ttbar->SetLineColor(kWhite);
+  // TH1F *leg_wmerged_ttbar = new TH1F();
+  // leg_wmerged_ttbar->SetFillColor(kPink+5); leg_wmerged_ttbar->SetLineWidth(0); leg_wmerged_ttbar->SetLineColor(kWhite);
   TH1F *leg_qbmerged_ttbar = new TH1F();
   leg_qbmerged_ttbar->SetFillColor(kPink+4); leg_qbmerged_ttbar->SetLineWidth(0); leg_qbmerged_ttbar->SetLineColor(kWhite);
   TH1F *leg_unmerged_ttbar = new TH1F();
   leg_unmerged_ttbar->SetFillColor(kPink-7); leg_unmerged_ttbar->SetLineWidth(0); leg_unmerged_ttbar->SetLineColor(kWhite);
 
   // legend2->AddEntry(data, "Data", "ep");
+  // legend2->AddEntry((TObject*)0, "", "");
+  // legend2->AddEntry(leg_merged_ttbar, "", "f");
+  // legend2->AddEntry(leg_wmerged_ttbar, "", "f");
+  // legend2->AddEntry(leg_qbmerged_ttbar, "", "f");
+  // legend2->AddEntry(leg_unmerged_ttbar, "", "f");
+
   legend2->AddEntry((TObject*)0, "", "");
   legend2->AddEntry(leg_merged_ttbar, "", "f");
-  legend2->AddEntry(leg_wmerged_ttbar, "", "f");
+  // legend2->AddEntry(leg_wmerged_ttbar, "", "f");
   legend2->AddEntry(leg_qbmerged_ttbar, "", "f");
   legend2->AddEntry(leg_unmerged_ttbar, "", "f");
+  legend2->AddEntry((TObject*)0, "", "");
 
   legend2->Draw();
 
@@ -519,19 +670,25 @@ void plotter(TFile * rootFile, const string & folderName, const string & workDir
 
   TH1F *leg_merged_singlet = new TH1F();
   leg_merged_singlet->SetFillColor(kOrange); leg_merged_singlet->SetLineWidth(0); leg_merged_singlet->SetLineColor(kWhite);
-  TH1F *leg_wmerged_singlet = new TH1F();
-  leg_wmerged_singlet->SetFillColor(kOrange-3); leg_wmerged_singlet->SetLineWidth(0); leg_wmerged_singlet->SetLineColor(kWhite);
+  // TH1F *leg_wmerged_singlet = new TH1F();
+  // leg_wmerged_singlet->SetFillColor(kOrange-3); leg_wmerged_singlet->SetLineWidth(0); leg_wmerged_singlet->SetLineColor(kWhite);
   TH1F *leg_qbmerged_singlet = new TH1F();
-  leg_qbmerged_singlet->SetFillColor(kOrange+4); leg_qbmerged_singlet->SetLineWidth(0); leg_qbmerged_singlet->SetLineColor(kWhite);
+  leg_qbmerged_singlet->SetFillColor(kOrange-3); leg_qbmerged_singlet->SetLineWidth(0); leg_qbmerged_singlet->SetLineColor(kWhite);
   TH1F *leg_unmerged_singlet = new TH1F();
-  leg_unmerged_singlet->SetFillColor(kOrange+3); leg_unmerged_singlet->SetLineWidth(0); leg_unmerged_singlet->SetLineColor(kWhite);
+  leg_unmerged_singlet->SetFillColor(kOrange+4); leg_unmerged_singlet->SetLineWidth(0); leg_unmerged_singlet->SetLineColor(kWhite);
 
   // legend3->AddEntry((TObject*)0, "", "");
+  // legend3->AddEntry(leg_merged_singlet, "Fully merged", "f");
+  // legend3->AddEntry(leg_wmerged_singlet, "W merged", "f");
+  // legend3->AddEntry(leg_qbmerged_singlet, "q + b merged", "f");
+  // legend3->AddEntry(leg_unmerged_singlet, "Other / bkg.", "f");
+
   legend3->AddEntry((TObject*)0, "", "");
   legend3->AddEntry(leg_merged_singlet, "Fully merged", "f");
-  legend3->AddEntry(leg_wmerged_singlet, "W merged", "f");
-  legend3->AddEntry(leg_qbmerged_singlet, "q + b merged", "f");
-  legend3->AddEntry(leg_unmerged_singlet, "Other / bkg.", "f");
+  // legend3->AddEntry(leg_wmerged_singlet, "W merged", "f");
+  legend3->AddEntry(leg_qbmerged_singlet, "Semi-merged", "f");
+  legend3->AddEntry(leg_unmerged_singlet, "Not merged", "f");
+  legend3->AddEntry((TObject*)0, "", "");
 
   legend3->Draw();
 
@@ -557,67 +714,79 @@ void plotter(TFile * rootFile, const string & folderName, const string & workDir
   legend4->Draw();
 
 
-
-
-
   // Save to disk
-  // string infileBasePath = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/test/";
-  // string infileBasePath = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel/UL17/combine/";
-  string plotDir = workDir+"/plots/";
-  gSystem->Exec(((string)"mkdir -p "+plotDir).c_str());
-  string plotName = folderName+"_prefit.pdf";
-  // plotName += (log_y ? string("_log") : string("_lin"))+".pdf";
-  string plotPath = plotDir+plotName;
-  c->SaveAs(plotPath.c_str());
+  gSystem->Exec(((TString)"mkdir -p "+args.fPlotDir).Data());
+  TString plotPath = args.fPlotDir+"/"+args.fPlotName;
+  c->SaveAs(plotPath.Data());
   delete c;
 }
 
 
-void plots() {
-  vector<string> pt_bins = {
-    "Pt300to400",
-    "Pt400to480",
-    "Pt480to600",
-    "Pt600toInf",
-    "Pt300toInf",
-  };
-  vector<string> jet_versions = {
-    "All",
-    "BTag",
-  };
-  vector<string> wps = {
-    "BkgEff0p001",
-    "BkgEff0p005",
-    "BkgEff0p010",
-    "BkgEff0p025",
-    "BkgEff0p050",
-    "NoTau32Cut",
-  };
-  vector<string> regions = {
-    "Pass",
-    "Fail",
-  };
-
-  string outputBaseDir = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel/UL17/combine/AK8/";
-  for(const auto & pt_bin : pt_bins) {
-    for(const auto & jet_version : jet_versions) {
-      for(const auto & wp : wps) {
-        string task_name = pt_bin+"_"+jet_version+"_"+wp;
-        string workDir = outputBaseDir+"/"+task_name;
-        string inputFilePath = workDir+"/"+task_name+"__input_histograms.root";
-        TFile *rootFile = TFile::Open(inputFilePath.c_str(), "READ");
-        for(const auto & region : regions) {
-          string folderName = task_name+"_"+region+"_mSD";
-          plotter(rootFile, folderName, workDir);
-        }
-      }
-    }
+PlotterArguments convert_arguments(int argc, char **argv) {
+  unsigned int n(1);
+  if(argc != 8) {
+    throw invalid_argument("Number of arguments not correct! Please check!");
   }
-  // string folderName = "Pt480to600_All_BkgEff0p050_Pass_mSD";
-
+  PlotterArguments args{
+    .fInputFilePath=argv[n++],
+    .fFolderName=argv[n++],
+    .fPlotDir=argv[n++],
+    .fPlotName=argv[n++],
+    .fTextTopLeft=argv[n++],
+    .fTextTopRight=argv[n++],
+    .fTextPrelim=argv[n++],
+    .fDivideByBinWidth=true,
+  };
+  return args;
 }
 
-int main() {
-  plots()
+
+int main(int argc, char **argv) {
+  plotter(convert_arguments(argc, argv));
   return 0;
 }
+
+
+// void plots() {
+//   vector<string> pt_bins = {
+//     "Pt300to400",
+//     // "Pt400to480",
+//     // "Pt480to600",
+//     // "Pt600toInf",
+//     // "Pt300toInf",
+//   };
+//   vector<string> jet_versions = {
+//     "All",
+//     "BTag",
+//   };
+//   vector<string> wps = {
+//     // "BkgEff0p001",
+//     // "BkgEff0p005",
+//     // "BkgEff0p010",
+//     // "BkgEff0p025",
+//     "BkgEff0p050",
+//     // "NoTau32Cut",
+//   };
+//   vector<string> regions = {
+//     "Pass",
+//     "Fail",
+//   };
+//
+//   string outputBaseDir = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel/UL17/combine/AK8/";
+//   for(const auto & pt_bin : pt_bins) {
+//     for(const auto & jet_version : jet_versions) {
+//       for(const auto & wp : wps) {
+//         string task_name = pt_bin+"_"+jet_version+"_"+wp;
+//         string workDir = outputBaseDir+"/"+task_name;
+//         string inputFilePath = workDir+"/"+task_name+"__ProbeJetHists_AK8.root"; // _mSD10
+//         TFile *rootFile = TFile::Open(inputFilePath.c_str(), "READ");
+//         for(const auto & region : regions) {
+//           string folderName = task_name+"_"+region+"_mSD";
+//           plotter(rootFile, folderName, workDir);
+//         }
+//       }
+//     }
+//   }
+//   // string folderName = "Pt480to600_All_BkgEff0p050_Pass_mSD";
+//
+// }
