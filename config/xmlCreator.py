@@ -218,9 +218,11 @@ class xmlCreator:
       self.xmlFilePathBase = self.uhh2Dir+'LegacyTopTagging/config/'+'_'.join(['config', self.selection, self.year])+'/'
       os.makedirs(self.xmlFilePathBase, exist_ok=True)
       self.xmlFilePath = self.xmlFilePathBase+self.xmlFileName
+      self.workdirName = '_'.join(['workdir', self.selection, self.year])
 
       self.write_xml_successful = False
       self.systXmlFilePaths = list()
+      self.systWorkdirNames = list()
 
 
    def write_xml(self):
@@ -250,7 +252,7 @@ class xmlCreator:
          file.write('''\n''')
          file.write('''<!--\n''')
          file.write('''<ConfigParse NEventsBreak="'''+('500000' if self.is_mainsel else '0')+'''" FileSplit="'''+('0' if self.is_mainsel else self.yearVars['preselFileSplit'][self.year])+'''" AutoResubmit="5"/>\n''')
-         file.write('''<ConfigSGE RAM="4" DISK="3" Mail="'''+self.userMail+'''" Notification="as" Workdir="'''+'''_'''.join(['workdir', self.selection, self.year])+'''"/>\n''')
+         file.write('''<ConfigSGE RAM="4" DISK="3" Mail="'''+self.userMail+'''" Notification="as" Workdir="'''+self.workdirName+'''"/>\n''')
          file.write('''-->\n''')
          file.write('''\n''')
          file.write('''<!-- OutputLevel controls which messages are printed; set to VERBOSE or DEBUG for more verbosity, to WARNING or ERROR for less -->\n''')
@@ -332,6 +334,7 @@ class xmlCreator:
 
       for direction in syst.directions:
          systXmlFilePath = self.xmlFilePath.replace('.xml', '_')+'_'.join(['syst', syst.shortName, direction])+'.xml'
+         systWorkdirName = self.workdirName+'_'+'_'.join(['syst', syst.shortName, direction])
          infile = open(self.xmlFilePath, 'r')
          with open(systXmlFilePath, 'w') as outfile:
             for line in infile:
@@ -340,8 +343,10 @@ class xmlCreator:
                   newline = newline.replace('/nominal/', '/'+'_'.join(['syst', syst.shortName, direction])+'/')
                if newline.startswith('<!ENTITY OUTPUTdir'):
                   newline = newline.replace('/nominal/', '/'+'_'.join(['syst', syst.shortName, direction])+'/')
-               if newline.startswith('<ConfigSGE'):
-                  newline = newline.replace('"/>', '_'+'_'.join(['syst', syst.shortName, direction])+'"/>')
+               # if newline.startswith('<ConfigSGE'):
+               #    newline = newline.replace('"/>', '_'+'_'.join(['syst', syst.shortName, direction])+'"/>')
+               if self.workdirName in newline:
+                  newline = newline.replace(self.workdirName, systWorkdirName)
                if newline.startswith('<InputData') and 'Type="DATA"' in newline:
                   continue # skip data for systematics
                if syst.shortName != 'murmuf' and newline.startswith('<Item Name="'+syst.ctxName):
@@ -354,6 +359,7 @@ class xmlCreator:
          print('Created '+systXmlFilePath)
 
          self.systXmlFilePaths.append(systXmlFilePath)
+         self.systWorkdirNames.append(systWorkdirName)
 
 
    def write_all_systematics_xmls(self):
@@ -365,6 +371,31 @@ class xmlCreator:
       return self.systXmlFilePaths
 
 
+   def write_bash_scripts(self):
+
+       scriptFilePath_sframe_batch = os.path.join(self.xmlFilePathBase, 'run_all_sframe_batch.sh')
+       with open(scriptFilePath_sframe_batch, 'w') as outfile:
+          outfile.write('#!/bin/bash\n')
+          newline_base = 'sframe_batch.py $1 '
+          outfile.write(newline_base+self.xmlFilePath+'\n')
+          for systXmlFilePath in self.systXmlFilePaths:
+             outfile.write(newline_base+systXmlFilePath+'\n')
+       print('Created '+scriptFilePath_sframe_batch)
+
+       scriptFilePath_run_local = os.path.join(self.xmlFilePathBase, 'run_all_local.sh')
+       with open(scriptFilePath_run_local, 'w') as outfile:
+          outfile.write('#!/bin/bash\n')
+          newline_base = 'python run_local.py $1 '
+          outfile.write(newline_base+self.workdirName+'\n')
+          for systWorkdirName in self.systWorkdirNames:
+             outfile.write(newline_base+systWorkdirName+'\n')
+       print('Created '+scriptFilePath_run_local)
+       # copy_run_local_command = 'cp -n '+os.path.join(self.xmlFilePathBase, '..', 'run_local.py')+' '+os.path.join(self.xmlFilePathBase, '.')
+       link_run_local_command = 'ln -s '+os.path.abspath(os.path.join(self.xmlFilePathBase, '..', 'run_local.py'))+' '+os.path.join(self.xmlFilePathBase, 'run_local.py')
+       os.system(link_run_local_command)
+
+
+
 if __name__=='__main__':
 
    selections = ['presel', 'mainsel']
@@ -373,7 +404,7 @@ if __name__=='__main__':
    if not sys.argv[1:]: sys.exit('No arguments provided. Exit.')
    parser = argparse.ArgumentParser()
    parser.add_argument('--all', action='store_true', help='Create XML files for all selections and years.')
-   parser.add_argument('--syst', action='store_true', help='Create XML files for systematic uncertainties.')
+   parser.add_argument('--syst', action='store_true', help='Create XML files for systematic uncertainties. Will also create bash scripts with lists of SFrameBatch/run_local.py commands.')
    parser.add_argument('-s', '--selections', choices=selections, nargs='*', default=[])
    parser.add_argument('-y', '--years', choices=years, nargs='*', default=[])
    parser.add_argument('-a', '--auto-complete', action='store_true', help='Auto-complete arguments if not all arguments for selections and years are given.')
@@ -408,3 +439,4 @@ if __name__=='__main__':
          x.write_xml()
          if args.syst:
             x.write_all_systematics_xmls()
+            x.write_bash_scripts()
