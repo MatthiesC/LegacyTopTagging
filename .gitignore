@@ -3,7 +3,6 @@
 .*
 *.bak
 obj/*
-config/workdir_*
 config/config_*
 config/jobTempOutput_*
 *.png
@@ -15,4 +14,6 @@ config/jobTempOutput_*
 output
 *.pyc
 **/__pycache__/*
-sframeplotter/workdir/*
+**/bin/*
+**/workdir*
+**/Varial/*
