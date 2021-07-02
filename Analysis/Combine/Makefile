@@ -1,23 +1,21 @@
-CC = g++
-ROOTFLAGS = `root-config --cflags --glibs`
+CXX = g++
+ROOTFLAGS := $(shell root-config --cflags --glibs)
 
+INCDIR = include
+SRCDIR = src
+BINDIR = bin
 
-INCDIR   = include
-SRCDIR   = src
+SRCFILES := $(wildcard $(SRCDIR)/*.cxx)
+INCFILES := $(wildcard $(INCDIR)/*.h)
 
-SOURCES  := $(wildcard $(SRCDIR)/*.cxx)
-INCLUDES := $(wildcard $(INCDIR)/*.h)
-
-MACROS_temp := $(basename $(SOURCES))
-MACROS := $(notdir $(MACROS_temp) )
+MACROS := $(notdir $(basename $(SRCFILES)))
 
 all: $(MACROS)
 
-
-$(MACROS): % : $(SRCDIR)/%.cxx $(INCLUDES)
-	@echo 'building' $@
-	@$(CC) -o $@ $(SRCDIR)/$@.cxx $(ROOTFLAGS)
-
+$(MACROS): %: $(SRCDIR)/%.cxx $(INCFILES)
+	@echo "building" $(BINDIR)/$@
+	@mkdir -p $(BINDIR)
+	@$(CXX) -o $(BINDIR)/$@ $(SRCDIR)/$@.cxx $(ROOTFLAGS)
 
 clean:
-	@rm -f $(MACROS)
+	@rm -rf $(BINDIR)
