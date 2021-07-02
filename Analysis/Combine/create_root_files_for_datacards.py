@@ -373,7 +373,9 @@ for pair in rootFileNames_and_channelNames:
         rootFileNames_and_channelNames_flattened.append([pair[0], channelName])
 
 def write_file_with_plotting_commands(fileName, list_of_histograms):
-    filePath = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/Analysis/Combine', fileName)
+    workDir = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/Analysis/Combine/workdir')
+    os.system('mkdir -p '+workDir)
+    filePath = os.path.join(workDir, fileName)
     with open(filePath, 'w') as file:
         for h in list_of_histograms:
             probejet_coll = h[0].split('/')[-1].split('ProbeJetHists_')[-1].replace('.root', '')
