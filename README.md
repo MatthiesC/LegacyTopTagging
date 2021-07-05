@@ -18,7 +18,7 @@ NB: This repo is not dependent on other UHH2 sub-frameworks like https://github.
   git checkout v8.2.0
   cd $CMSSW_BASE/src
   git clone https://github.com/cms-analysis/CombineHarvester.git CombineHarvester
-  scramv1 b clean; scramv1 b # always make a clean build
+  scramv1 b clean; scramv1 b
   ```
 
 ## Code conventions / tips
