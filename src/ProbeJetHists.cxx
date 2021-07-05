@@ -41,6 +41,7 @@ AK8ProbeJetHists::AK8ProbeJetHists(Context & ctx, const string & dirname, const 
           hists.push_back(book<TH1F>((prefix+"mSD").c_str(), "Probe jet #it{m}_{SD} [GeV]", 1000, 0, 500));
           hists.push_back(book<TH1F>((prefix+"tau32").c_str(), "Probe jet #tau_{3}/#tau_{2}", 1000, 0, 1));
           hists.push_back(book<TH1F>((prefix+"maxDeepCSV").c_str(), "Max. #it{O}_{DeepCSV}^{prob(b)+prob(bb)} of probe subjets", 1000, 0, 1));
+          hists.push_back(book<TH1F>((prefix+"nsub").c_str(), "Number of probe subjets", 11, -0.5, 10.5));
           hists_map[pt_bin][jet_cat.first][wp.first][pass_cat.first] = hists;
         }
       }
@@ -59,6 +60,7 @@ void AK8ProbeJetHists::fill_probe(const vector<TH1F*> & hists) {
   hists.at(i++)->Fill(mSD(probejet), w);
   hists.at(i++)->Fill(tau32(probejet), w);
   hists.at(i++)->Fill(maxDeepCSVSubJetValue(probejet), w);
+  hists.at(i++)->Fill(probejet.subjets().size(), w);
   if(i != hists.size()) throw range_error("AK8ProbeJetHists::fill_probe(): Number of declared and filled histograms do not match. Please check!");
 }
 
@@ -138,6 +140,7 @@ HOTVRProbeJetHists::HOTVRProbeJetHists(Context & ctx, const string & dirname, co
           hists.push_back(book<TH1F>((prefix+"mpair").c_str(), "Min. #it{m}_{ij} [GeV] of leading three probe subjets", 1000, 0, 250));
           hists.push_back(book<TH1F>((prefix+"tau32").c_str(), "Probe jet #tau_{3}/#tau_{2}", 1000, 0, 1));
           hists.push_back(book<TH1F>((prefix+"fpt1").c_str(), "#it{p}_{T} fraction of leading probe subjet", 1000, 0, 1));
+          hists.push_back(book<TH1F>((prefix+"nsub").c_str(), "Number of probe subjets", 11, -0.5, 10.5));
           hists_map[pt_bin][jet_cat.first][wp.first][pass_cat.first] = hists;
         }
       }
@@ -156,6 +159,7 @@ void HOTVRProbeJetHists::fill_probe(const vector<TH1F*> & hists) {
   hists.at(i++)->Fill(HOTVR_mpair(probejet, false), w);
   hists.at(i++)->Fill(tau32groomed(probejet), w);
   hists.at(i++)->Fill(HOTVR_fpt(probejet), w);
+  hists.at(i++)->Fill(probejet.subjets().size(), w);
   if(i != hists.size()) throw runtime_error("HOTVRProbeJetHists::fill_probe(): Number of declared and filled histograms do not match. Please check!");
 }
 
