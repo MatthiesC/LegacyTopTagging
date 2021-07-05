@@ -93,7 +93,7 @@ class configContainer:
 
       self.yearVars['deepjetMCEffFiles'] = {
          'UL17': self.uhh2Dir+'LegacyTopTagging/Analysis/BTagMCEff/files/BTagMCEfficiencyHists_UL17.root',
-         # 'UL18': self.uhh2Dir+'LegacyTopTagging/data/',
+         'UL18': self.uhh2Dir+'LegacyTopTagging/Analysis/BTagMCEff/files/BTagMCEfficiencyHists_UL18.root',
       }
 
       self.yearVars['deepjetSFFiles'] = {
