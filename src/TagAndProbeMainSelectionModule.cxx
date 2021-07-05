@@ -47,6 +47,7 @@ private:
   unique_ptr<AnalysisModule> sf_btag;
   unique_ptr<AnalysisModule> sf_trigger;
   unique_ptr<Selection> slct_ak4;
+  unique_ptr<HEM2018Selection> slct_hem2018;
   unique_ptr<Selection> slct_trigger;
   unique_ptr<Selection> slct_muon;
   unique_ptr<Selection> slct_btag;
@@ -67,6 +68,7 @@ private:
 
   unique_ptr<AndHists> hist_presel;
   unique_ptr<AndHists> hist_ak4;
+  unique_ptr<AndHists> hist_hem2018;
   unique_ptr<AndHists> hist_btag;
   unique_ptr<BTagMCEfficiencyHists> hist_btag_eff;
   unique_ptr<AndHists> hist_before_twod;
@@ -110,6 +112,7 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx) {
   sf_trigger.reset(new TriggerScaleFactors(ctx));
 
   slct_ak4.reset(new NJetSelection(1, -1));
+  slct_hem2018.reset(new HEM2018Selection(ctx));
   slct_trigger.reset(new TriggerSelection("HLT_Mu50_v*"));
   slct_muon.reset(new NMuonSelection(1, 1, muonID_tag));
   slct_btag.reset(new BTagCloseToLeptonSelection(ctx, deltaR_leptonicHemisphere, btagID));
@@ -140,6 +143,7 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx) {
 
   hist_presel.reset(new AndHists(ctx, "0_PreSel"));
   hist_ak4.reset(new AndHists(ctx, "1_AK4"));
+  hist_hem2018.reset(new AndHists(ctx, "1_HEM2018"));
   hist_btag_eff.reset(new BTagMCEfficiencyHists(ctx, "2_BTagMCEff", btagID));
   hist_btag.reset(new AndHists(ctx, "3_BTag"));
   hist_before_twod.reset(new AndHists(ctx, "4_BeforeTwoD"));
@@ -180,7 +184,11 @@ bool TagAndProbeMainSelectionModule::process(Event & event) {
   hist_ak4->fill(event);
 
   if(debug) cout << "2018 HEM15/16 issue selection" << endl;
-  // TODO
+  if(slct_hem2018->passes(event)) {
+    if(event.isRealData) return false;
+    else event.weight *= (1. - slct_hem2018->GetAffectedLumiFraction());
+  }
+  hist_hem2018->fill(event);
 
   if(debug) cout << "Booleans for further selections" << endl;
   const bool passes_trigger = slct_trigger->passes(event);

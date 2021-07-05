@@ -433,4 +433,19 @@ bool MainOutputSetter::process(Event & event) {
   return true;
 }
 
+//____________________________________________________________________________________________________
+HEM2018Selection::HEM2018Selection(Context & ctx): fYear(extract_year(ctx)) {}
+
+// Caveat: Returns "true" if event is affected by the HEM issue.
+bool HEM2018Selection::passes(const Event & event) {
+  if(fYear == Year::isUL18 && ((event.isRealData && event.run >= fRunNumber) || !event.isRealData)) {
+    for(const Jet & jet : *event.jets) {
+      if(jet.v4().eta() > fEtaRange.first && jet.v4().eta() < fEtaRange.second && jet.v4().phi() > fPhiRange.first && jet.v4().phi() < fPhiRange.second) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 }}

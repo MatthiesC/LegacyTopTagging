@@ -6,6 +6,7 @@
 #include "UHH2/core/include/Utils.h"
 
 #include "UHH2/common/include/JetIds.h"
+#include "UHH2/common/include/Utils.h"
 
 #include "UHH2/LegacyTopTagging/include/Constants.h"
 
@@ -203,6 +204,21 @@ private:
   uhh2::Event::Handle<TopJet> h_probejet_ak8;
   std::vector<uhh2::Event::Handle<float>> h_mainoutput;
   uhh2::Event::Handle<int> h_probejet_hotvr_nsub_integer;
+};
+
+//____________________________________________________________________________________________________
+// https://hypernews.cern.ch/HyperNews/CMS/get/JetMET/2000.html
+class HEM2018Selection: public uhh2::Selection {
+public:
+  HEM2018Selection(uhh2::Context & ctx);
+  virtual bool passes(const uhh2::Event & event) override;
+  double GetAffectedLumiFraction() const { return fAffectedLumiFraction; };
+private:
+  Year fYear;
+  const int fRunNumber = 319077;
+  const std::pair<double, double> fEtaRange = {-3.2, -1.3};
+  const std::pair<double, double> fPhiRange = {-1.57, -0.87};
+  const double fAffectedLumiFraction = 0.64844705699; // (Run 319077 (17.370008/pb) + Run C + Run D) / all 2018
 };
 
 }}
