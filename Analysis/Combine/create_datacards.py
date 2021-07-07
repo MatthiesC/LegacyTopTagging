@@ -374,19 +374,19 @@ class CombineTask:
             results[plot_task_name] = self.combine_task(plot_task_name, plot_command, run)
         return results
 
-        def run_all(self):
-            self.write_rootfile()
-            self.write_datacard()
-            self.create_workspace()
-            # Expected:
-            self.generate_toys()
-            self.multidimfit()
-            self.prepostfitshapes()
-            self.impacts()
-            # Observed:
-            self.multidimfit(True)
-            self.prepostfitshapes(True)
-            self.impacts(True)
+    def run_all(self):
+        self.write_rootfile()
+        self.write_datacard()
+        self.create_workspace()
+        # Expected:
+        self.generate_toys()
+        self.multidimfit()
+        self.prepostfitshapes()
+        self.impacts()
+        # Observed:
+        self.multidimfit(True)
+        self.prepostfitshapes(True)
+        self.impacts(True)
 
 
 
@@ -431,13 +431,14 @@ print all_tasks
 
 
 c = CombineTask('UL17', 'HOTVR', 'Pt300to400', 'HOTVRCuts', 'Standard')
-c.write_rootfile()
-c.write_datacard()
-c.create_workspace()
-c.generate_toys()
-c.multidimfit()
-c.prepostfitshapes()
-c.impacts()
+c.run_all()
+# c.write_rootfile()
+# c.write_datacard()
+# c.create_workspace()
+# c.generate_toys()
+# c.multidimfit()
+# c.prepostfitshapes()
+# c.impacts()
 
 # text2workspace.py \
 #    HOTVR_Pt400to480_HOTVRCuts_Standard_datacard.txt \
