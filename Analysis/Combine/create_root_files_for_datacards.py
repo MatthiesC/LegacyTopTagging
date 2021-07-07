@@ -11,6 +11,8 @@ import itertools
 import math
 import re
 
+from parallel_threading import run_with_pool
+
 
 pt_bins = {
     'AK8': [
@@ -37,15 +39,15 @@ pt_bins = {
 jet_versions = {
     'AK8': [
         'All',
-        'Mass',
+        # 'Mass',
         'BTag',
-        'MassAndBTag',
+        # 'MassAndBTag',
     ],
     'HOTVR': [
         'All',
-        'Mass',
+        # 'Mass',
         'HOTVRCuts',
-        'HOTVRCutsAndMass',
+        # 'HOTVRCutsAndMass',
     ],
 }
 
@@ -79,6 +81,7 @@ variables = {
         'mSD',
         'tau32',
         'maxDeepCSV',
+        'nsub',
     ],
     'HOTVR': [
         'pt',
@@ -89,6 +92,7 @@ variables = {
         'mpair',
         'tau32',
         'fpt1',
+        'nsub',
     ],
 }
 
@@ -136,11 +140,12 @@ processes = OrderedDict([ # naming used in root file names: naming used for comb
     ('TTbar__SemiMerged', 'TTbar_SemiMerged'),
     ('TTbar__BkgOrNotMerged', 'TTbar_BkgOrNotMerged'),
     ### Single Top
-    ('ST__FullyMerged', 'ST_FullyMerged'),
+    ('ST__AllMergeScenarios', 'ST'),
+    # ('ST__FullyMerged', 'ST_FullyMerged'),
     # ('ST__WMerged', 'ST_WMerged'),
     # ('ST__QBMerged', 'ST_QBMerged'),
-    ('ST__SemiMerged', 'ST_SemiMerged'),
-    ('ST__BkgOrNotMerged', 'ST_BkgOrNotMerged'),
+    # ('ST__SemiMerged', 'ST_SemiMerged'),
+    # ('ST__BkgOrNotMerged', 'ST_BkgOrNotMerged'),
     ### Other
     ('WJetsToLNu', 'WJetsToLNu'),
     ('DYJetsToLLAndDiboson', 'DYJetsToLLAndDiboson'),
@@ -170,28 +175,18 @@ outputBaseDir = os.path.join(inputBaseDir, 'combine')
 os.system('mkdir -p '+outputBaseDir)
 
 def hist_preprocessing(histo, variable):
-    # hist.Rebin(20)
+
     new_histo = histo
-    def hist_preprocessing_mSD_mjet(hist):
-        ### Need to have these bin edges: 105, 210 for AK8; 140, 220 for HOTVR (to calculate the mass eff later)
-        rebinning_scheme = np.array([0, 10, 25, 40, 55, 70, 80, 90, 105, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 250, 275, 300, 350, 400, 450, 500], dtype=float)
-        hist_new = hist.Rebin(len(rebinning_scheme)-1, 'hnew', rebinning_scheme)
-        for i in range(hist_new.GetNbinsX()+2): # set bins with bin content smaller zero to zero (thus, removing an artefact of negative event weights)
-            if hist_new.GetBinContent(i) < 0:
-                hist_new.SetBinContent(i, 0)
-                hist_new.SetBinError(i, 0)
-        ### "delete" first bin of mSD:
-        # hist_new.SetBinContent(1, 0.)
-        # hist_new.SetBinError(1, 0.)
-        return hist_new
+
     if variable == 'mSD' or variable == 'mass':
-        new_histo = hist_preprocessing_mSD_mjet(histo)
+        rebinning_scheme = np.array([0, 10, 25, 40, 55, 70, 80, 90, 105, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 250, 275, 300, 350, 400, 450, 500], dtype=float)
+        new_histo = new_histo.Rebin(len(rebinning_scheme)-1, 'hnew', rebinning_scheme)
+    elif variable == 'nsub':
+        # new_histo.GetXaxis().SetNdivisions(11)
+        pass
     else:
         new_histo.Rebin(20)
-        for i in range(new_histo.GetNbinsX()+2): # set bins with bin content smaller zero to zero (thus, removing an artefact of negative event weights)
-            if new_histo.GetBinContent(i) < 0:
-                new_histo.SetBinContent(i, 0)
-                new_histo.SetBinError(i, 0)
+
     # function to include overflow in last bin or include underflow in first bin:
     def include_overflow_underflow(hist, overflow=True):
         index_overflow = hist.GetNbinsX()+1 if overflow else 0
@@ -206,9 +201,16 @@ def hist_preprocessing(histo, variable):
         hist.SetBinError(index_last, newlast_err)
         hist.SetBinContent(index_overflow, 0)
         hist.SetBinError(index_overflow, 0)
-    include_overflow_underflow(new_histo, True)
+
+    include_overflow_underflow(new_histo, True) # always include overflow
     if variable == 'eta' or variable == 'phi' or variable == 'maxDeepCSV': # only inlcude underflow bin for those variables
         include_overflow_underflow(new_histo, False)
+
+    for i in range(new_histo.GetNbinsX()+2): # set bins with bin content smaller zero to zero (thus, removing an artefact of negative event weights)
+        if new_histo.GetBinContent(i) < 0:
+            new_histo.SetBinContent(i, 0)
+            new_histo.SetBinError(i, 0)
+
     return new_histo
 
 
@@ -217,7 +219,7 @@ def hist_preprocessing(histo, variable):
 #         for wp in wps:
 def create_input_histograms(probejet_coll, pt_bin, jet_version, wp, vars):
     jet_algo = probejet_collections.get(probejet_coll) # AK8 and AK8_mSD10 will be put in the same directory!
-    task_name = '_'.join([pt_bin, jet_version, wp])
+    task_name = '_'.join([probejet_collections.get(probejet_coll), pt_bin, jet_version, wp])
     print 'Working on', task_name, probejet_coll
     outputDir = os.path.join(outputBaseDir, jet_algo, task_name)
     os.system('mkdir -p '+outputDir)
@@ -228,7 +230,7 @@ def create_input_histograms(probejet_coll, pt_bin, jet_version, wp, vars):
     channelNames = list()
     for variable in vars:
         for region in regions:
-            channelName = '_'.join([task_name, region, variable])
+            channelName = '_'.join([pt_bin, jet_version, wp, region, variable])
             channelNames.append(channelName)
             target_folder = outputRootFile.mkdir(channelName)
             inputHistName = '/'.join([inputHistCollectionName, channelName])
@@ -292,7 +294,7 @@ def create_input_histograms(probejet_coll, pt_bin, jet_version, wp, vars):
                     ('1prong', {'bool': is_1prong, 'eff_variation': 0.1}),
                 ])
                 for prong_type in prong_types.keys():
-                    use_wp_variation = False; # switch how to implement the "prong tagging efficiency uncertainty"
+                    use_wp_variation = True; # switch how to implement the "prong tagging efficiency uncertainty"
                     if use_wp_variation and prong_types.get(prong_type).get('bool') and variable != 'tau32': # to get the wp variation in sframe, the tau32 cut was varied. It does not make sense to have variation along the x axis (what would be the case for tau32 hists)
                         inputRootFile_prong_Down = root.TFile.Open(dict_inputFiles.get('wp_down').get(proc), 'READ')
                         inputRootFile_prong_Up = root.TFile.Open(dict_inputFiles.get('wp_up').get(proc), 'READ')
@@ -303,7 +305,7 @@ def create_input_histograms(probejet_coll, pt_bin, jet_version, wp, vars):
                     inputHist_prong_Up = inputRootFile_prong_Up.Get(inputHistName)
                     inputHist_prong_Down = hist_preprocessing(inputHist_prong_Down, variable)
                     inputHist_prong_Up = hist_preprocessing(inputHist_prong_Up, variable)
-                    if not use_wp_variation and prong_types.get(prong_type).get('bool'):
+                    if not use_wp_variation and prong_types.get(prong_type).get('bool') and wp != 'NoTau32Cut':
                         eff_variation = prong_types.get(prong_type).get('eff_variation')
                         if region == 'Pass':
                             inputHist_prong_Down.Scale(1.-eff_variation)
@@ -351,14 +353,13 @@ all_tasks = [OrderedDict([
     ('variables', set_variables(x)), ### Schreibe wirklich nur die Variablen aus, die Du brauchst!!!!! (entferne den obigen for-loop in create_input_histograms)
 ]) for x in all_tasks]
 
-# print all_tasks
+print all_tasks
 
 rootFileNames_and_channelNames = list()
 def save_rootFileNames_and_channelNames(result):
     rootFileNames_and_channelNames.append(result)
 
-
-# max_workers = mp.cpu_count()-1
+## max_workers = mp.cpu_count()-1
 max_workers = 12
 
 pool = mp.Pool(max_workers)
@@ -366,6 +367,11 @@ for task in all_tasks:
     pool.apply_async(create_input_histograms_task, args=(task,), callback=save_rootFileNames_and_channelNames)
 pool.close()
 pool.join()
+
+# sets_of_task_args = list()
+# for task in all_tasks:
+#     sets_of_task_args.append((task.get('probejet_coll'), task.get('pt_bin'), task.get('jet_version'), task.get('wp'), task.get('variables'), ))
+# rootFileNames_and_channelNames = run_with_pool(function=create_input_histograms, sets_of_args=sets_of_task_args)
 
 rootFileNames_and_channelNames_flattened = list()
 for pair in rootFileNames_and_channelNames:
@@ -381,7 +387,7 @@ def write_file_with_plotting_commands(fileName, list_of_histograms):
             probejet_coll = h[0].split('/')[-1].split('ProbeJetHists_')[-1].replace('.root', '')
             # is_AK8_mSD10 = h[0].endswith('AK8_mSD10.root')
             # is_HOTVR = h[0].endswith('HOTVR.root')
-            newline = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/Analysis/Combine', 'plots')+' '
+            newline = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/Analysis/Combine/bin', 'plots')+' '
             args = list()
             args.append(h[0])
             args.append(h[1])
