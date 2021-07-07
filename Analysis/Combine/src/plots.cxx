@@ -273,6 +273,7 @@ typedef struct {
   TString fName;
   TString fXAxisTitle;
   TString fYAxisTitle;
+  bool fDivideByBinWidth = true;
 } Variable;
 
 
@@ -300,6 +301,7 @@ const map<TString, Variable> kVariables = {
   {"maxDeepCSV", Variable{"maxDeepCSV", "Max. #it{O}_{DeepCSV}^{prob(b)+prob(bb)} of probe subjets", "Events / unit"}},
   {"mpair", Variable{"mpair", "Min. #it{m}_{ij} [GeV] of leading three probe subjets", "Events / GeV"}},
   {"fpt1", Variable{"fpt1", "#it{p}_{T} fraction of leading probe subjet", "Events / unit"}},
+  {"nsub", Variable{"nsub", "Number of probe subjets", "Events", false}},
 };
 
 
@@ -308,9 +310,10 @@ void plotter(const PlotterArguments & args) {
 
   TFile * rootFile = TFile::Open(args.fInputFilePath.Data(), "READ");
   const TString & folderName = args.fFolderName;
-  const bool divide_by_bin_width = args.fDivideByBinWidth;
-
   TString variable = ((TObjString*)folderName.Tokenize("_")->Last())->GetString();
+  // const bool divide_by_bin_width = args.fDivideByBinWidth;
+  const bool divide_by_bin_width = kVariables.at(variable).fDivideByBinWidth;
+
 
   // bool log_y(false);
   // if(folderName.Contains("mSD") && folderName.Contains("Fail")) log_y = true;
@@ -409,12 +412,19 @@ void plotter(const PlotterArguments & args) {
     // stack->GetHistogram()->GetYaxis()->SetTitle(((TString)("10^{")+exponent+"} "+stack->GetHistogram()->GetYaxis()->GetTitle()).Data()); // Events -> 10^N Events
     TString old_title = stack->GetHistogram()->GetYaxis()->GetTitle();
     TString unit_name = ((TObjString*)old_title.Tokenize(" ")->Last())->GetString();
-    TString new_title = old_title.ReplaceAll(unit_name, (TString)"10^{#minus"+exponent+"} "+unit_name).ReplaceAll("unit", "units");
+    TString new_title;
+    if(divide_by_bin_width) new_title = old_title.ReplaceAll(unit_name, (TString)"10^{#minus"+exponent+"} "+unit_name).ReplaceAll("unit", "units");
+    else new_title = (TString)"10^{"+exponent+"} #times "+old_title;
     stack->GetHistogram()->GetYaxis()->SetTitle(new_title.Data());
   }
   stack->GetHistogram()->GetYaxis()->SetLabelSize(stack->GetHistogram()->GetYaxis()->GetLabelSize()/(1.-border_y));
   stack->GetHistogram()->GetYaxis()->SetTitleSize(stack->GetHistogram()->GetYaxis()->GetTitleSize()/(1.-border_y));
+  stack->GetHistogram()->GetXaxis()->SetTitle(kVariables.at(variable).fXAxisTitle.Data());
   stack->GetHistogram()->GetXaxis()->SetLabelOffset(5); // hack to let the x axis labels vanish under ratio pad
+  if(kVariables.at(variable).fXAxisTitle.BeginsWith("Number")) {
+    stack->GetHistogram()->GetXaxis()->SetNdivisions(stack->GetHistogram()->GetNbinsX());
+  }
+
 
   // https://root-forum.cern.ch/t/inconsistent-tick-length/18563/8
   p_main->Update();
@@ -431,11 +441,14 @@ void plotter(const PlotterArguments & args) {
 
   null_hist->GetXaxis()->SetTitle(null_hist->GetTitle());
   null_hist->SetTitle("");
+
   null_hist->GetXaxis()->SetLabelSize(null_hist->GetXaxis()->GetLabelSize()/border_y);
   null_hist->GetXaxis()->SetTitleSize(null_hist->GetXaxis()->GetTitleSize()/border_y);
+  null_hist->GetXaxis()->SetTitle(stack->GetHistogram()->GetXaxis()->GetTitle());
   null_hist->GetXaxis()->SetTitleOffset(1.3);
+  null_hist->GetXaxis()->SetNdivisions(stack->GetHistogram()->GetXaxis()->GetNdivisions());
+
   null_hist->GetYaxis()->SetTitle("Data / pred.");
-  // null_hist->GetYaxis()->SetTitle("#frac{Data}{Prediction}");
   null_hist->GetYaxis()->SetLabelSize(null_hist->GetYaxis()->GetLabelSize()/border_y);
   null_hist->GetYaxis()->SetTitleSize(null_hist->GetYaxis()->GetTitleSize()/border_y);
   null_hist->GetYaxis()->SetTitleOffset(0.45);
