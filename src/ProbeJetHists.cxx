@@ -93,20 +93,14 @@ void AK8ProbeJetHists::fill(const Event & event) {
       if(passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::All][wp.first][PassCategory::Pass]);
       else fill_probe(hists_map[pt_bin][JetCategory::All][wp.first][PassCategory::Fail]);
 
-      if(passes_mass_cut) {
-        if(passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::Mass][wp.first][PassCategory::Pass]);
-        else fill_probe(hists_map[pt_bin][JetCategory::Mass][wp.first][PassCategory::Fail]);
-      }
+      if(passes_mass_cut && passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::Mass][wp.first][PassCategory::Pass]);
+      else fill_probe(hists_map[pt_bin][JetCategory::Mass][wp.first][PassCategory::Fail]);
 
-      if(passes_btagging) {
-        if(passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::BTag][wp.first][PassCategory::Pass]);
-        else fill_probe(hists_map[pt_bin][JetCategory::BTag][wp.first][PassCategory::Fail]);
-      }
+      if(passes_btagging && passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::BTag][wp.first][PassCategory::Pass]);
+      else fill_probe(hists_map[pt_bin][JetCategory::BTag][wp.first][PassCategory::Fail]);
 
-      if(passes_mass_cut && passes_btagging) {
-        if(passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::MassAndBTag][wp.first][PassCategory::Pass]);
-        else fill_probe(hists_map[pt_bin][JetCategory::MassAndBTag][wp.first][PassCategory::Fail]);
-      }
+      if(passes_mass_cut && passes_btagging && passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::MassAndBTag][wp.first][PassCategory::Pass]);
+      else fill_probe(hists_map[pt_bin][JetCategory::MassAndBTag][wp.first][PassCategory::Fail]);
     }
   }
 }
@@ -184,20 +178,14 @@ void HOTVRProbeJetHists::fill(const Event & event) {
       if(passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::All][wp.first][PassCategory::Pass]);
       else fill_probe(hists_map[pt_bin][JetCategory::All][wp.first][PassCategory::Fail]);
 
-      if(passes_mass_cut) {
-        if(passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::Mass][wp.first][PassCategory::Pass]);
-        else fill_probe(hists_map[pt_bin][JetCategory::Mass][wp.first][PassCategory::Fail]);
-      }
+      if(passes_mass_cut && passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::Mass][wp.first][PassCategory::Pass]);
+      else fill_probe(hists_map[pt_bin][JetCategory::Mass][wp.first][PassCategory::Fail]);
 
-      if(passes_hotvr_cuts) {
-        if(passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::HOTVRCuts][wp.first][PassCategory::Pass]);
-        else fill_probe(hists_map[pt_bin][JetCategory::HOTVRCuts][wp.first][PassCategory::Fail]);
-      }
+      if(passes_hotvr_cuts && passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::HOTVRCuts][wp.first][PassCategory::Pass]);
+      else fill_probe(hists_map[pt_bin][JetCategory::HOTVRCuts][wp.first][PassCategory::Fail]);
 
-      if(passes_mass_cut && passes_hotvr_cuts) {
-        if(passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::HOTVRCutsAndMass][wp.first][PassCategory::Pass]);
-        else fill_probe(hists_map[pt_bin][JetCategory::HOTVRCutsAndMass][wp.first][PassCategory::Fail]);
-      }
+      if(passes_mass_cut && passes_hotvr_cuts && passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::HOTVRCutsAndMass][wp.first][PassCategory::Pass]);
+      else fill_probe(hists_map[pt_bin][JetCategory::HOTVRCutsAndMass][wp.first][PassCategory::Fail]);
     }
   }
 }
