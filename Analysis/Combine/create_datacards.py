@@ -147,6 +147,12 @@ systematics = [
     'tageff1prong',
 ]
 
+def expobs(observed, short=True):
+    if short:
+        return ('obs' if observed else 'exp')
+    else:
+        return ('observed' if observed else 'expected')
+
 class CombineTask:
 
     def __init__(self, year, algo, pt_bin, jet_version, wp):
@@ -161,7 +167,8 @@ class CombineTask:
         self.DataCardRootFilePath = self.InputRootFilePath.replace('.root', '_forCombine.root')
         self.DataCardPath = os.path.join(self.WorkDir, '_'.join([self.Name, 'datacard.txt']))
         self.WorkSpacePath = os.path.join(self.WorkDir, '_'.join([self.Name, 'workspace.root']))
-        self.PrePostFitShapesPath = os.path.join(self.WorkDir, '_'.join([self.Name, 'prepostfitshapes.root']))
+        self.PrePostFitShapesExpPath = os.path.join(self.WorkDir, '_'.join([self.Name, 'prepostfitshapes_exp.root']))
+        self.PrePostFitShapesObsPath = os.path.join(self.WorkDir, '_'.join([self.Name, 'prepostfitshapes_obs.root']))
         self.Variable = 'mSD' if algo=='AK8' else 'mass' if algo=='HOTVR' else None
         self.Channels = ['_'.join([pt_bin, jet_version, wp, x, self.Variable]) for x in regions]
         self.Processes = OrderedDict()
@@ -181,6 +188,7 @@ class CombineTask:
         for process in self.Processes.keys():
             if self.Processes.get(process).get('is_signal'):
                 self.SignalRateParams[process] = self.Processes.get(process).get('rateParam')
+        self.ImpactPlotPaths = list()
 
     def write_rootfile(self):
         infile = root.TFile.Open(self.InputRootFilePath, 'READ')
@@ -271,6 +279,7 @@ class CombineTask:
             return command # string
 
     def create_workspace(self, run=True):
+        print 'Creating workspace'
         command = 'text2workspace.py \\'
         command += self.DataCardPath+' \\'
         command += '-o '+self.WorkSpacePath+' \\'
@@ -282,6 +291,7 @@ class CombineTask:
         return self.combine_task('create_workspace', command, run)
 
     def generate_toys(self, run=True):
+        print 'Creating toys'
         command = 'combine -M GenerateOnly \\'
         command += '-t -1 \\'
         command += '--setParameters '+','.join([x+'=1.' for x in self.SignalRateParams.values()])+' \\'
@@ -291,41 +301,97 @@ class CombineTask:
         command += self.WorkSpacePath+' \\'
         return self.combine_task('generate_toys', command, run)
 
-    def multidimfit_expected(self, run=True):
+    def multidimfit(self, observed=False, run=True):
+        print 'Performing maximum-likelihood fit (MultiDimFit):', expobs(observed, False)
         command = 'combine -M MultiDimFit \\'
-        command += '-n _exp \\'
-        command += '--algo singles \\'
-        command += '-t -1 \\'
-        command += '--toysFile higgsCombine_toy.GenerateOnly.mH120.123456.root \\'
-        command += '--datacard '+self.WorkSpacePath+' \\'
-        command += '--saveFitResult \\'
-        return self.combine_task('multidimfit_expected', command, run)
-
-    def multidimfit_observed(self, run=True):
-        command = 'combine -M MultiDimFit \\'
-        command += '-n _obs \\'
+        if observed:
+            command += '-n _obs \\'
+        else:
+            command += '-n _exp \\'
+            command += '-t -1 \\'
+            command += '--toysFile '+os.path.join(self.WorkDir, 'higgsCombine_toy.GenerateOnly.mH120.123456.root')+' \\'
         command += '--algo singles \\'
         command += '--datacard '+self.WorkSpacePath+' \\'
         command += '--saveFitResult \\'
-        return self.combine_task('multidimfit_observed', command, run)
+        task_name = '_'.join(['multidimfit', expobs(observed)])
+        return self.combine_task(task_name, command, run)
 
-    def prepostfitshapes(self, run=True):
+    def prepostfitshapes(self, observed=False, run=True):
+        print 'Calculating prefit and postfit shapes:', expobs(observed, False)
         command = 'PostFitShapesFromWorkspace \\'
         command += '-w '+self.WorkSpacePath+' \\'
-        command += '-o '+self.PrePostFitShapesPath+' \\'
-        command += '-f multidimfit_obs.root:fit_mdf \\'
+        command += '-o '+(self.PrePostFitShapesObsPath if observed else self.PrePostFitShapesExpPath)+' \\'
+        command += '-f multidimfit_'+expobs(observed)+'.root:fit_mdf \\'
         command += '--postfit \\'
         command += '--sampling \\'
         command += '--print \\'
         command += '--total-shapes \\'
         command += '--covariance \\'
-        return self.combine_task('prepostfitshapes', command, run)
+        task_name = '_'.join(['prepostfitshapes', expobs(observed)])
+        return self.combine_task(task_name, command, run)
 
-    def impacts_expected():
-        pass
+    def impacts(self, observed=False, run=True):
+        print 'Calculating nuisance parameter impacts:', expobs(observed, False)
+        results = OrderedDict()
+        #________________________________
+        # Do an initial fit
+        command1 = 'combineTool.py -M Impacts \\'
+        command1 += '-m 0 \\' # required argument
+        command1 += '-d '+self.WorkSpacePath+' \\'
+        command1 += '--doInitialFit \\'
+        command1 += '--robustFit 1 \\'
+        command1 += '-t -1 \\'
+        command1 += '--toysFile '+os.path.join(self.WorkDir, 'higgsCombine_toy.GenerateOnly.mH120.123456.root')+' \\'
+        task_name1 = '_'.join(['impacts', expobs(observed), 'command1'])
+        results[task_name1] = self.combine_task(task_name1, command1, run)
+        #________________________________
+        #
+        command2 = command1.replace('--doInitialFit', '--doFits')
+        task_name2 = '_'.join(['impacts', expobs(observed), 'command2'])
+        results[task_name2] = self.combine_task(task_name2, command2, run)
+        #________________________________
+        #
+        impactsJsonPath = os.path.join(self.WorkDir, 'impacts_'+expobs(observed)+'.json')
+        command3 = 'combineTool.py -M Impacts \\'
+        command3 += '-m 0 \\' # required argument
+        command3 += '-d '+self.WorkSpacePath+' \\'
+        command3 += '-o '+impactsJsonPath+' \\'
+        task_name3 = '_'.join(['impacts', expobs(observed), 'command3'])
+        results[task_name3] = self.combine_task(task_name3, command3, run)
+        #________________________________
+        #
+        plot_command_base = 'plotImpacts.py \\'
+        plot_command_base += '-i '+impactsJsonPath+' \\'
+        plot_command_base += '--POI {0} \\'
+        plot_command_base += '-o {1} \\'
+        # plot_command_base += '-t '+globalRenameJsonFile+' \\' # rename parameters
+        for signal_rate_param in self.SignalRateParams.values():
+            print 'Plotting impacts for parameter:', signal_rate_param
+            plot_path = os.path.join(self.WorkDir, impactsJsonPath.replace('.json', '_'+signal_rate_param))
+            plot_command = plot_command_base.format(signal_rate_param, os.path.basename(plot_path))
+            self.ImpactPlotPaths.append(plot_path+'.pdf')
+            plot_task_name = '_'.join(['plot_impacts', expobs(observed), signal_rate_param])
+            results[plot_task_name] = self.combine_task(plot_task_name, plot_command, run)
+        return results
 
-    def impacts_observed():
-        pass
+        def run_all(self):
+            self.write_rootfile()
+            self.write_datacard()
+            self.create_workspace()
+            # Expected:
+            self.generate_toys()
+            self.multidimfit()
+            self.prepostfitshapes()
+            self.impacts()
+            # Observed:
+            self.multidimfit(True)
+            self.prepostfitshapes(True)
+            self.impacts(True)
+
+
+
+    # def impacts_observed():
+    #     pass
 
 # PostFitShapesFromWorkspace \
 #     -w HOTVR_Pt400to480_HOTVRCuts_Standard_datacard.root \
@@ -369,9 +435,9 @@ c.write_rootfile()
 c.write_datacard()
 c.create_workspace()
 c.generate_toys()
-c.multidimfit_expected()
-c.multidimfit_observed()
+c.multidimfit()
 c.prepostfitshapes()
+c.impacts()
 
 # text2workspace.py \
 #    HOTVR_Pt400to480_HOTVRCuts_Standard_datacard.txt \
