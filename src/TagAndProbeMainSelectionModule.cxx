@@ -38,6 +38,8 @@ private:
   ProbeJetAlgo pjalgo;
   MergeScenario msc;
 
+  unique_ptr<AnalysisModule> sf_toppt;
+  unique_ptr<AnalysisModule> sf_vjets;
   unique_ptr<AnalysisModule> primlep;
   unique_ptr<AnalysisModule> scale_variation;
   unique_ptr<AnalysisModule> ps_variation;
@@ -101,6 +103,8 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx) {
   const BTag::wp btagWP = BTag::WP_MEDIUM;
   const JetId btagID = BTag(btagALGO, btagWP);
 
+  sf_toppt.reset(new ltt::TopPtReweighting(ctx));
+  sf_vjets.reset(new ltt::VJetsReweighting(ctx));
   scale_variation.reset(new MCScaleVariation(ctx));
   ps_variation.reset(new PartonShowerVariation(ctx));
   sf_lumi.reset(new MCLumiWeight(ctx));
@@ -174,6 +178,8 @@ bool TagAndProbeMainSelectionModule::process(Event & event) {
   sf_lumi->process(event);
   sf_pileup->process(event);
   sf_muon->process(event);
+  sf_toppt->process(event);
+  sf_vjets->process(event);
   // TODO: Prefiring weights not yet available for UL (for updates on this, see https://twiki.cern.ch/twiki/bin/viewauth/CMS/L1ECALPrefiringWeightRecipe)
   hist_presel->fill(event);
 

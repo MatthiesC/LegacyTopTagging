@@ -97,7 +97,8 @@ class configContainer:
       }
 
       self.yearVars['deepjetSFFiles'] = {
-         'UL17': self.uhh2Dir+'common/data/UL17/DeepJet_106XUL17SF_WPonly.csv',
+         # 'UL17': self.uhh2Dir+'common/data/UL17/DeepJet_106XUL17SF_WPonly.csv',
+         'UL17': self.uhh2Dir+'LegacyTopTagging/data/ScaleFactors/BTagging/DeepJet_106XUL17SF_WPonly_V2p1.csv',
          'UL18': self.uhh2Dir+'common/data/UL18/DeepJet_106XUL18SF_WPonly.csv',
       }
 
@@ -136,6 +137,7 @@ class configContainer:
          # self.systematics.append(systEntity('muoniso', 'SystDirection_MuonIso'))
          self.systematics.append(systEntity('btagging', 'SystDirection_BTag', directions=['up_bc', 'down_bc', 'up_udsg', 'down_udsg']))
          self.systematics.append(systEntity('wp', 'SystDirection_WP'))
+         self.systematics.append(systEntity('toppt', 'SystDirection_TopPt', directions=['a_up', 'a_down', 'b_up', 'b_down']))
 
 
 class sampleEntity:
@@ -301,6 +303,11 @@ class xmlCreator:
             file.write('''\n''')
             file.write('''<Item Name="BTagMCEffFile" Value="'''+self.yearVars['deepjetMCEffFiles'][self.year]+'''"/>\n''')
             file.write('''<Item Name="BTagScaleFactorFile" Value="'''+self.yearVars['deepjetSFFiles'][self.year]+'''"/>\n''')
+            file.write('''\n''')
+            file.write('''<Item Name="VJetsReweighting_do_EWK" Value="true"/>\n''')
+            file.write('''<Item Name="VJetsReweighting_do_QCD_EWK" Value="false"/>\n''')
+            file.write('''<Item Name="VJetsReweighting_do_QCD_NLO" Value="true"/>\n''')
+            file.write('''<Item Name="VJetsReweighting_do_QCD_NNLO" Value="false"/>\n''')
          file.write('''\n''')
          file.write('''<!-- Keys for systematic uncertainties -->\n''')
          for syst in self.systematics:
