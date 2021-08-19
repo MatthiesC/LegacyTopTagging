@@ -62,11 +62,15 @@ const vector<Process> processes = {
 // {"TTbar_WMerged", kPink+5},
 // {"TTbar_QBMerged", kPink+4},
 {"TTbar_BkgOrNotMerged", kPink-7},
+// {"TTbar_NotMerged", kPink+5},
+// {"TTbar_Background", kPink+4},
 {"ST_FullyMerged", kOrange},
 {"ST_SemiMerged", kOrange-3},
 // {"ST_WMerged", kOrange-3},
 // {"ST_QBMerged", kOrange+4},
 {"ST_BkgOrNotMerged", kOrange+4},
+// {"ST_NotMerged", kOrange-3},
+// {"ST_Background", kOrange+4},
 {"WJetsToLNu", kSpring-3},
 {"DYJetsToLLAndDiboson", kSpring-7},
 };
@@ -82,6 +86,8 @@ const vector<string> syst_names = {
   "tageff3prong",
   "tageff2prong",
   "tageff1prong",
+  "topptA",
+  "topptB",
 };
 
 THStack * create_stack(TFile * rootFile, const string & folderName, const bool divide_by_bin_width) {

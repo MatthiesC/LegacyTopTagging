@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import os
 import sys
 import argparse
@@ -39,15 +41,15 @@ pt_bins = {
 jet_versions = {
     'AK8': [
         'All',
-        # 'Mass',
+        'Mass',
         'BTag',
-        # 'MassAndBTag',
+        'MassAndBTag',
     ],
     'HOTVR': [
         'All',
         # 'Mass',
         'HOTVRCuts',
-        # 'HOTVRCutsAndMass',
+        'HOTVRCutsAndMass',
     ],
 }
 
@@ -130,22 +132,35 @@ systs = OrderedDict([ # naming used in file path names: naming used for combine 
     # ('ps_ISRup_2', 'isrUp'),
     ('wp_down', None),
     ('wp_up', None),
+    ('toppt_a_up', 'topptAUp'),
+    ('toppt_a_down', 'topptADown'),
+    ('toppt_b_up', 'topptBUp'),
+    ('toppt_b_down', 'topptBDown'),
 ])
 
 processes = OrderedDict([ # naming used in root file names: naming used for combine
     ### TTbar
+    ('TTbar__AllMergeScenarios', 'TTbar'),
     ('TTbar__FullyMerged', 'TTbar_FullyMerged'),
-    # ('TTbar__WMerged', 'TTbar_WMerged'),
-    # ('TTbar__QBMerged', 'TTbar_QBMerged'),
+    ('TTbar__WMerged', 'TTbar_WMerged'),
+    ('TTbar__QBMerged', 'TTbar_QBMerged'),
     ('TTbar__SemiMerged', 'TTbar_SemiMerged'),
     ('TTbar__BkgOrNotMerged', 'TTbar_BkgOrNotMerged'),
+    ('TTbar__NotFullyOrWMerged', 'TTbar_NotFullyOrWMerged'),
+    ('TTbar__YllufMerged', 'TTbar_YllufMerged'),
+    ('TTbar__NotMerged', 'TTbar_NotMerged'),
+    ('TTbar__Background', 'TTbar_Background'),
     ### Single Top
     ('ST__AllMergeScenarios', 'ST'),
-    # ('ST__FullyMerged', 'ST_FullyMerged'),
-    # ('ST__WMerged', 'ST_WMerged'),
-    # ('ST__QBMerged', 'ST_QBMerged'),
-    # ('ST__SemiMerged', 'ST_SemiMerged'),
-    # ('ST__BkgOrNotMerged', 'ST_BkgOrNotMerged'),
+    ('ST__FullyMerged', 'ST_FullyMerged'),
+    ('ST__WMerged', 'ST_WMerged'),
+    ('ST__QBMerged', 'ST_QBMerged'),
+    ('ST__SemiMerged', 'ST_SemiMerged'),
+    ('ST__BkgOrNotMerged', 'ST_BkgOrNotMerged'),
+    ('ST__NotFullyOrWMerged', 'ST_NotFullyOrWMerged'),
+    ('ST__YllufMerged', 'ST_YllufMerged'),
+    ('ST__NotMerged', 'ST_NotMerged'),
+    ('ST__Background', 'ST_Background'),
     ### Other
     ('WJetsToLNu', 'WJetsToLNu'),
     ('DYJetsToLLAndDiboson', 'DYJetsToLLAndDiboson'),
@@ -179,8 +194,18 @@ def hist_preprocessing(histo, variable):
     new_histo = histo
 
     if variable == 'mSD' or variable == 'mass':
-        rebinning_scheme = np.array([0, 10, 25, 40, 55, 70, 80, 90, 105, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 250, 275, 300, 350, 400, 450, 500], dtype=float)
+        # rebinning_scheme = np.array([0, 10, 25, 40, 55, 70, 85, 100, 115, 130, 145, 160, 175, 190, 210, 235, 270, 310, 350, 390, 450, 500], dtype=float) # Dennis' bins
+        # Ensure to have bin edges 105, 140, 210, 220 available (for HOTVR/AK8 mass efficiency calculation)
+        # rebinning_scheme = np.array([0, 10, 25, 40, 55, 70, 80, 90, 105, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 250, 275, 300, 350, 400, 450, 500], dtype=float) # before July 15, 2021
+        rebinning_scheme = np.array([0, 10, 25, 40, 55, 70, 85, 105, 120, 140, 155, 170, 185, 200, 210, 220, 230, 250, 275, 300, 350, 400, 450, 500], dtype=float)
+        # rebinning_scheme = np.array([0, 10, 25, 50, 70, 90, 105, 120, 140, 160, 180, 195, 210, 220, 240, 270, 300, 350, 400, 450, 500], dtype=float)
         new_histo = new_histo.Rebin(len(rebinning_scheme)-1, 'hnew', rebinning_scheme)
+    # if variable == 'mSD':
+    #     rebinning_scheme = np.array([0, 10, 30, 50, 70, 90, 105, 120, 135, 160, 175, 190, 200, 210, 230, 250, 275, 300, 350, 400, 450, 500], dtype=float)
+    #     new_histo = new_histo.Rebin(len(rebinning_scheme)-1, 'hnew', rebinning_scheme)
+    # elif variable == 'mass':
+    #     rebinning_scheme = np.array([0, 30, 50, 70, 90, 105, 120, 140, 155, 170, 185, 200, 210, 220, 230, 250, 275, 300, 350, 400, 450, 500], dtype=float)
+    #     new_histo = new_histo.Rebin(len(rebinning_scheme)-1, 'hnew', rebinning_scheme)
     elif variable == 'nsub':
         # new_histo.GetXaxis().SetNdivisions(11)
         pass
@@ -230,10 +255,10 @@ def create_input_histograms(probejet_coll, pt_bin, jet_version, wp, vars):
     channelNames = list()
     for variable in vars:
         for region in regions:
-            channelName = '_'.join([pt_bin, jet_version, wp, region, variable])
+            channelName = '_'.join([task_name, region, variable])
             channelNames.append(channelName)
             target_folder = outputRootFile.mkdir(channelName)
-            inputHistName = '/'.join([inputHistCollectionName, channelName])
+            inputHistName = '/'.join([inputHistCollectionName, channelName.replace(probejet_collections.get(probejet_coll)+'_', '')])
             # data:
             inputRootFile = root.TFile.Open(dict_inputFiles.get('nominal').get('DATA'), 'READ')
             inputHist = inputRootFile.Get(inputHistName)
@@ -286,7 +311,7 @@ def create_input_histograms(probejet_coll, pt_bin, jet_version, wp, vars):
                 inputHist_muScale_Up.Write('_'.join([processes.get(proc), 'scaleUp']))
                 ## Tagging efficiency by number of prongs:
                 is_3prong = 'FullyMerged' in proc
-                is_2prong = 'WMerged' in proc or 'QBMerged' in proc or 'SemiMerged' in proc
+                is_2prong = ('WMerged' in proc and not 'NotFullyOrWMerged' in proc) or 'QBMerged' in proc or 'SemiMerged' in proc
                 is_1prong = not (is_3prong or is_2prong)
                 prong_types = OrderedDict([
                     ('3prong', {'bool': is_3prong, 'eff_variation': 0.05}), # https://github.com/UHH2/TopTagging2018/blob/master/src/ProbeJetHists.cxx#L122

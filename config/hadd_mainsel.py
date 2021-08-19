@@ -40,6 +40,10 @@ possible_systs = [
 'ps_ISRup_2',
 'wp_down',
 'wp_up',
+'toppt_a_up',
+'toppt_a_down',
+'toppt_b_up',
+'toppt_b_down',
 ]
 
 dict_sourceFiles = {
@@ -60,6 +64,14 @@ dict_sourceFiles = {
     'TTbar__QBMerged': [
         'TTbar*__QBMerged',
     ],
+    'TTbar__YllufMerged': [
+        'TTbar*__WMerged',
+        'TTbar*__QBMerged',
+        'TTbar*__NotMerged',
+        'TTbar*__Background',
+        'TTbarTo2L2Nu*',
+        'TTbarToHadronic*',
+    ],
     'TTbar__NotMerged': [
         'TTbar*__NotMerged',
     ],
@@ -69,6 +81,13 @@ dict_sourceFiles = {
         'TTbarToHadronic*',
     ],
     'TTbar__BkgOrNotMerged': [
+        'TTbar*__NotMerged',
+        'TTbar*__Background',
+        'TTbarTo2L2Nu*',
+        'TTbarToHadronic*',
+    ],
+    'TTbar__NotFullyOrWMerged': [
+        'TTbar*__QBMerged',
         'TTbar*__NotMerged',
         'TTbar*__Background',
         'TTbarTo2L2Nu*',
@@ -91,6 +110,13 @@ dict_sourceFiles = {
     'ST__QBMerged': [
         'ST*__QBMerged',
     ],
+    'ST__YllufMerged': [
+        'ST*__WMerged',
+        'ST*__QBMerged',
+        'ST*__NotMerged',
+        'ST*__Background',
+        'ST_sChannel_leptonDecays*',
+    ],
     'ST__NotMerged': [
         'ST*__NotMerged',
     ],
@@ -99,6 +125,12 @@ dict_sourceFiles = {
         'ST_sChannel_leptonDecays*',
     ],
     'ST__BkgOrNotMerged': [
+        'ST*__NotMerged',
+        'ST*__Background',
+        'ST_sChannel_leptonDecays*',
+    ],
+    'ST__NotFullyOrWMerged': [
+        'ST*__QBMerged',
         'ST*__NotMerged',
         'ST*__Background',
         'ST_sChannel_leptonDecays*',
