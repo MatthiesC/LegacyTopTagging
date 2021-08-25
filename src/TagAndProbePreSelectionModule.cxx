@@ -63,10 +63,12 @@ TagAndProbePreSelectionModule::TagAndProbePreSelectionModule(Context & ctx) {
   // const ElectronId elecID_veto = AndId<Electron>(PtEtaCut(30., 2.4), ElectronID_Fall17_veto_noIso);
   // const MuonId muonID_veto = AndId<Muon>(PtEtaCut(30., 2.4), MuonID(Muon::Selector::CutBasedIdLoose));
   // for more selection efficiency, use medium lepton IDs for the lepton vetoes:
-  const ElectronId elecID_veto = AndId<Electron>(PtEtaCut(30., 2.4), ElectronID_Fall17_medium_noIso);
-  const MuonId muonID_veto = AndId<Muon>(PtEtaCut(30., 2.4), MuonID(Muon::Selector::CutBasedIdMedium));
+  const ElectronId elecID_veto = AndId<Electron>(PtEtaCut(30., 2.4), ElectronID_Fall17_medium_noIso); // Christopher's Selection
+  // const ElectronId elecID_veto = AndId<Electron>(PtEtaCut(55., 2.4), ElectronID_Fall17_medium_noIso);
+  const MuonId muonID_veto = AndId<Muon>(PtEtaCut(30., 2.4), MuonID(Muon::Selector::CutBasedIdMedium)); // Christopher's Selection
+  // const MuonId muonID_veto = AndId<Muon>(PtEtaCut(55., 2.4), MuonID(Muon::Selector::CutBasedIdTight));
 
-  const MuonId muonID_tag = AndId<Muon>(PtEtaCut(40., 2.4), MuonID(Muon::Selector::CutBasedIdTight));
+  const MuonId muonID_tag = AndId<Muon>(PtEtaCut(40., 2.4), MuonID(Muon::Selector::CutBasedIdTight)); // Christopher's Selection
   // pT(tag muon) = 55 GeV should be the final value (will be required in the TagAndProbeMainSelectionModule);
   // in order to plot trigger efficiency histograms starting at values lower than the trigger threshold, we use a looser cut here
 
