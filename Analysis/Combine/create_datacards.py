@@ -22,6 +22,34 @@ years = {
     },
 }
 
+pt_intervals = {
+    '200to250': {
+        'pt_min': 200.,
+        'pt_max': 250.,
+    },
+    '250to300': {
+        'pt_min': 250.,
+        'pt_max': 300.,
+    },
+    '300to400': {
+        'pt_min': 300.,
+        'pt_max': 400.,
+    },
+    '400to480': {
+        'pt_min': 400.,
+        'pt_max': 480.,
+    },
+    '480to600': {
+        'pt_min': 480.,
+        'pt_max': 600.,
+    },
+    '600toInf': {
+        'pt_min': 600.,
+        # 'pt_max': np.inf,
+        'pt_max': 1000.,
+    },
+}
+
 pt_bins = {
     'AK8': [
         'Pt300to400',
@@ -174,6 +202,11 @@ systematics = [
     # 'topptB',
 ]
 
+global_categories = [
+    'FullyMerged',
+    'YllufMerged',
+]
+
 def expobs(observed, short=True):
     if short:
         return ('obs' if observed else 'exp')
@@ -249,27 +282,33 @@ class CombineTask:
         for process in self.Processes.keys():
             if self.Processes.get(process).get('is_signal'):
                 self.SignalRateParams[process] = self.Processes.get(process).get('rateParam')
-        self.POIs = OrderedDict([ # boolean: independent POI or not
-            # ('r_overall'+('_'+self.Name if self.IsChild else ''), True),
-            # ('SF_TTbar'+('_'+self.Name if self.IsChild else ''), True),
-            ('SF_FullyMerged'+('_'+self.Name if self.IsChild else ''), True),
-            # ('SF_SemiMerged'+('_'+self.Name if self.IsChild else ''), True),
-            # ('SF_WMerged'+('_'+self.Name if self.IsChild else ''), True),
-            # ('SF_QBMerged'+('_'+self.Name if self.IsChild else ''), True),
-            # ('SF_BkgOrNotMerged'+('_'+self.Name if self.IsChild else ''), True),
-            # ('SF_NotFullyOrWMerged'+('_'+self.Name if self.IsChild else ''), True),
-            ('SF_YllufMerged'+('_'+self.Name if self.IsChild else ''), True),
-            # ('r_pass_FullyMerged', False),
-            # ('r_pass_SemiMerged', False),
-            # ('r_pass_BkgOrNotMerged', False),
-            # ('AntiSF_FullyMerged', False),
-            # ('AntiSF_SemiMerged', False),
-            # ('AntiSF_BkgOrNotMerged', False),
-            # ('r_fail_FullyMerged', False),
-            # ('r_fail_SemiMerged', False),
-            # ('r_fail_BkgOrNotMerged', False),
+        self.POIs = OrderedDict([
+            ('SF_'+cat+('_'+self.Name if self.IsChild else ''), self.POI_init()) for cat in global_categories
         ])
+        # self.POIs = OrderedDict([
+        #     # ('r_overall'+('_'+self.Name if self.IsChild else ''), self.POI_init()),
+        #     # ('SF_TTbar'+('_'+self.Name if self.IsChild else ''), self.POI_init()),
+        #     ('SF_FullyMerged'+('_'+self.Name if self.IsChild else ''), self.POI_init()),
+        #     # ('SF_SemiMerged'+('_'+self.Name if self.IsChild else ''), self.POI_init()),
+        #     # ('SF_WMerged'+('_'+self.Name if self.IsChild else ''), self.POI_init()),
+        #     # ('SF_QBMerged'+('_'+self.Name if self.IsChild else ''), self.POI_init()),
+        #     # ('SF_BkgOrNotMerged'+('_'+self.Name if self.IsChild else ''), self.POI_init()),
+        #     # ('SF_NotFullyOrWMerged'+('_'+self.Name if self.IsChild else ''), self.POI_init()),
+        #     ('SF_YllufMerged'+('_'+self.Name if self.IsChild else ''), self.POI_init()),
+        #     # ('r_pass_FullyMerged', self.POI_init(False)),
+        #     # ('r_pass_SemiMerged', self.POI_init(False)),
+        #     # ('r_pass_BkgOrNotMerged', self.POI_init(False)),
+        #     # ('AntiSF_FullyMerged', self.POI_init(False)),
+        #     # ('AntiSF_SemiMerged', self.POI_init(False)),
+        #     # ('AntiSF_BkgOrNotMerged', self.POI_init(False)),
+        #     # ('r_fail_FullyMerged', self.POI_init(False)),
+        #     # ('r_fail_SemiMerged', self.POI_init(False)),
+        #     # ('r_fail_BkgOrNotMerged', self.POI_init(False)),
+        # ])
         self.ImpactPlotPaths = list()
+
+    def POI_init(self, ind=True): # boolean: independent POI or not
+        return OrderedDict([('independent', ind)])
 
     def write_rootfile(self):
         infile = root.TFile.Open(self.InputRootFilePath, 'READ')
@@ -419,30 +458,38 @@ class CombineTask:
         command += '-t -1 \\'
         # command += '--setParameters '+','.join([x+'=1.' for x in self.SignalRateParams.values()])+' \\'
         # command += '--freezeParameters '+','.join([x for x in self.SignalRateParams.values()])+' \\'
-        command += '--setParameters '+','.join([x+'=1.' for x, ind in self.POIs.items() if ind])+' \\'
-        command += '--freezeParameters '+','.join([x for x, ind in self.POIs.items() if ind])+' \\'
+        command += '--setParameters '+','.join([x+'=1.' for x, ind in self.POIs.items() if ind.get('independent')])+' \\'
+        command += '--freezeParameters '+','.join([x for x, ind in self.POIs.items() if ind.get('independent')])+' \\'
         command += '--saveToys \\'
         command += '-n _toy \\'
         command += self.WorkSpacePath+' \\'
         return self.combine_task('generate_toys', command, run)
 
-    def multidimfit(self, observed=False, run=True):
-        print 'Performing maximum-likelihood fit (MultiDimFit):', expobs(observed, False)
+    def multidimfit(self, observed=False, freezeSyst=False, run=True):
+        print 'Performing maximum-likelihood fit (MultiDimFit):', expobs(observed, False), ('with frozen systematics' if freezeSyst else '')
         command = 'combine -M MultiDimFit \\'
-        if observed:
-            command += '-n _obs \\'
+        if freezeSyst:
+            datacard_path = os.path.join(self.WorkDir, 'higgsCombine_'+expobs(observed)+'.MultiDimFit.mH120.root')
         else:
-            command += '-n _exp \\'
+            datacard_path = self.WorkSpacePath
+        if not os.path.isfile(datacard_path):
+            print 'Warning in CombineTask.multidimfit():', datacard_path, 'does not exist'
+        command += '--datacard '+datacard_path+' \\'
+        command += '-n _'+expobs(observed)+('_freezeSyst' if freezeSyst else '')+' \\'
+        if not observed:
             command += '-t -1 \\'
             command += '--toysFile '+os.path.join(self.WorkDir, 'higgsCombine_toy.GenerateOnly.mH120.123456.root')+' \\'
         command += '--algo singles \\'
-        command += '--datacard '+self.WorkSpacePath+' \\'
+        if freezeSyst:
+            command += '--freezeParameters allConstrainedNuisances --snapshotName MultiDimFit \\'
         command += '--saveFitResult \\'
-        # command += '--saveWorkspace \\'
+        command += '--saveWorkspace \\'
         # command += '--fastScan \\'
         # command += '--robustFit=1 \\'
         # command += '--robustHesse=1 \\'
         task_name = '_'.join(['multidimfit', expobs(observed)])
+        if freezeSyst:
+            task_name += '_freezeSyst'
         return self.combine_task(task_name, command, run)
 
     def prepostfitshapes(self, observed=False, run=True):
@@ -543,6 +590,71 @@ class CombineTask:
             results[plot_task_name] = self.combine_task(plot_task_name, plot_command, run)
         return results
 
+    def write_scale_factor_file(self, observed=False):
+        print 'Writing scale factors to disk'
+        # Check out this link to learn how to extract post-fit nuisance parameter values from RooFitResult:
+        # https://github.com/cms-analysis/HiggsAnalysis-CombinedLimit/blob/102x/src/MultiDimFit.cc#L434
+        mdf_file = root.TFile.Open(os.path.join(self.WorkDir, 'multidimfit_'+expobs(observed)+'.root'), 'READ')
+        fit_result = mdf_file.Get('fit_mdf') # RooFitResult
+        for poi_name in self.POIs.keys():
+            rf = fit_result.floatParsFinal().find(poi_name)
+            bestFitVal = rf.getVal()
+            hiErr = +(rf.getMax('err68') - bestFitVal if rf.hasRange('err68') else rf.getAsymErrorHi())
+            loErr = -(rf.getMin('err68') - bestFitVal if rf.hasRange('err68') else rf.getAsymErrorLo())
+            maxError = max(max(hiErr, loErr), rf.getError())
+            if abs(hiErr) < 0.001*maxError:
+                print " Warning - No valid high-error found, will report difference to maximum of range for : ", rf.GetName()
+                hiErr = -bestFitVal + rf.getMax()
+            if abs(loErr) < 0.001*maxError:
+                print " Warning - No valid low-error found, will report difference to minimum of range for : ", rf.GetName()
+                loErr = +bestFitVal - rf.getMin()
+            self.POIs.get(poi_name)[expobs(observed)] = OrderedDict()
+            self.POIs.get(poi_name).get(expobs(observed))['bestFitVal'] = bestFitVal
+            self.POIs.get(poi_name).get(expobs(observed))['loErr'] = loErr
+            self.POIs.get(poi_name).get(expobs(observed))['hiErr'] = hiErr
+            # print poi_name, ":", bestFitVal, "-", loErr, "/ +", hiErr
+            print "  "+poi_name+":  {:.3f}  -{:.3f} / +{:.3f}".format(bestFitVal, loErr, hiErr)
+        self.sf_file_path = os.path.join(self.WorkDir, 'scale_factors_'+expobs(observed)+'.root')
+        sf_file = root.TFile.Open(self.sf_file_path, 'RECREATE')
+        sf_file.cd()
+        for cat in global_categories:
+            x = []
+            y = []
+            exl = []
+            exh = []
+            eyl = []
+            eyh = []
+            for poi_name, poi_info in self.POIs.items():
+                if cat not in poi_name:
+                    continue
+                pt_interval_identified = False
+                pt_max = 0.
+                pt_min = 0.
+                for pt_interval_key, pt_interval_info in pt_intervals.items():
+                    if pt_interval_key in poi_name:
+                        pt_interval_identified = True
+                        pt_max = pt_interval_info.get('pt_max')
+                        pt_min = pt_interval_info.get('pt_min')
+                        break
+                if not pt_interval_identified:
+                    for pt_interval_key, pt_interval_info in pt_intervals.items():
+                        if pt_interval_key in self.Name:
+                            pt_interval_identified = True
+                            pt_max = pt_interval_info.get('pt_max')
+                            pt_min = pt_interval_info.get('pt_min')
+                            break
+                if not pt_interval_identified:
+                    print 'Warning: could not convert POI name into correct pt range'
+                half_x_width = (pt_max - pt_min)/2.
+                x.append(half_x_width + pt_min)
+                exl.append(half_x_width)
+                exh.append(half_x_width)
+                y.append(poi_info.get(expobs(observed))['bestFitVal'])
+                eyl.append(poi_info.get(expobs(observed))['loErr'])
+                eyh.append(poi_info.get(expobs(observed))['hiErr'])
+            sf_graph = root.TGraphAsymmErrors(len(x), np.array(x), np.array(y), np.array(exl), np.array(exh), np.array(eyl), np.array(eyh))
+            sf_graph.Write(cat)
+        print 'Wrote', self.sf_file_path
 
     def run_all(self):
         # self.write_rootfile()
@@ -551,11 +663,15 @@ class CombineTask:
         # Expected:
         self.generate_toys()
         self.multidimfit()
+        self.multidimfit(freezeSyst=True)
+        self.write_scale_factor_file()
         # self.prepostfitshapes()
         # self.prepostfitshapes_for_plots()
         # self.impacts()
         # Observed:
         self.multidimfit(True)
+        self.multidimfit(True, freezeSyst=True)
+        self.write_scale_factor_file(True)
         # self.prepostfitshapes(True)
         # self.prepostfitshapes_for_plots(True)
         # self.impacts(True)
@@ -599,7 +715,7 @@ class ComplexCombineTask(CombineTask):
             for signal_process, signal_rate_param in cct.SignalRateParams.items():
                 self.SignalRateParams[signal_process] = signal_rate_param
             for poi, ind in cct.POIs.items():
-                self.POIs[poi] = ind
+                self.POIs[poi] = self.POI_init(ind.get('independent'))
         self.ImpactPlotPaths = list()
 
     def write_rootfile(self):
@@ -621,6 +737,7 @@ class ComplexCombineTask(CombineTask):
         command += '-P HiggsAnalysis.CombinedLimit.my_combine_physics_model:lttModel \\'
         command += '--PO tasks='+','.join([cct.Name for cct in self.ChildCombineTasks])+' \\'
         return self.combine_task('create_workspace', command, run)
+
 
 
 
