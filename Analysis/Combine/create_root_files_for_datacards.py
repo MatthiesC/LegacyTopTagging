@@ -414,6 +414,7 @@ def write_file_with_plotting_commands(fileName, list_of_histograms):
             # is_HOTVR = h[0].endswith('HOTVR.root')
             newline = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/Analysis/Combine/bin', 'plots')+' '
             args = list()
+            args.append('Prefit')
             args.append(h[0])
             args.append(h[1])
             args.append(os.path.join('/'.join(h[0].split('/')[0:-2]), 'plots'))

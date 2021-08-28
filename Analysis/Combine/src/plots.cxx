@@ -204,6 +204,22 @@ TGraphAsymmErrors * get_stack_unc(const TH1F * last, TFile * rootFile, const str
   return new TGraphAsymmErrors(n, x, y, exl, exh, eyl, eyh);
 }
 
+TGraphAsymmErrors * get_stack_unc_PrePostFitShapes(TFile * rootFile, const string & folderName, const bool divide_by_bin_width, const double scale_factor) {
+  const TH1F * totalprocs = (TH1F*)rootFile->Get((folderName+"/TotalProcs").c_str());
+  unsigned int n = totalprocs->GetNbinsX();
+  double x[n], y[n], exl[n], eyl[n], exh[n], eyh[n];
+  for(unsigned int i = 0; i < n; i++) {
+    unsigned int ibin = i+1;
+    x[i] = totalprocs->GetBinCenter(ibin);
+    y[i] = totalprocs->GetBinContent(ibin) * scale_factor / (divide_by_bin_width ? totalprocs->GetBinWidth(ibin) : 1.);
+    exl[i] = totalprocs->GetBinWidth(ibin) / 2.;
+    eyl[i] = totalprocs->GetBinError(ibin) * scale_factor / (divide_by_bin_width ? totalprocs->GetBinWidth(ibin) : 1.);
+    exh[i] = totalprocs->GetBinWidth(ibin) / 2.;
+    eyh[i] = totalprocs->GetBinError(ibin) * scale_factor / (divide_by_bin_width ? totalprocs->GetBinWidth(ibin) : 1.);
+  }
+  return new TGraphAsymmErrors(n, x, y, exl, exh, eyl, eyh);
+}
+
 
 // TGraphAsymmErrors * create_ratio_totalunc(const TGraphAsymmErrors * total_unc) {
 //   TGraphAsymmErrors * ratio_totalunc = new TGraphAsymmErrors(*total_unc);
@@ -263,7 +279,22 @@ void redrawBorder() { // https://root-forum.cern.ch/t/how-to-redraw-axis-and-plo
 }
 
 
+enum class PlotType {
+  isPrefit,
+  isCombPrefit,
+  isCombPostfit,
+};
+
+
+const map<string, PlotType> kStringToPlotType = {
+  {"Prefit", PlotType::isPrefit},
+  {"prefitComb", PlotType::isCombPrefit},
+  {"postfitComb", PlotType::isCombPostfit},
+};
+
+
 typedef struct {
+  PlotType fPlotType;
   TString fInputFilePath;
   TString fFolderName;
   TString fPlotDir;
@@ -400,7 +431,16 @@ void plotter(const PlotterArguments & args) {
   stack = scale_stack(stack, total_scale_factor);
   data->Scale(total_scale_factor);
 
-  TGraphAsymmErrors *stack_totalunc = get_stack_unc((TH1F*)original_stack->GetStack()->Last(), rootFile, (string)folderName, divide_by_bin_width, total_scale_factor);
+  TGraphAsymmErrors *stack_totalunc = nullptr;
+  if(args.fPlotType == PlotType::isPrefit) {
+    stack_totalunc = get_stack_unc((TH1F*)original_stack->GetStack()->Last(), rootFile, (string)folderName, divide_by_bin_width, total_scale_factor);
+  }
+  else if (args.fPlotType == PlotType::isCombPrefit || args.fPlotType == PlotType::isCombPostfit) {
+    stack_totalunc = get_stack_unc_PrePostFitShapes(rootFile, (string)folderName, divide_by_bin_width, total_scale_factor);
+  }
+  else {
+    cout << "Invalid PlotType" << endl;
+  }
   stack_totalunc->SetLineWidth(0);
   stack_totalunc->SetFillColor(kGray+1);
   stack_totalunc->SetFillStyle(3254); //3354
@@ -470,13 +510,16 @@ void plotter(const PlotterArguments & args) {
   null_hist->GetYaxis()->SetTickLength(c->GetWw() * tick_length / tickScaleY);
   null_hist->GetXaxis()->SetTickLength(c->GetWh() * tick_length / tickScaleX);
 
-  TH1F *ratio_mc_stat = create_ratio_mc_stat(last);
-  ratio_mc_stat->Draw("same e2");
-  ratio_mc_stat->SetFillColor(kGray);
-  ratio_mc_stat->SetFillStyle(1001);
-  ratio_mc_stat->SetTitle("MC stat. unc.");
-  ratio_mc_stat->SetLineWidth(0);
-  ratio_mc_stat->SetMarkerStyle(0);
+  TH1F *ratio_mc_stat = nullptr;
+  if(args.fPlotType == PlotType::isPrefit) {
+    ratio_mc_stat = create_ratio_mc_stat(last);
+    ratio_mc_stat->Draw("same e2");
+    ratio_mc_stat->SetFillColor(kGray);
+    ratio_mc_stat->SetFillStyle(1001);
+    ratio_mc_stat->SetTitle("MC stat. unc.");
+    ratio_mc_stat->SetLineWidth(0);
+    ratio_mc_stat->SetMarkerStyle(0);
+  }
 
   TGraphAsymmErrors *ratio_totalunc = create_ratio_totalunc(stack_totalunc);
   // ratio_totalunc->SetTitle("DummyTitleToAvoidMemoryLeak");
@@ -583,19 +626,21 @@ void plotter(const PlotterArguments & args) {
   prelim->SetNDC();
   prelim->Draw();
 
-  TText *text_mcstat = new TText(1-(margin_r-0.02), border_y*0.75, ratio_mc_stat->GetTitle());
-  text_mcstat->SetTextAlign(22); // center center
-  text_mcstat->SetTextFont(42);
-  text_mcstat->SetTextSize(0.018);
-  text_mcstat->SetTextAngle(90);
-  text_mcstat->SetNDC();
-  text_mcstat->Draw();
+  if(args.fPlotType == PlotType::isPrefit) {
+    TText *text_mcstat = new TText(1-(margin_r-0.02), border_y*0.75, ratio_mc_stat->GetTitle());
+    text_mcstat->SetTextAlign(22); // center center
+    text_mcstat->SetTextFont(42);
+    text_mcstat->SetTextSize(0.018);
+    text_mcstat->SetTextAngle(90);
+    text_mcstat->SetNDC();
+    text_mcstat->Draw();
 
-  TBox *box_mcstat = new TBox(1-(margin_r-0.012), border_y*0.45, 1-(margin_r-0.030), border_y*0.53);
-  box_mcstat->SetFillColor(ratio_mc_stat->GetFillColor());
-  box_mcstat->SetLineWidth(ratio_mc_stat->GetLineWidth());
-  // box_mcstat->SetNDC();
-  box_mcstat->Draw();
+    TBox *box_mcstat = new TBox(1-(margin_r-0.012), border_y*0.45, 1-(margin_r-0.030), border_y*0.53);
+    box_mcstat->SetFillColor(ratio_mc_stat->GetFillColor());
+    box_mcstat->SetLineWidth(ratio_mc_stat->GetLineWidth());
+    // box_mcstat->SetNDC();
+    box_mcstat->Draw();
+  }
 
 
   // float legend_x1 = coord->ConvertGraphXToPadX(0.43);
@@ -743,10 +788,11 @@ void plotter(const PlotterArguments & args) {
 
 PlotterArguments convert_arguments(int argc, char **argv) {
   unsigned int n(1);
-  if(argc != 8) {
+  if(argc != 9) {
     throw invalid_argument("Number of arguments not correct! Please check!");
   }
   PlotterArguments args{
+    .fPlotType=kStringToPlotType.at((string)argv[n++]),
     .fInputFilePath=argv[n++],
     .fFolderName=argv[n++],
     .fPlotDir=argv[n++],
