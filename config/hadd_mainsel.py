@@ -40,6 +40,8 @@ possible_systs = [
 'ps_ISRup_2',
 'wp_down',
 'wp_up',
+'tau21_down',
+'tau21_up',
 'toppt_a_up',
 'toppt_a_down',
 'toppt_b_up',
@@ -68,9 +70,9 @@ dict_sourceFiles = {
         'TTbar*__WMerged',
         'TTbar*__QBMerged',
         'TTbar*__NotMerged',
-        'TTbar*__Background',
-        'TTbarTo2L2Nu*',
-        'TTbarToHadronic*',
+        # 'TTbar*__Background',
+        # 'TTbarTo2L2Nu*',
+        # 'TTbarToHadronic*',
     ],
     'TTbar__NotMerged': [
         'TTbar*__NotMerged',
@@ -114,8 +116,8 @@ dict_sourceFiles = {
         'ST*__WMerged',
         'ST*__QBMerged',
         'ST*__NotMerged',
-        'ST*__Background',
-        'ST_sChannel_leptonDecays*',
+        # 'ST*__Background',
+        # 'ST_sChannel_leptonDecays*',
     ],
     'ST__NotMerged': [
         'ST*__NotMerged',
@@ -163,6 +165,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-y', '--years', choices=years, nargs='*', default=[])
 parser.add_argument('-s', '--systs', choices=possible_systs, nargs='*', default=['nominal'])
 parser.add_argument('--all', action='store_true', help='Instead of defining the syst directories via --syst, you can hadd all of them in one go.')
+parser.add_argument('-t', '--targets', choices=dict_sourceFiles.keys(), nargs='*', default=dict_sourceFiles.keys(), help='E. g., if you choose "TTbar__FullyMerged", then only this target root file will be created.')
+parser.add_argument('-f', '--force', action='store_true', help='''Use hadd's -f option. Force overwriting of output files.''')
 args = parser.parse_args(sys.argv[1:])
 
 if not args.all:
@@ -190,6 +194,8 @@ for year in args.years:
         # print haddDir
 
         for key in dict_sourceFiles.keys():
+            if not key in args.targets:
+                continue
             if key=='DATA':
                 data=True
             else:
@@ -212,7 +218,10 @@ for year in args.years:
             numbersOfEntries.flatten()
             sourceFilePaths = sourceFilePaths[np.argsort(numbersOfEntries)]
 
-            command_string = 'nice -n 10 hadd '+targetFilePath+' '+' '.join([x for x in sourceFilePaths])
+            command_string = 'nice -n 10 hadd '
+            if args.force:
+                command_string += '-f '
+            command_string += targetFilePath+' '+' '.join([x for x in sourceFilePaths])
             logFilePath = os.path.join(logDir, 'log.'+key+'.txt')
             hadd_tasks.append([command_string, logFilePath])
 

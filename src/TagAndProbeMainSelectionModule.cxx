@@ -118,6 +118,7 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx) {
   slct_ak4.reset(new NJetSelection(1, -1));
   slct_hem2018.reset(new HEM2018Selection(ctx));
   slct_trigger.reset(new TriggerSelection("HLT_Mu50_v*"));
+  // slct_trigger.reset(new LttTriggerSelection(ctx));
   slct_muon.reset(new NMuonSelection(1, 1, muonID_tag));
   slct_btag.reset(new BTagCloseToLeptonSelection(ctx, deltaR_leptonicHemisphere, btagID));
   slct_twod.reset(new TwoDSelection(ctx, 25., 0.4));

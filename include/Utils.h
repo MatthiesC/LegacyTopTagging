@@ -6,6 +6,7 @@
 #include "UHH2/core/include/Utils.h"
 
 #include "UHH2/common/include/JetIds.h"
+#include "UHH2/common/include/TriggerSelection.h"
 #include "UHH2/common/include/Utils.h"
 
 #include "UHH2/LegacyTopTagging/include/Constants.h"
@@ -23,7 +24,13 @@ double deltaEta(const T & p1, const U & p2) {
 double tau32(const TopJet & topjet);
 
 //____________________________________________________________________________________________________
+double tau21(const TopJet & topjet);
+
+//____________________________________________________________________________________________________
 double tau32groomed(const TopJet & topjet);
+
+//____________________________________________________________________________________________________
+double tau21groomed(const TopJet & topjet);
 
 //____________________________________________________________________________________________________
 double mSD(const TopJet & topjet);
@@ -144,8 +151,21 @@ public:
   MuonScaleFactors(uhh2::Context & ctx);
   virtual bool process(uhh2::Event & event) override;
 private:
-  std::unique_ptr<AnalysisModule> sf_id;
-  // std::unique_ptr<AnalysisModule> sf_iso;
+  std::unique_ptr<uhh2::AnalysisModule> sf_id;
+  // std::unique_ptr<uhh2::AnalysisModule> sf_iso;
+};
+
+//____________________________________________________________________________________________________
+class LttTriggerSelection: public uhh2::Selection {
+public:
+  LttTriggerSelection(const uhh2::Context & ctx);
+  virtual bool passes(const uhh2::Event & event) override;
+private:
+  Year year;
+  std::unique_ptr<uhh2::Selection> slct_trigger_Mu50;
+  std::unique_ptr<uhh2::Selection> slct_trigger_TkMu50;
+  std::unique_ptr<uhh2::Selection> slct_trigger_OldMu100;
+  std::unique_ptr<uhh2::Selection> slct_trigger_TkMu100;
 };
 
 //____________________________________________________________________________________________________
@@ -154,7 +174,7 @@ public:
   TriggerScaleFactors(uhh2::Context & ctx);
   virtual bool process(uhh2::Event & event) override;
 private:
-  std::unique_ptr<AnalysisModule> sf_trig;
+  std::unique_ptr<uhh2::AnalysisModule> sf_trig;
 };
 
 //____________________________________________________________________________________________________

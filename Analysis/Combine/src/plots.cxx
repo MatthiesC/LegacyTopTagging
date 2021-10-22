@@ -58,22 +58,28 @@ typedef struct {
 const vector<Process> processes = {
 {"QCD_Mu", kAzure+10},
 {"TTbar_FullyMerged", kPink-3},
-{"TTbar_SemiMerged", kPink+4},
-// {"TTbar_WMerged", kPink+5},
+{"TTbar_YllufMerged", kPink+4},
+// {"TTbar_SemiMerged", kPink+4},
+// {"TTbar_WMerged", kPink+4},
 // {"TTbar_QBMerged", kPink+4},
-{"TTbar_BkgOrNotMerged", kPink-7},
+// {"TTbar_BkgOrNotMerged", kPink-7},
+// {"TTbar_NotFullyOrWMerged", kPink-7},
 // {"TTbar_NotMerged", kPink+5},
-// {"TTbar_Background", kPink+4},
+{"TTbar_Background", kPink-7},
 {"ST_FullyMerged", kOrange},
-{"ST_SemiMerged", kOrange-3},
+{"ST_YllufMerged", kOrange-3},
+// {"ST_SemiMerged", kOrange-3},
 // {"ST_WMerged", kOrange-3},
 // {"ST_QBMerged", kOrange+4},
-{"ST_BkgOrNotMerged", kOrange+4},
+// {"ST_BkgOrNotMerged", kOrange+4},
+// {"ST_NotFullyOrWMerged", kOrange+4},
 // {"ST_NotMerged", kOrange-3},
-// {"ST_Background", kOrange+4},
+{"ST_Background", kOrange+4},
 {"WJetsToLNu", kSpring-3},
 {"DYJetsToLLAndDiboson", kSpring-7},
 };
+
+
 
 const vector<string> syst_names = {
   "btaggingbc",
@@ -83,9 +89,13 @@ const vector<string> syst_names = {
   "scale",
   "pileup",
   "fsr",
-  "tageff3prong",
-  "tageff2prong",
-  "tageff1prong",
+  // "tageff3prong",
+  // "tageff2prong",
+  // "tageff1prong",
+  "tageffFully",
+  "tageffYlluf",
+  "tageffBkgrd",
+  // "tau21",
   "topptA",
   "topptB",
 };
@@ -189,7 +199,7 @@ double get_syst_unc_for_bin(const unsigned int ibin, TFile * rootFile, const str
 }
 
 
-TGraphAsymmErrors * get_stack_unc(const TH1F * last, TFile * rootFile, const string & folderName, const bool divide_by_bin_width, const double scale_factor) {
+TGraphAsymmErrors * get_stack_unc(const TH1F * last, TFile * rootFile, const string & folderName, const bool divide_by_bin_width, const double scale_factor, const double lumi_unc) {
   unsigned int n = last->GetNbinsX();
   double x[n], y[n], exl[n], eyl[n], exh[n], eyh[n];
   for(unsigned int i = 0; i < n; i++) {
@@ -197,9 +207,9 @@ TGraphAsymmErrors * get_stack_unc(const TH1F * last, TFile * rootFile, const str
     x[i] = last->GetBinCenter(ibin);
     y[i] = last->GetBinContent(ibin) * scale_factor;
     exl[i] = last->GetBinWidth(ibin) / 2.;
-    eyl[i] = scale_factor * TMath::Sqrt(TMath::Power(last->GetBinError(ibin)*(divide_by_bin_width ? last->GetBinWidth(ibin) : 1.), 2) + TMath::Power(get_syst_unc_for_bin(ibin, rootFile, folderName, "minus"), 2)) / (divide_by_bin_width ? last->GetBinWidth(ibin) : 1.);
+    eyl[i] = scale_factor * TMath::Sqrt(TMath::Power(last->GetBinError(ibin)*(divide_by_bin_width ? last->GetBinWidth(ibin) : 1.), 2) + TMath::Power(get_syst_unc_for_bin(ibin, rootFile, folderName, "minus"), 2) + TMath::Power(lumi_unc*last->GetBinContent(ibin)*(divide_by_bin_width ? last->GetBinWidth(ibin) : 1.), 2)) / (divide_by_bin_width ? last->GetBinWidth(ibin) : 1.);
     exh[i] = last->GetBinWidth(ibin) / 2.;
-    eyh[i] = scale_factor * TMath::Sqrt(TMath::Power(last->GetBinError(ibin)*(divide_by_bin_width ? last->GetBinWidth(ibin) : 1.), 2) + TMath::Power(get_syst_unc_for_bin(ibin, rootFile, folderName, "plus"), 2)) / (divide_by_bin_width ? last->GetBinWidth(ibin) : 1.);
+    eyh[i] = scale_factor * TMath::Sqrt(TMath::Power(last->GetBinError(ibin)*(divide_by_bin_width ? last->GetBinWidth(ibin) : 1.), 2) + TMath::Power(get_syst_unc_for_bin(ibin, rootFile, folderName, "plus"), 2) + TMath::Power(lumi_unc*last->GetBinContent(ibin)*(divide_by_bin_width ? last->GetBinWidth(ibin) : 1.), 2)) / (divide_by_bin_width ? last->GetBinWidth(ibin) : 1.);
   }
   return new TGraphAsymmErrors(n, x, y, exl, exh, eyl, eyh);
 }
@@ -302,6 +312,7 @@ typedef struct {
   TString fTextTopLeft = "???";
   TString fTextTopRight = "??? fb^{#minus1} (??? TeV)";
   TString fTextPrelim = "Work in Progress";
+  double fLumiUnc;
   bool fDivideByBinWidth = true;
 } PlotterArguments;
 
@@ -335,6 +346,7 @@ const map<TString, Variable> kVariables = {
   {"mass", Variable{"mass", "Probe jet #it{m}_{jet} [GeV]", "Events / GeV"}},
   {"mSD", Variable{"mSD", "Probe jet #it{m}_{SD} [GeV]", "Events / GeV"}},
   {"tau32", Variable{"tau32", "Probe jet #tau_{3}/#tau_{2}", "Events / unit"}},
+  // {"tau21", Variable{"tau21", "Probe jet #tau_{2}/#tau_{1}", "Events / unit"}},
   {"maxDeepCSV", Variable{"maxDeepCSV", "Max. #it{O}_{DeepCSV}^{prob(b)+prob(bb)} of probe subjets", "Events / unit"}},
   {"mpair", Variable{"mpair", "Min. #it{m}_{ij} [GeV] of leading three probe subjets", "Events / GeV"}},
   {"fpt1", Variable{"fpt1", "#it{p}_{T} fraction of leading probe subjet", "Events / unit"}},
@@ -433,7 +445,7 @@ void plotter(const PlotterArguments & args) {
 
   TGraphAsymmErrors *stack_totalunc = nullptr;
   if(args.fPlotType == PlotType::isPrefit) {
-    stack_totalunc = get_stack_unc((TH1F*)original_stack->GetStack()->Last(), rootFile, (string)folderName, divide_by_bin_width, total_scale_factor);
+    stack_totalunc = get_stack_unc((TH1F*)original_stack->GetStack()->Last(), rootFile, (string)folderName, divide_by_bin_width, total_scale_factor, args.fLumiUnc);
   }
   else if (args.fPlotType == PlotType::isCombPrefit || args.fPlotType == PlotType::isCombPostfit) {
     stack_totalunc = get_stack_unc_PrePostFitShapes(rootFile, (string)folderName, divide_by_bin_width, total_scale_factor);
@@ -750,8 +762,9 @@ void plotter(const PlotterArguments & args) {
   legend3->AddEntry((TObject*)0, "", "");
   legend3->AddEntry(leg_merged_singlet, "Fully merged", "f");
   // legend3->AddEntry(leg_wmerged_singlet, "W merged", "f");
-  legend3->AddEntry(leg_qbmerged_singlet, "Semi-merged", "f");
-  legend3->AddEntry(leg_unmerged_singlet, "Not merged", "f");
+  legend3->AddEntry(leg_qbmerged_singlet, "Not merged", "f"); // W merged
+  // legend3->AddEntry(leg_unmerged_singlet, "Not merged", "f");
+  legend3->AddEntry(leg_unmerged_singlet, "Background", "f");
   legend3->AddEntry((TObject*)0, "", "");
 
   legend3->Draw();
@@ -788,7 +801,7 @@ void plotter(const PlotterArguments & args) {
 
 PlotterArguments convert_arguments(int argc, char **argv) {
   unsigned int n(1);
-  if(argc != 9) {
+  if(argc != 10) {
     throw invalid_argument("Number of arguments not correct! Please check!");
   }
   PlotterArguments args{
@@ -800,6 +813,7 @@ PlotterArguments convert_arguments(int argc, char **argv) {
     .fTextTopLeft=argv[n++],
     .fTextTopRight=argv[n++],
     .fTextPrelim=argv[n++],
+    .fLumiUnc=std::stod(argv[n++]), // string to double
     .fDivideByBinWidth=true,
   };
   return args;

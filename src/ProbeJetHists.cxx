@@ -23,6 +23,11 @@ AK8ProbeJetHists::AK8ProbeJetHists(Context & ctx, const string & dirname, const 
   if(wp_variation_direction == "up") wp_variation += kWorkingPointVariation; // more events will fall into the pass category and less into the fail category since the WP is looser
   else if(wp_variation_direction == "down") wp_variation -= kWorkingPointVariation; // less events will fall into the pass category and more into the fail category since the WP is tighter
 
+  tau21_variation = 0;
+  const string tau21_variation_direction = ctx.get("SystDirection_Tau21", "nominal");
+  if(tau21_variation_direction == "up") tau21_variation += kTau21Variation; // more events will fall into the pass category and less into the fail category since the WP is looser
+  else if(tau21_variation_direction == "down") tau21_variation -= kTau21Variation; // less events will fall into the pass category and more into the fail category since the WP is tighter
+
   for(const auto & pt_bin : pt_bins) {
     const string & pt_bin_string = kPtBins.at(pt_bin).name;
     for(const auto & jet_cat : kJetCategoryAsString) {
@@ -40,6 +45,7 @@ AK8ProbeJetHists::AK8ProbeJetHists(Context & ctx, const string & dirname, const 
           hists.push_back(book<TH1F>((prefix+"mass").c_str(), "Probe jet #it{m}_{jet} [GeV]", 1000, 0, 500));
           hists.push_back(book<TH1F>((prefix+"mSD").c_str(), "Probe jet #it{m}_{SD} [GeV]", 1000, 0, 500));
           hists.push_back(book<TH1F>((prefix+"tau32").c_str(), "Probe jet #tau_{3}/#tau_{2}", 1000, 0, 1));
+          hists.push_back(book<TH1F>((prefix+"tau21").c_str(), "Probe jet #tau_{2}/#tau_{1}", 1000, 0, 1));
           hists.push_back(book<TH1F>((prefix+"maxDeepCSV").c_str(), "Max. #it{O}_{DeepCSV}^{prob(b)+prob(bb)} of probe subjets", 1000, 0, 1));
           hists.push_back(book<TH1F>((prefix+"nsub").c_str(), "Number of probe subjets", 11, -0.5, 10.5));
           hists_map[pt_bin][jet_cat.first][wp.first][pass_cat.first] = hists;
@@ -59,6 +65,7 @@ void AK8ProbeJetHists::fill_probe(const vector<TH1F*> & hists) {
   hists.at(i++)->Fill(probejet.v4().M(), w);
   hists.at(i++)->Fill(mSD(probejet), w);
   hists.at(i++)->Fill(tau32(probejet), w);
+  hists.at(i++)->Fill(tau21(probejet), w);
   hists.at(i++)->Fill(maxDeepCSVSubJetValue(probejet), w);
   hists.at(i++)->Fill(probejet.subjets().size(), w);
   if(i != hists.size()) throw range_error("AK8ProbeJetHists::fill_probe(): Number of declared and filled histograms do not match. Please check!");
@@ -84,6 +91,7 @@ void AK8ProbeJetHists::fill(const Event & event) {
       break;
     }
   }
+  const bool passes_tau21_cut = tau21(probejet) < kTau21Cut + tau21_variation;
 
   for(const auto & pt_bin : pt_bins) {
     if(probejet.v4().pt() < kPtBins.at(pt_bin).pt_min || probejet.v4().pt() > kPtBins.at(pt_bin).pt_max) continue;
@@ -91,16 +99,32 @@ void AK8ProbeJetHists::fill(const Event & event) {
       const bool passes_tau32_cut = tau32(probejet) < wp.second + wp_variation;
 
       if(passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::All][wp.first][PassCategory::Pass]);
-      else fill_probe(hists_map[pt_bin][JetCategory::All][wp.first][PassCategory::Fail]);
+      else {
+        fill_probe(hists_map[pt_bin][JetCategory::All][wp.first][PassCategory::Fail]);
+        if(passes_tau21_cut) fill_probe(hists_map[pt_bin][JetCategory::All][wp.first][PassCategory::PassW]);
+        else fill_probe(hists_map[pt_bin][JetCategory::All][wp.first][PassCategory::FailW]);
+      }
 
       if(passes_mass_cut && passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::Mass][wp.first][PassCategory::Pass]);
-      else fill_probe(hists_map[pt_bin][JetCategory::Mass][wp.first][PassCategory::Fail]);
+      else {
+        fill_probe(hists_map[pt_bin][JetCategory::Mass][wp.first][PassCategory::Fail]);
+        if(passes_tau21_cut) fill_probe(hists_map[pt_bin][JetCategory::Mass][wp.first][PassCategory::PassW]);
+        else fill_probe(hists_map[pt_bin][JetCategory::Mass][wp.first][PassCategory::FailW]);
+      }
 
       if(passes_btagging && passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::BTag][wp.first][PassCategory::Pass]);
-      else fill_probe(hists_map[pt_bin][JetCategory::BTag][wp.first][PassCategory::Fail]);
+      else {
+        fill_probe(hists_map[pt_bin][JetCategory::BTag][wp.first][PassCategory::Fail]);
+        if(passes_tau21_cut) fill_probe(hists_map[pt_bin][JetCategory::BTag][wp.first][PassCategory::PassW]);
+        else fill_probe(hists_map[pt_bin][JetCategory::BTag][wp.first][PassCategory::FailW]);
+      }
 
       if(passes_mass_cut && passes_btagging && passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::MassAndBTag][wp.first][PassCategory::Pass]);
-      else fill_probe(hists_map[pt_bin][JetCategory::MassAndBTag][wp.first][PassCategory::Fail]);
+      else {
+        fill_probe(hists_map[pt_bin][JetCategory::MassAndBTag][wp.first][PassCategory::Fail]);
+        if(passes_tau21_cut) fill_probe(hists_map[pt_bin][JetCategory::MassAndBTag][wp.first][PassCategory::PassW]);
+        else fill_probe(hists_map[pt_bin][JetCategory::MassAndBTag][wp.first][PassCategory::FailW]);
+      }
     }
   }
 }
@@ -115,6 +139,11 @@ HOTVRProbeJetHists::HOTVRProbeJetHists(Context & ctx, const string & dirname, co
   const string wp_variation_direction = ctx.get("SystDirection_WP", "nominal");
   if(wp_variation_direction == "up") wp_variation += kWorkingPointVariation; // more events will fall into the pass category and less into the fail category since the WP is looser
   else if(wp_variation_direction == "down") wp_variation -= kWorkingPointVariation; // less events will fall into the pass category and more into the fail category since the WP is tighter
+
+  tau21_variation = 0;
+  const string tau21_variation_direction = ctx.get("SystDirection_Tau21", "nominal");
+  if(tau21_variation_direction == "up") tau21_variation += kTau21Variation; // more events will fall into the pass category and less into the fail category since the WP is looser
+  else if(tau21_variation_direction == "down") tau21_variation -= kTau21Variation; // less events will fall into the pass category and more into the fail category since the WP is tighter
 
   for(const auto & pt_bin : pt_bins) {
     const string & pt_bin_string = kPtBins.at(pt_bin).name;
@@ -133,6 +162,7 @@ HOTVRProbeJetHists::HOTVRProbeJetHists(Context & ctx, const string & dirname, co
           hists.push_back(book<TH1F>((prefix+"mass").c_str(), "Probe jet #it{m}_{jet} [GeV]", 1000, 0, 500));
           hists.push_back(book<TH1F>((prefix+"mpair").c_str(), "Min. #it{m}_{ij} [GeV] of leading three probe subjets", 1000, 0, 250));
           hists.push_back(book<TH1F>((prefix+"tau32").c_str(), "Probe jet #tau_{3}/#tau_{2}", 1000, 0, 1));
+          hists.push_back(book<TH1F>((prefix+"tau21").c_str(), "Probe jet #tau_{2}/#tau_{1}", 1000, 0, 1));
           hists.push_back(book<TH1F>((prefix+"fpt1").c_str(), "#it{p}_{T} fraction of leading probe subjet", 1000, 0, 1));
           hists.push_back(book<TH1F>((prefix+"nsub").c_str(), "Number of probe subjets", 11, -0.5, 10.5));
           hists_map[pt_bin][jet_cat.first][wp.first][pass_cat.first] = hists;
@@ -152,6 +182,7 @@ void HOTVRProbeJetHists::fill_probe(const vector<TH1F*> & hists) {
   hists.at(i++)->Fill(probejet.v4().M(), w);
   hists.at(i++)->Fill(HOTVR_mpair(probejet, false), w);
   hists.at(i++)->Fill(tau32groomed(probejet), w);
+  hists.at(i++)->Fill(tau21groomed(probejet), w);
   hists.at(i++)->Fill(HOTVR_fpt(probejet), w);
   hists.at(i++)->Fill(probejet.subjets().size(), w);
   if(i != hists.size()) throw runtime_error("HOTVRProbeJetHists::fill_probe(): Number of declared and filled histograms do not match. Please check!");
@@ -169,6 +200,7 @@ void HOTVRProbeJetHists::fill(const Event & event) {
 
   const bool passes_mass_cut = (probejet.v4().M() > kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).mass_min && probejet.v4().M() < kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).mass_max);
   const bool passes_hotvr_cuts = HOTVRTopTagID(probejet, event);
+  const bool passes_tau21_cut = tau21groomed(probejet) < kTau21Cut + tau21_variation;
 
   for(const auto & pt_bin : pt_bins) {
     if(probejet.v4().pt() < kPtBins.at(pt_bin).pt_min || probejet.v4().pt() > kPtBins.at(pt_bin).pt_max) continue;
@@ -176,16 +208,32 @@ void HOTVRProbeJetHists::fill(const Event & event) {
       const bool passes_tau32_cut = tau32groomed(probejet) < wp.second + wp_variation;
 
       if(passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::All][wp.first][PassCategory::Pass]);
-      else fill_probe(hists_map[pt_bin][JetCategory::All][wp.first][PassCategory::Fail]);
+      else {
+        fill_probe(hists_map[pt_bin][JetCategory::All][wp.first][PassCategory::Fail]);
+        if(passes_tau21_cut) fill_probe(hists_map[pt_bin][JetCategory::All][wp.first][PassCategory::PassW]);
+        else fill_probe(hists_map[pt_bin][JetCategory::All][wp.first][PassCategory::FailW]);
+      }
 
       if(passes_mass_cut && passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::Mass][wp.first][PassCategory::Pass]);
-      else fill_probe(hists_map[pt_bin][JetCategory::Mass][wp.first][PassCategory::Fail]);
+      else {
+        fill_probe(hists_map[pt_bin][JetCategory::Mass][wp.first][PassCategory::Fail]);
+        if(passes_tau21_cut) fill_probe(hists_map[pt_bin][JetCategory::Mass][wp.first][PassCategory::PassW]);
+        else fill_probe(hists_map[pt_bin][JetCategory::Mass][wp.first][PassCategory::FailW]);
+      }
 
       if(passes_hotvr_cuts && passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::HOTVRCuts][wp.first][PassCategory::Pass]);
-      else fill_probe(hists_map[pt_bin][JetCategory::HOTVRCuts][wp.first][PassCategory::Fail]);
+      else {
+        fill_probe(hists_map[pt_bin][JetCategory::HOTVRCuts][wp.first][PassCategory::Fail]);
+        if(passes_tau21_cut) fill_probe(hists_map[pt_bin][JetCategory::HOTVRCuts][wp.first][PassCategory::PassW]);
+        else fill_probe(hists_map[pt_bin][JetCategory::HOTVRCuts][wp.first][PassCategory::FailW]);
+      }
 
       if(passes_mass_cut && passes_hotvr_cuts && passes_tau32_cut) fill_probe(hists_map[pt_bin][JetCategory::HOTVRCutsAndMass][wp.first][PassCategory::Pass]);
-      else fill_probe(hists_map[pt_bin][JetCategory::HOTVRCutsAndMass][wp.first][PassCategory::Fail]);
+      else {
+        fill_probe(hists_map[pt_bin][JetCategory::HOTVRCutsAndMass][wp.first][PassCategory::Fail]);
+        if(passes_tau21_cut) fill_probe(hists_map[pt_bin][JetCategory::HOTVRCutsAndMass][wp.first][PassCategory::PassW]);
+        else fill_probe(hists_map[pt_bin][JetCategory::HOTVRCutsAndMass][wp.first][PassCategory::FailW]);
+      }
     }
   }
 }

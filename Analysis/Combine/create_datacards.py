@@ -2,6 +2,7 @@
 
 import os
 import sys
+import argparse
 from collections import OrderedDict
 import itertools
 import ROOT as root
@@ -9,18 +10,29 @@ import subprocess
 from timeit import default_timer as timer
 import numpy as np
 import warnings
+import re
+
+from constants import years
 
 # https://twiki.cern.ch/twiki/bin/viewauth/CMS/TWikiLUM
-years = {
-    'UL17': {
-        'lumi': 41.53,
-        'lumi_unc': 0.023,
-    },
-    'UL18': {
-        'lumi': 59.74,
-        'lumi_unc': 0.025,
-    },
-}
+# years = {
+#     'UL17': {
+#         'lumi': 41.53,
+#         'lumi_unc': 0.023,
+#     },
+#     'UL18': {
+#         'lumi': 59.74,
+#         'lumi_unc': 0.025,
+#     },
+# }
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-y', '--year', choices=years.keys(), nargs=1)
+parser.add_argument('-p', '--reduced-pt-bins', action='store_true')
+parser.add_argument('-i', '--run-impacts', action='store_true')
+args = parser.parse_args(sys.argv[1:])
+
+arg_year = years.get(args.year[0])
 
 pt_intervals = {
     '200to250': {
@@ -48,24 +60,46 @@ pt_intervals = {
         # 'pt_max': np.inf,
         'pt_max': 1000.,
     },
+    '400toInf': {
+        'pt_min': 400.,
+        # 'pt_max': np.inf,
+        'pt_max': 1000.,
+    },
 }
 
-pt_bins = {
-    'AK8': [
-        'Pt300to400',
-        'Pt400to480',
-        'Pt480to600',
-        'Pt600toInf',
-    ],
-    'HOTVR': [
-        'Pt200to250',
-        'Pt250to300',
-        'Pt300to400',
-        'Pt400to480',
-        'Pt480to600',
-        'Pt600toInf',
-    ],
-}
+if args.reduced_pt_bins:
+    pt_bins = {
+        'AK8': [
+            'Pt300to400',
+            'Pt400toInf',
+        ],
+        'HOTVR': [
+            'Pt200to250',
+            'Pt250to300',
+            'Pt300to400',
+            # 'Pt400toInf',
+            'Pt400to480',
+            'Pt480to600',
+            'Pt600toInf',
+        ],
+    }
+else:
+    pt_bins = {
+        'AK8': [
+            'Pt300to400',
+            'Pt400to480',
+            'Pt480to600',
+            'Pt600toInf',
+        ],
+        'HOTVR': [
+            'Pt200to250',
+            'Pt250to300',
+            'Pt300to400',
+            'Pt400to480',
+            'Pt480to600',
+            'Pt600toInf',
+        ],
+    }
 
 jet_versions = {
     'AK8': [
@@ -96,8 +130,10 @@ wps = {
 }
 
 regions = [
-    'Pass',
-    'Fail',
+    'Pass', # passed tau32
+    'Fail', # failed tau32
+    # 'PassW', # failed tau32, passed tau21
+    # 'FailW',  # failed tau32, failed tau21
 ]
 
 base_processes = OrderedDict([ # processes not divided into merge categories, prior xsec uncertainty in percent
@@ -141,36 +177,44 @@ processes = OrderedDict([ # ids <= 0 represent signals
         'id': -107,
         'base_process': 'TTbar',
     }),
+    ('TTbar_Background', {
+        'id': 108,
+        'base_process': 'TTbar',
+    }),
     # ('ST', {
-    #     'id': 200,
+    #     'id': -200,
     #     'base_process': 'ST',
     # }),
     ('ST_FullyMerged', {
-        'id': 201,
+        'id': -201,
         'base_process': 'ST',
     }),
     # ('ST_SemiMerged', {
-    #     'id': 202,
+    #     'id': -202,
     #     'base_process': 'ST',
     # }),
     # ('ST_WMerged', {
-    #     'id': 203,
+    #     'id': -203,
     #     'base_process': 'ST',
     # }),
     # ('ST_QBMerged', {
-    #     'id': 204,
+    #     'id': -204,
     #     'base_process': 'ST',
     # }),
     # ('ST_BkgOrNotMerged', {
-    #     'id': 205,
+    #     'id': -205,
     #     'base_process': 'ST',
     # }),
     # ('ST_NotFullyOrWMerged', {
-    #     'id': 206,
+    #     'id': -206,
     #     'base_process': 'ST',
     # }),
     ('ST_YllufMerged', {
-        'id': 207,
+        'id': -207,
+        'base_process': 'ST',
+    }),
+    ('ST_Background', {
+        'id': 208,
         'base_process': 'ST',
     }),
     ('WJetsToLNu', {
@@ -198,12 +242,20 @@ systematics = [
     # 'tageff3prong',
     # 'tageff2prong',
     # 'tageff1prong',
-    # 'topptA',
-    # 'topptB',
+    # 'tageffFully',
+    # 'tageffYlluf',
+    # 'tageffBkgrd',
+    # 'tau21',
+    'topptA',
+    'topptB',
 ]
 
 global_categories = [
     'FullyMerged',
+    # 'SemiMerged',
+    # 'WMerged',
+    # 'BkgOrNotMerged',
+    # 'NotFullyOrWMerged',
     'YllufMerged',
 ]
 
@@ -238,10 +290,13 @@ class CombineTask:
     def __init__(self, year, algo, pt_bin, jet_version, wp, is_child_of_complex_task=False):
         self.Year = year
         # self.PtBin = pt_bin
+        self.Algo = algo
+        self.JetVersion = jet_version
+        self.WP = wp
         self.Name = '_'.join([algo, pt_bin, jet_version, wp])
         self.IsChild = is_child_of_complex_task
         print 'New CombineTask:', self.Name
-        self.WorkDir = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel', year, 'combine', algo, self.Name)
+        self.WorkDir = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel', year.get('short_name'), 'combine', algo, self.Name)
         print 'Work directory:', self.WorkDir
         if not os.path.isdir(self.WorkDir): sys.exit('Work directory does not exist. Abort.')
         self.LogDir = os.path.join(self.WorkDir, 'log')
@@ -256,7 +311,7 @@ class CombineTask:
             self.PrePostFitShapesPaths[x] = os.path.join(self.WorkDir, '_'.join([self.Name, 'prepostfitshapes_'+x+'.root']))
             self.PrePostFitShapesForPlotsPaths[x] = OrderedDict()
             for y in ['prefit', 'postfit']:
-                self.PrePostFitShapesForPlotsPaths[x][y] = self.PrePostFitShapesPaths.get(x).replace('.root', '_forPlots.root')
+                self.PrePostFitShapesForPlotsPaths[x][y] = self.PrePostFitShapesPaths.get(x).replace('.root', '_forPlots_'+y+'.root')
         self.ControlPlotsPath = os.path.join(self.WorkDir, 'plots')
         self.Variable = 'mSD' if algo=='AK8' else 'mass' if algo=='HOTVR' else None
         self.Channels = OrderedDict() # dict of dicts
@@ -382,7 +437,7 @@ class CombineTask:
             file.write('-'*42+'\n')
             #________________________________
             # Luminosity
-            file.write('_'.join(['lumi', self.Year])+' lnN'+(' '+str(1+years.get(self.Year).get('lumi_unc')))*len(self.Channels)*len(processes.keys())+'\n')
+            file.write('_'.join(['lumi', self.Year.get('short_name')])+' lnN'+(' '+str(1+self.Year.get('lumi_unc')))*len(self.Channels)*len(processes.keys())+'\n')
             # Cross sections (duplicate/colliding with rateParams? Matthias: yes)
             # Only use xsec uncertainty for backgrounds. Do not introduce xsec uncertainty for signal processes but let them float via rateParams (self.SignalRateParams)
             for base_process in base_processes.keys():
@@ -468,6 +523,9 @@ class CombineTask:
     def multidimfit(self, observed=False, freezeSyst=False, run=True):
         print 'Performing maximum-likelihood fit (MultiDimFit):', expobs(observed, False), ('with frozen systematics' if freezeSyst else '')
         command = 'combine -M MultiDimFit \\'
+        command += '-v 2 \\' # more verbosity
+        command += '--cminSingleNuisFit \\'
+        command += '--cminFallbackAlgo Minuit2,Simplex,0:0.1 \\' # fallback algorithm if default fails; see https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/part3/runningthetool/#generic-minimizer-options
         if freezeSyst:
             datacard_path = os.path.join(self.WorkDir, 'higgsCombine_'+expobs(observed)+'.MultiDimFit.mH120.root')
         else:
@@ -515,7 +573,7 @@ class CombineTask:
             outfile_paths.append(outfile_path)
             outfile = root.TFile.Open(outfile_path, 'RECREATE')
             for channel, channel_info in self.Channels.items():
-                target_folder = outfile.mkdir(channel)
+                target_folder = outfile.mkdir(channel[4:] if channel[:2] == 'ch' else channel)
                 target_folder.cd()
                 infile_folder = '_'.join([channel, p])
                 #________________________________
@@ -530,18 +588,49 @@ class CombineTask:
                 full_stack.Write('TotalProcs')
                 #________________________________
                 # Individual processes with full uncertainties
-                for process in self.Processes.keys():
-                    if self.Channels.get(channel).get('skip').get(process):
+                for process, skip in self.Channels.get(channel).get('skip').items():
+                    if skip:
                         # fill in empty histogram
                         process_hist = empty_histogram(channel_info.get('binning'))
                     else:
                         process_hist_raw = infile.Get(infile_folder+'/'+process)
                         process_hist = return_rebinned(process_hist_raw, channel_info.get('binning'))
-                    process_hist.Write(process)
+                    # hist_name = '_'.join(process.split('_')[:2]) if 'TTbar' in process else process
+                    hist_name = '_'.join(process.split('_')[:2]) if self.Processes.get(process).get('is_signal') else process
+                    process_hist.Write(hist_name)
             outfile.Close()
             print 'Wrote', outfile_path
         infile.Close()
         return outfile_paths
+
+    def plot_prepostfitshapes(self, observed=False, run=True):
+        print 'Plotting pre- and post-fit distributions:', expobs(observed, False)
+        file_path = os.path.join(self.WorkDir, 'plotting_commands_prepostfitshapes_'+expobs(observed)+'.txt')
+        with open(file_path, 'w') as file:
+            for p in ['prefit', 'postfit']:
+                for channel in self.Channels.keys():
+                    channel_name = channel[4:] if channel[:2] == 'ch' else channel
+                    newline = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/Analysis/Combine/bin', 'plots')+' '
+                    args = list()
+                    args.append(p+'Comb')
+                    args.append(self.PrePostFitShapesForPlotsPaths.get(expobs(observed)).get(p)) # rootFilePath
+                    args.append(channel_name) # folderName / channelName
+                    args.append(os.path.join(self.WorkDir, '..', 'plots'))
+                    args.append('__'.join([self.Algo, channel_name, p+'Comb.pdf']))
+                    args.append(self.Algo+' PUPPI')
+                    # args.append('''UL17, 41.5 fb^{#minus1} (13 TeV)''')
+                    args.append(self.Year.get('short_name')+''', '''+'''{:.1f}'''.format(self.Year.get('lumi_fb'))+''' fb^{#minus1} (13 TeV)''')
+                    args.append('Work in Progress')
+                    args.append(str(self.Year.get('lumi_unc'))) # not used for prefitComb and postfitComb plots, only for regular prefit plots; needs to be here so that plotting script has correct number of command line arguments
+                    for arg in args:
+                        arg = re.escape(arg)
+                        newline += ' '+arg
+                    newline += '\n'
+                    file.write(newline)
+        print 'Wrote', file_path
+        task_name = '_'.join(['plot_prepostfitshapes', expobs(observed)])
+        command = ' '.join(['python', os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/Analysis/Combine/parallel_threading.py'), file_path])
+        return self.combine_task(task_name, command, run)
 
     def impacts(self, observed=False, run=True, parallel=True):
         print 'Calculating nuisance parameter impacts:', expobs(observed, False)
@@ -595,27 +684,74 @@ class CombineTask:
         # Check out this link to learn how to extract post-fit nuisance parameter values from RooFitResult:
         # https://github.com/cms-analysis/HiggsAnalysis-CombinedLimit/blob/102x/src/MultiDimFit.cc#L434
         mdf_file = root.TFile.Open(os.path.join(self.WorkDir, 'multidimfit_'+expobs(observed)+'.root'), 'READ')
+        mdf_file_stat = root.TFile.Open(os.path.join(self.WorkDir, 'multidimfit_'+expobs(observed)+'_freezeSyst.root'), 'READ')
         fit_result = mdf_file.Get('fit_mdf') # RooFitResult
+        fit_result_stat = mdf_file_stat.Get('fit_mdf') # RooFitResult
         for poi_name in self.POIs.keys():
             rf = fit_result.floatParsFinal().find(poi_name)
+            rf_stat = fit_result_stat.floatParsFinal().find(poi_name)
             bestFitVal = rf.getVal()
+            if abs(bestFitVal - rf_stat.getVal()) > 0.01: # check if first fit and syst-frozen fit lead to approximately same central value
+                print 'bestFitVal regular:', bestFitVal
+                print 'bestFitVal frozenSyst:', rf_stat.getVal()
+                print 'difference:', bestFitVal - rf_stat.getVal()
+                print 'Warning: best-fit scale factor central values of regular fit and fit with frozen systematics differ from each other'
+            #________________________________
             hiErr = +(rf.getMax('err68') - bestFitVal if rf.hasRange('err68') else rf.getAsymErrorHi())
             loErr = -(rf.getMin('err68') - bestFitVal if rf.hasRange('err68') else rf.getAsymErrorLo())
             maxError = max(max(hiErr, loErr), rf.getError())
             if abs(hiErr) < 0.001*maxError:
-                print " Warning - No valid high-error found, will report difference to maximum of range for : ", rf.GetName()
-                hiErr = -bestFitVal + rf.getMax()
+                # print " Warning - No valid high-error found, will report difference to maximum of range for : ", rf.GetName()
+                # hiErr = -bestFitVal + rf.getMax()
+                print 'Warning: no valid asymmetric high-error found, will use getError() result'
+                hiErr = rf.getError()
             if abs(loErr) < 0.001*maxError:
-                print " Warning - No valid low-error found, will report difference to minimum of range for : ", rf.GetName()
-                loErr = +bestFitVal - rf.getMin()
+                # print " Warning - No valid low-error found, will report difference to minimum of range for : ", rf.GetName()
+                # loErr = +bestFitVal - rf.getMin()
+                print 'Warning: no valid asymmetric low-error found, will use getError() result'
+                loErr = rf.getError()
+            #________________________________
+            hiErr_stat = +(rf_stat.getMax('err68') - bestFitVal if rf_stat.hasRange('err68') else rf_stat.getAsymErrorHi())
+            loErr_stat = -(rf_stat.getMin('err68') - bestFitVal if rf_stat.hasRange('err68') else rf_stat.getAsymErrorLo())
+            maxError_stat = max(max(hiErr_stat, loErr_stat), rf_stat.getError())
+            if abs(hiErr_stat) < 0.001*maxError_stat:
+                # print " Warning - No valid high-error found, will report difference to maximum of range for : ", rf.GetName()
+                # hiErr_stat = -bestFitVal + rf_stat.getMax()
+                print 'Warning: no valid asymmetric high-error found, will use getError() result'
+                hiErr_stat = rf.getError()
+            if abs(loErr_stat) < 0.001*maxError_stat:
+                # print " Warning - No valid low-error found, will report difference to minimum of range for : ", rf.GetName()
+                # loErr_stat = +bestFitVal - rf_stat.getMin()
+                print 'Warning: no valid asymmetric low-error found, will use getError() result'
+                loErr_stat = rf.getError()
+            #________________________________
             self.POIs.get(poi_name)[expobs(observed)] = OrderedDict()
             self.POIs.get(poi_name).get(expobs(observed))['bestFitVal'] = bestFitVal
             self.POIs.get(poi_name).get(expobs(observed))['loErr'] = loErr
             self.POIs.get(poi_name).get(expobs(observed))['hiErr'] = hiErr
-            # print poi_name, ":", bestFitVal, "-", loErr, "/ +", hiErr
-            print "  "+poi_name+":  {:.3f}  -{:.3f} / +{:.3f}".format(bestFitVal, loErr, hiErr)
-        self.sf_file_path = os.path.join(self.WorkDir, 'scale_factors_'+expobs(observed)+'.root')
-        sf_file = root.TFile.Open(self.sf_file_path, 'RECREATE')
+            self.POIs.get(poi_name).get(expobs(observed))['loErr_stat'] = loErr_stat
+            self.POIs.get(poi_name).get(expobs(observed))['hiErr_stat'] = hiErr_stat
+            loErr_syst = loErr*loErr - loErr_stat*loErr_stat
+            if loErr_syst >= 0:
+                loErr_syst = root.TMath.Sqrt(loErr_syst)
+            else:
+                print 'Warning: lower total error smaller than lower statistical component; something went wrong! Lower systematic component set to zero'
+                loErr_syst = 0
+            hiErr_syst = hiErr*hiErr - hiErr_stat*hiErr_stat
+            if hiErr_syst >= 0:
+                hiErr_syst = root.TMath.Sqrt(hiErr_syst)
+            else:
+                print 'Warning: upper total error smaller than upper statistical component; something went wrong! Upper systematic component set to zero'
+                hiErr_syst = 0
+            self.POIs.get(poi_name).get(expobs(observed))['loErr_syst'] = loErr_syst
+            self.POIs.get(poi_name).get(expobs(observed))['hiErr_syst'] = hiErr_syst
+            print "  {:55s}:  {:.3f}  -{:.3f} / +{:.3f} (tot.)  [ -{:.3f} / +{:.3f} (stat.)  |  -{:.3f} / +{:.3f} (syst.) ]".format(poi_name, bestFitVal, loErr, hiErr, loErr_stat, hiErr_stat, loErr_syst, hiErr_syst)
+        sf_file_path = os.path.join(self.WorkDir, 'scale_factors_'+expobs(observed)+'.root')
+        if observed:
+            self.sf_file_path_obs = sf_file_path
+        else:
+            self.sf_file_path_exp = sf_file_path
+        sf_file = root.TFile.Open(sf_file_path, 'RECREATE')
         sf_file.cd()
         for cat in global_categories:
             x = []
@@ -624,6 +760,10 @@ class CombineTask:
             exh = []
             eyl = []
             eyh = []
+            eyl_stat = []
+            eyh_stat = []
+            eyl_syst = []
+            eyh_syst = []
             for poi_name, poi_info in self.POIs.items():
                 if cat not in poi_name:
                     continue
@@ -652,38 +792,54 @@ class CombineTask:
                 y.append(poi_info.get(expobs(observed))['bestFitVal'])
                 eyl.append(poi_info.get(expobs(observed))['loErr'])
                 eyh.append(poi_info.get(expobs(observed))['hiErr'])
+                eyl_stat.append(poi_info.get(expobs(observed))['loErr_stat'])
+                eyh_stat.append(poi_info.get(expobs(observed))['hiErr_stat'])
+                eyl_syst.append(poi_info.get(expobs(observed))['loErr_syst'])
+                eyh_syst.append(poi_info.get(expobs(observed))['hiErr_syst'])
             sf_graph = root.TGraphAsymmErrors(len(x), np.array(x), np.array(y), np.array(exl), np.array(exh), np.array(eyl), np.array(eyh))
-            sf_graph.Write(cat)
-        print 'Wrote', self.sf_file_path
+            sf_graph_stat = root.TGraphAsymmErrors(len(x), np.array(x), np.array(y), np.array(exl), np.array(exh), np.array(eyl_stat), np.array(eyh_stat))
+            sf_graph_syst = root.TGraphAsymmErrors(len(x), np.array(x), np.array(y), np.array(exl), np.array(exh), np.array(eyl_syst), np.array(eyh_syst))
+            sf_graph.Write(cat+'_tot')
+            sf_graph_stat.Write(cat+'_stat')
+            sf_graph_syst.Write(cat+'_syst')
+        print 'Wrote', sf_file_path
 
     def run_all(self):
         # self.write_rootfile()
         # self.write_datacard()
         # self.create_workspace()
+
         # Expected:
-        self.generate_toys()
-        self.multidimfit()
-        self.multidimfit(freezeSyst=True)
-        self.write_scale_factor_file()
+        # self.generate_toys()
+        # self.multidimfit()
+        # self.multidimfit(freezeSyst=True)
+        # self.write_scale_factor_file()
         # self.prepostfitshapes()
         # self.prepostfitshapes_for_plots()
-        # self.impacts()
+        if args.run_impacts:
+            self.impacts()
+
         # Observed:
-        self.multidimfit(True)
-        self.multidimfit(True, freezeSyst=True)
+        # self.multidimfit(True)
+        # self.multidimfit(True, freezeSyst=True)
         self.write_scale_factor_file(True)
         # self.prepostfitshapes(True)
         # self.prepostfitshapes_for_plots(True)
-        # self.impacts(True)
+        # self.plot_prepostfitshapes(True)
+        if args.run_impacts:
+            self.impacts(True)
 
 
 class ComplexCombineTask(CombineTask):
 
     def __init__(self, year, algo, jet_version, wp):
         self.Year = year
+        self.Algo = algo
+        self.JetVersion = jet_version
+        self.WP = wp
         self.Name = '_'.join([algo, 'PtAll', jet_version, wp])
         print 'New ComplexCombineTask:', self.Name
-        self.WorkDir = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel', year, 'combine', algo, self.Name)
+        self.WorkDir = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel', year.get('short_name'), 'combine', algo, self.Name)
         os.system('mkdir -p '+self.WorkDir)
         print 'Work directory:', self.WorkDir
         self.LogDir = os.path.join(self.WorkDir, 'log')
@@ -695,19 +851,25 @@ class ComplexCombineTask(CombineTask):
             self.PrePostFitShapesPaths[x] = os.path.join(self.WorkDir, '_'.join([self.Name, 'prepostfitshapes_'+x+'.root']))
             self.PrePostFitShapesForPlotsPaths[x] = OrderedDict()
             for y in ['prefit', 'postfit']:
-                self.PrePostFitShapesForPlotsPaths[x][y] = self.PrePostFitShapesPaths.get(x).replace('.root', '_forPlots.root')
+                self.PrePostFitShapesForPlotsPaths[x][y] = self.PrePostFitShapesPaths.get(x).replace('.root', '_forPlots_'+y+'.root')
         self.ControlPlotsPath = os.path.join(self.WorkDir, 'plots')
         self.Variable = 'mSD' if algo=='AK8' else 'mass' if algo=='HOTVR' else None
         # self.Channels = list()
+        self.Channels = OrderedDict()
         self.Processes = OrderedDict()
         self.SignalRateParams = OrderedDict()
         self.POIs = OrderedDict()
         self.ChildCombineTasks = list()
         for pt_bin in pt_bins.get(algo): # for now, a ComplexCombineTask is a simultaneous CombineTask in all pt_bins
             self.ChildCombineTasks.append(CombineTask(year, algo, pt_bin, jet_version, wp, True))
+        number_of_ccts = 0
         for cct in self.ChildCombineTasks:
+            number_of_ccts += 1
             cct.write_rootfile()
             cct.write_datacard()
+            for channel, channel_info in cct.Channels.items():
+                channel_name = 'ch'+str(number_of_ccts)+'_'+channel # after datacard combination, channels have prefixes like 'ch1_', 'ch1_', 'ch2_', 'ch2_',  etc.
+                self.Channels[channel_name] = channel_info
             for process in cct.Processes.keys():
                  # Processes like WJets will be called multiple times here, but in the end this dict will contain
                  # it only once. On the other hand, the TTbar signal processes will be truly unique per pt_bin
@@ -768,16 +930,40 @@ all_tasks = [OrderedDict([
 
 # print all_tasks
 #
-# for task in all_tasks:
-#     c = ComplexCombineTask('UL17', task.get('probejet_coll'), task.get('jet_version'), task.get('wp'))
-#     c.write_datacard()
-#     c.create_workspace()
-#     c.run_all()
 
-c = ComplexCombineTask('UL17', 'HOTVR', 'HOTVRCuts', 'Standard')
-c.write_datacard()
-c.create_workspace()
-c.run_all()
+all_tasks = [
+OrderedDict([('probejet_coll', 'AK8'), ('jet_version', 'All'), ('wp', 'BkgEff0p001')]),
+OrderedDict([('probejet_coll', 'AK8'), ('jet_version', 'All'), ('wp', 'BkgEff0p005')]),
+OrderedDict([('probejet_coll', 'AK8'), ('jet_version', 'All'), ('wp', 'BkgEff0p010')]),
+OrderedDict([('probejet_coll', 'AK8'), ('jet_version', 'All'), ('wp', 'BkgEff0p025')]),
+OrderedDict([('probejet_coll', 'AK8'), ('jet_version', 'All'), ('wp', 'BkgEff0p050')]),
+OrderedDict([('probejet_coll', 'AK8'), ('jet_version', 'BTag'), ('wp', 'BkgEff0p001')]),
+OrderedDict([('probejet_coll', 'AK8'), ('jet_version', 'BTag'), ('wp', 'BkgEff0p005')]),
+OrderedDict([('probejet_coll', 'AK8'), ('jet_version', 'BTag'), ('wp', 'BkgEff0p010')]),
+OrderedDict([('probejet_coll', 'AK8'), ('jet_version', 'BTag'), ('wp', 'BkgEff0p025')]),
+OrderedDict([('probejet_coll', 'AK8'), ('jet_version', 'BTag'), ('wp', 'BkgEff0p050')]),
+OrderedDict([('probejet_coll', 'HOTVR'), ('jet_version', 'HOTVRCuts'), ('wp', 'Standard')])
+]
+
+tasks = []
+
+for task in all_tasks:
+    c = ComplexCombineTask(arg_year, task.get('probejet_coll'), task.get('jet_version'), task.get('wp'))
+    c.write_datacard()
+    c.create_workspace()
+    c.run_all()
+    # if args.run_impacts:
+    #     c.impacts()
+    #     c.impacts(True)
+    tasks.append(c)
+
+from combine_scale_factor_files import combine_scale_factor_files
+combine_scale_factor_files(tasks)
+
+# c = ComplexCombineTask('UL17', 'HOTVR', 'HOTVRCuts', 'Standard')
+# c.write_datacard()
+# c.create_workspace()
+# c.run_all()
 
 
 

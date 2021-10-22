@@ -162,4 +162,7 @@ const WorkingPointMap kWorkingPointsAK8_old = {
 
 const double kWorkingPointVariation = 0.02;
 
+const double kTau21Cut = 0.45;
+const double kTau21Variation = 0.02;
+
 }}

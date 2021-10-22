@@ -20,6 +20,8 @@ protected:
   enum class PassCategory {
     Pass,
     Fail,
+    PassW,
+    FailW,
   };
 
   enum class JetCategory {
@@ -50,10 +52,13 @@ private:
   FlavorParticle primlep;
   double w;
   double wp_variation;
+  double tau21_variation;
 
   std::map<PassCategory, std::string> kPassCategoryAsString = {
     {PassCategory::Pass, "Pass"},
     {PassCategory::Fail, "Fail"},
+    {PassCategory::PassW, "PassW"},
+    {PassCategory::FailW, "FailW"},
   };
 
   std::map<JetCategory, std::string> kJetCategoryAsString = {
@@ -73,6 +78,8 @@ protected:
   enum class PassCategory {
     Pass,
     Fail,
+    PassW,
+    FailW,
   };
 
   enum class JetCategory {
@@ -102,10 +109,13 @@ private:
   FlavorParticle primlep;
   double w;
   double wp_variation;
+  double tau21_variation;
 
   std::map<PassCategory, std::string> kPassCategoryAsString = {
     {PassCategory::Pass, "Pass"},
     {PassCategory::Fail, "Fail"},
+    {PassCategory::PassW, "PassW"},
+    {PassCategory::FailW, "FailW"},
   };
 
   std::map<JetCategory, std::string> kJetCategoryAsString = {

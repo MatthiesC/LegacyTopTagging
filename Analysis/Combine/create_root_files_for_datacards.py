@@ -15,6 +15,8 @@ import re
 
 from parallel_threading import run_with_pool
 
+from constants import years
+
 
 pt_bins = {
     'AK8': [
@@ -23,7 +25,7 @@ pt_bins = {
         'Pt400to480',
         'Pt480to600',
         'Pt600toInf',
-        # 'Pt400toInf',
+        'Pt400toInf',
     ],
     'HOTVR': [
         'Pt200toInf', # needs to be first place, see function set_variables below
@@ -34,22 +36,22 @@ pt_bins = {
         'Pt480to600',
         'Pt600toInf',
         # 'Pt300toInf',
-        # 'Pt400toInf',
+        'Pt400toInf',
     ],
 }
 
 jet_versions = {
     'AK8': [
         'All',
-        'Mass',
+        # 'Mass',
         'BTag',
-        'MassAndBTag',
+        # 'MassAndBTag',
     ],
     'HOTVR': [
         'All',
         # 'Mass',
         'HOTVRCuts',
-        'HOTVRCutsAndMass',
+        # 'HOTVRCutsAndMass',
     ],
 }
 
@@ -71,6 +73,8 @@ wps = {
 regions = [
     'Pass',
     'Fail',
+    # 'PassW',
+    # 'FailW',
 ]
 
 variables = {
@@ -82,6 +86,7 @@ variables = {
         'mass',
         'mSD',
         'tau32',
+        'tau21',
         'maxDeepCSV',
         'nsub',
     ],
@@ -93,6 +98,7 @@ variables = {
         'mass',
         'mpair',
         'tau32',
+        'tau21',
         'fpt1',
         'nsub',
     ],
@@ -132,6 +138,8 @@ systs = OrderedDict([ # naming used in file path names: naming used for combine 
     # ('ps_ISRup_2', 'isrUp'),
     ('wp_down', None),
     ('wp_up', None),
+    # ('tau21_down', 'tau21Down'),
+    # ('tau21_up', 'tau21Up'),
     ('toppt_a_up', 'topptAUp'),
     ('toppt_a_down', 'topptADown'),
     ('toppt_b_up', 'topptBUp'),
@@ -142,24 +150,24 @@ processes = OrderedDict([ # naming used in root file names: naming used for comb
     ### TTbar
     ('TTbar__AllMergeScenarios', 'TTbar'),
     ('TTbar__FullyMerged', 'TTbar_FullyMerged'),
-    ('TTbar__WMerged', 'TTbar_WMerged'),
-    ('TTbar__QBMerged', 'TTbar_QBMerged'),
-    ('TTbar__SemiMerged', 'TTbar_SemiMerged'),
-    ('TTbar__BkgOrNotMerged', 'TTbar_BkgOrNotMerged'),
-    ('TTbar__NotFullyOrWMerged', 'TTbar_NotFullyOrWMerged'),
+    # ('TTbar__WMerged', 'TTbar_WMerged'),
+    # ('TTbar__QBMerged', 'TTbar_QBMerged'),
+    # ('TTbar__SemiMerged', 'TTbar_SemiMerged'),
+    # ('TTbar__BkgOrNotMerged', 'TTbar_BkgOrNotMerged'),
+    # ('TTbar__NotFullyOrWMerged', 'TTbar_NotFullyOrWMerged'),
     ('TTbar__YllufMerged', 'TTbar_YllufMerged'),
-    ('TTbar__NotMerged', 'TTbar_NotMerged'),
+    # ('TTbar__NotMerged', 'TTbar_NotMerged'),
     ('TTbar__Background', 'TTbar_Background'),
     ### Single Top
     ('ST__AllMergeScenarios', 'ST'),
     ('ST__FullyMerged', 'ST_FullyMerged'),
-    ('ST__WMerged', 'ST_WMerged'),
-    ('ST__QBMerged', 'ST_QBMerged'),
-    ('ST__SemiMerged', 'ST_SemiMerged'),
-    ('ST__BkgOrNotMerged', 'ST_BkgOrNotMerged'),
-    ('ST__NotFullyOrWMerged', 'ST_NotFullyOrWMerged'),
+    # ('ST__WMerged', 'ST_WMerged'),
+    # ('ST__QBMerged', 'ST_QBMerged'),
+    # ('ST__SemiMerged', 'ST_SemiMerged'),
+    # ('ST__BkgOrNotMerged', 'ST_BkgOrNotMerged'),
+    # ('ST__NotFullyOrWMerged', 'ST_NotFullyOrWMerged'),
     ('ST__YllufMerged', 'ST_YllufMerged'),
-    ('ST__NotMerged', 'ST_NotMerged'),
+    # ('ST__NotMerged', 'ST_NotMerged'),
     ('ST__Background', 'ST_Background'),
     ### Other
     ('WJetsToLNu', 'WJetsToLNu'),
@@ -168,7 +176,13 @@ processes = OrderedDict([ # naming used in root file names: naming used for comb
     ### Data is handeled manually in the code below
 ])
 
-inputBaseDir = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel/UL17')
+parser = argparse.ArgumentParser()
+parser.add_argument('-y', '--year', choices=years.keys(), nargs=1)
+args = parser.parse_args(sys.argv[1:])
+
+year = years.get(args.year[0])
+
+inputBaseDir = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel', year.get('short_name'))
 fileNamePrefix = 'uhh2.AnalysisModuleRunner.'
 
 dict_inputFiles = OrderedDict()
@@ -197,7 +211,8 @@ def hist_preprocessing(histo, variable):
         # rebinning_scheme = np.array([0, 10, 25, 40, 55, 70, 85, 100, 115, 130, 145, 160, 175, 190, 210, 235, 270, 310, 350, 390, 450, 500], dtype=float) # Dennis' bins
         # Ensure to have bin edges 105, 140, 210, 220 available (for HOTVR/AK8 mass efficiency calculation)
         # rebinning_scheme = np.array([0, 10, 25, 40, 55, 70, 80, 90, 105, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 250, 275, 300, 350, 400, 450, 500], dtype=float) # before July 15, 2021
-        rebinning_scheme = np.array([0, 10, 25, 40, 55, 70, 85, 105, 120, 140, 155, 170, 185, 200, 210, 220, 230, 250, 275, 300, 350, 400, 450, 500], dtype=float)
+        # rebinning_scheme = np.array([0, 10, 25, 40, 55, 70, 85, 105, 120, 140, 155, 170, 185, 200, 210, 220, 230, 250, 275, 300, 350, 400, 450, 500], dtype=float) # before September 13, 2021
+        rebinning_scheme = np.array([50, 70, 85, 105, 120, 140, 155, 170, 185, 200, 210, 220, 230, 250, 275, 300, 350, 400, 450, 500], dtype=float)
         # rebinning_scheme = np.array([0, 10, 25, 50, 70, 90, 105, 120, 140, 160, 180, 195, 210, 220, 240, 270, 300, 350, 400, 450, 500], dtype=float)
         new_histo = new_histo.Rebin(len(rebinning_scheme)-1, 'hnew', rebinning_scheme)
     # if variable == 'mSD':
@@ -309,14 +324,23 @@ def create_input_histograms(probejet_coll, pt_bin, jet_version, wp, vars):
                 target_folder.cd()
                 inputHist_muScale_Down.Write('_'.join([processes.get(proc), 'scaleDown']))
                 inputHist_muScale_Up.Write('_'.join([processes.get(proc), 'scaleUp']))
-                ## Tagging efficiency by number of prongs:
-                is_3prong = 'FullyMerged' in proc
-                is_2prong = ('WMerged' in proc and not 'NotFullyOrWMerged' in proc) or 'QBMerged' in proc or 'SemiMerged' in proc
-                is_1prong = not (is_3prong or is_2prong)
+                # ## Tagging efficiency by number of prongs:
+                # is_3prong = 'FullyMerged' in proc
+                # is_2prong = ('WMerged' in proc and not 'NotFullyOrWMerged' in proc) or 'QBMerged' in proc or 'SemiMerged' in proc
+                # is_1prong = not (is_3prong or is_2prong)
+                # prong_types = OrderedDict([
+                #     ('3prong', {'bool': is_3prong, 'eff_variation': 0.05}), # https://github.com/UHH2/TopTagging2018/blob/master/src/ProbeJetHists.cxx#L122
+                #     ('2prong', {'bool': is_2prong, 'eff_variation': 0.1}),
+                #     ('1prong', {'bool': is_1prong, 'eff_variation': 0.1}),
+                # ])
+                ## Tagging efficiency by merge category:
+                is_Fully = 'FullyMerged' in proc
+                is_Ylluf = 'YllufMerged' in proc
+                is_Bkgrd = not (is_Fully or is_Ylluf)
                 prong_types = OrderedDict([
-                    ('3prong', {'bool': is_3prong, 'eff_variation': 0.05}), # https://github.com/UHH2/TopTagging2018/blob/master/src/ProbeJetHists.cxx#L122
-                    ('2prong', {'bool': is_2prong, 'eff_variation': 0.1}),
-                    ('1prong', {'bool': is_1prong, 'eff_variation': 0.1}),
+                    ('Fully', {'bool': is_Fully, 'eff_variation': 0.05}), # https://github.com/UHH2/TopTagging2018/blob/master/src/ProbeJetHists.cxx#L122
+                    ('Ylluf', {'bool': is_Ylluf, 'eff_variation': 0.1}),
+                    ('Bkgrd', {'bool': is_Bkgrd, 'eff_variation': 0.1}),
                 ])
                 for prong_type in prong_types.keys():
                     use_wp_variation = True; # switch how to implement the "prong tagging efficiency uncertainty"
@@ -335,7 +359,8 @@ def create_input_histograms(probejet_coll, pt_bin, jet_version, wp, vars):
                         if region == 'Pass':
                             inputHist_prong_Down.Scale(1.-eff_variation)
                             inputHist_prong_Up.Scale(1.+eff_variation)
-                        elif region == 'Fail':
+                        # elif region == 'Fail':
+                        elif region in ['Fail', 'PassW', 'FailW']:
                             inputHist_prong_Down.Scale(1.+eff_variation)
                             inputHist_prong_Up.Scale(1.-eff_variation)
                     target_folder.cd()
@@ -420,8 +445,10 @@ def write_file_with_plotting_commands(fileName, list_of_histograms):
             args.append(os.path.join('/'.join(h[0].split('/')[0:-2]), 'plots'))
             args.append('__'.join([probejet_coll, h[1], 'prefit.pdf']))
             args.append(probejet_collections.get(probejet_coll)+' PUPPI')
-            args.append('''UL17, 41.5 fb^{#minus1} (13 TeV)''')
+            # args.append('''{}, {:.1f} fb^{#minus1} (13 TeV)'''.format(year.get('short_name'), year.get('lumi_fb')))
+            args.append(year.get('short_name')+''', '''+'''{:.1f}'''.format(year.get('lumi_fb'))+''' fb^{#minus1} (13 TeV)''')
             args.append('Work in Progress')
+            args.append(str(year.get('lumi_unc')))
             for arg in args:
                 arg = re.escape(arg)
                 newline += ' '+arg
@@ -430,4 +457,4 @@ def write_file_with_plotting_commands(fileName, list_of_histograms):
     print 'Wrote', filePath
 # print rootFileNames_and_channelNames_flattened
 print len(rootFileNames_and_channelNames_flattened)
-write_file_with_plotting_commands('workfile_plotting_commands_prefit.txt', rootFileNames_and_channelNames_flattened)
+write_file_with_plotting_commands('workfile_plotting_commands_prefit_'+year.get('short_name')+'.txt', rootFileNames_and_channelNames_flattened)

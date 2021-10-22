@@ -16,8 +16,18 @@ double tau32(const TopJet & topjet) {
 }
 
 //____________________________________________________________________________________________________
+double tau21(const TopJet & topjet) {
+  return min((double)(topjet.tau2() / topjet.tau1()), 0.99999);
+}
+
+//____________________________________________________________________________________________________
 double tau32groomed(const TopJet & topjet) {
   return min((double)(topjet.tau3_groomed() / topjet.tau2_groomed()), 0.99999);
+}
+
+//____________________________________________________________________________________________________
+double tau21groomed(const TopJet & topjet) {
+  return min((double)(topjet.tau2_groomed() / topjet.tau1_groomed()), 0.99999);
 }
 
 //____________________________________________________________________________________________________
@@ -180,7 +190,35 @@ bool MuonScaleFactors::process(Event & event) {
 
 //____________________________________________________________________________________________________
 // Twiki: https://twiki.cern.ch/twiki/bin/view/CMS/MuonUL201{6,7,8}
+LttTriggerSelection::LttTriggerSelection(const Context & ctx) {
+  year = extract_year(ctx);
+  slct_trigger_Mu50.reset(new TriggerSelection("HLT_Mu50_v*"));
+  slct_trigger_TkMu50.reset(new TriggerSelection("HLT_TkMu50_v*"));
+  slct_trigger_OldMu100.reset(new TriggerSelection("HLT_OldMu100_v*"));
+  slct_trigger_TkMu100.reset(new TriggerSelection("HLT_TkMu100_v*"));
+}
+
+bool LttTriggerSelection::passes(const Event & event) {
+  if(year == Year::isUL16preVFP || year == Year::isUL16postVFP) {
+    if(slct_trigger_Mu50->passes(event) || slct_trigger_TkMu50->passes(event)) {
+      return true;
+    }
+  }
+  else if(year == Year::isUL17 || year == Year::isUL18) {
+    if(slct_trigger_Mu50->passes(event) || slct_trigger_OldMu100->passes(event) || slct_trigger_TkMu100->passes(event)) {
+      return true;
+    }
+  }
+  else {
+    throw runtime_error("uhh2::ltt::LttTriggerSelection::passes(): No trigger paths given for this year");
+  }
+  return true;
+}
+
+//____________________________________________________________________________________________________
+// Twiki: https://twiki.cern.ch/twiki/bin/view/CMS/MuonUL201{6,7,8}
 // SF files: https://gitlab.cern.ch/cms-muonPOG/muonefficiencies/-/tree/master/Run2/UL
+// The centrally provided scale factors are derived for the trigger paths given in uhh2::ltt::TriggerSelection, using the HighPt muon ID. However, we use the tight muon ID in this analysis. Be aware of that!
 TriggerScaleFactors::TriggerScaleFactors(Context & ctx) {
   const string filepath = ctx.get("TriggerScaleFactorFile");
   const string histname = ctx.get("TriggerScaleFactorHist");

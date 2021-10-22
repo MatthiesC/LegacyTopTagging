@@ -57,6 +57,13 @@ class LegacyTopTaggingModel(PhysicsModel):
         else:
             return 'dummy'
 
+    def getRegionFromBin(self, bin):
+        split = bin.split('_')
+        for s in split:
+            if 'fail' in s.lower() or 'pass' in s.lower():
+                return s
+        return 'Region not identified'
+
     def doParametersOfInterest(self):
         '''Create POI and other parameters, and define the POI set.'''
         pois = []
@@ -64,24 +71,36 @@ class LegacyTopTaggingModel(PhysicsModel):
         # Get the expected ('prefit') yields of signal processes
         exp_pass = dict()
         exp_fail = dict()
+        exp_passW = dict()
+        exp_failW = dict()
         # expected_yields = dict()
         print self.DC.bins
         for bin in self.DC.bins:
             task = self.getTaskFromBin(bin)
-            if 'pass' in bin.lower():
+            if self.getRegionFromBin(bin) == 'Pass':
                 exp_pass[task] = dict()
-            elif 'fail' in bin.lower():
+            elif self.getRegionFromBin(bin) == 'Fail':
                 exp_fail[task] = dict()
+            elif self.getRegionFromBin(bin) == 'PassW':
+                exp_passW[task] = dict()
+            elif self.getRegionFromBin(bin) == 'FailW':
+                exp_failW[task] = dict()
             # expected_yields[bin] = dict()
             for process in self.DC.exp.get(bin).keys():
                 # expected_yields[bin][process] = self.DC.exp.get(bin).get(process)
                 cat = self.getProcessCategory(process)
-                if 'pass' in bin.lower():
+                if self.getRegionFromBin(bin) == 'Pass':
                     exp_pass[task][cat] = self.DC.exp.get(bin).get(process)
-                elif 'fail' in bin.lower():
+                elif self.getRegionFromBin(bin) == 'Fail':
                     exp_fail[task][cat] = self.DC.exp.get(bin).get(process)
-        print exp_pass
-        print exp_fail
+                elif self.getRegionFromBin(bin) == 'PassW':
+                    exp_passW[task][cat] = self.DC.exp.get(bin).get(process)
+                elif self.getRegionFromBin(bin) == 'FailW':
+                    exp_failW[task][cat] = self.DC.exp.get(bin).get(process)
+        print 'exp_pass:', exp_pass
+        print 'exp_fail:', exp_fail
+        print 'exp_passW:', exp_passW
+        print 'exp_failW:', exp_failW
         if self.tasks:
             for task in self.tasks:
                 #________________________________
@@ -109,6 +128,7 @@ class LegacyTopTaggingModel(PhysicsModel):
                     self.modelBuilder.factory_(
                         # 'expr::{antisf_name}("max(0.,1.+(1.-@0)*{N_pass}/{N_fail})", {sf_name})'.format(antisf_name=antisf_name, N_pass=exp_pass.get(cat), N_fail=exp_fail.get(cat), sf_name=sf_name)
                         'expr::{antisf_name}("max(0.,1.+(1.-@0)*{N_pass}/{N_fail})", {sf_name})'.format(antisf_name=antisf_name, N_pass=exp_pass.get(task).get(cat), N_fail=exp_fail.get(task).get(cat), sf_name=sf_name)
+                        # 'expr::{antisf_name}("max(0.,1.+(1.-@0)*{N_pass}/{N_fail})", {sf_name})'.format(antisf_name=antisf_name, N_pass=exp_pass.get(task).get(cat), N_fail=exp_passW.get(task).get(cat)+exp_failW.get(task).get(cat), sf_name=sf_name)
                     ) # FIXME: This could probably crash in the unlikely case that N_fail = 0 (division by zero)
                     # pois.append(antisf_name)
                     # r_fail_name = 'r_fail_%s_%s' % (task, cat)
@@ -140,7 +160,8 @@ class LegacyTopTaggingModel(PhysicsModel):
                 # Anti-tagging scale factor (fail region)
                 antisf_name = self.antisf_name_prefix+cat
                 self.modelBuilder.factory_(
-                    'expr::{antisf_name}("max(0.,1.+(1.-@0)*{N_pass}/{N_fail})", {sf_name})'.format(antisf_name=antisf_name, N_pass=exp_pass.get('dummy').get(cat), N_fail=exp_fail.get('dummy').get(cat), sf_name=sf_name)
+                    # 'expr::{antisf_name}("max(0.,1.+(1.-@0)*{N_pass}/{N_fail})", {sf_name})'.format(antisf_name=antisf_name, N_pass=exp_pass.get('dummy').get(cat), N_fail=exp_fail.get('dummy').get(cat), sf_name=sf_name)
+                    'expr::{antisf_name}("max(0.,1.+(1.-@0)*{N_pass}/{N_fail})", {sf_name})'.format(antisf_name=antisf_name, N_pass=exp_pass.get('dummy').get(cat), N_fail=exp_passW.get('dummy').get(cat)+exp_failW.get('dummy').get(cat), sf_name=sf_name)
                 ) # FIXME: This could probably crash in the unlikely case that N_fail = 0 (division by zero)
                 # pois.append(antisf_name)
                 # r_fail_name = 'r_fail_%s' % cat
@@ -156,14 +177,15 @@ class LegacyTopTaggingModel(PhysicsModel):
         task = self.getTaskFromBin(bin)
         if self.DC.isSignal.get(process):
             cat = self.getProcessCategory(process)
-            if 'pass' in bin.lower():
+            if self.getRegionFromBin(bin) == 'Pass':
                 if self.tasks:
                     # return 'r_pass_%s_%s' % (task, cat)
                     return self.sf_name_prefix+cat+'_'+task
                 else:
                     # return 'r_pass_%s' % cat
                     return self.sf_name_prefix+cat
-            elif 'fail' in bin.lower():
+            # elif 'fail' in bin.lower():
+            elif self.getRegionFromBin(bin) == 'Fail' or self.getRegionFromBin(bin) == 'PassW' or self.getRegionFromBin(bin) == 'FailW':
                 if self.tasks:
                     # return 'r_fail_%s_%s' % (task, cat)
                     return self.antisf_name_prefix+cat+'_'+task
