@@ -11,15 +11,23 @@ categories = OrderedDict([ # name as used in this framework: name as it should b
 
 wps = {
     'AK8': {
-        'BkgEff0p001': 'wp0p38',
-        'BkgEff0p005': 'wp0p47',
-        'BkgEff0p010': 'wp0p52',
-        'BkgEff0p025': 'wp0p61',
-        'BkgEff0p050': 'wp0p69',
+        'BkgEff0p001': 'wp0p38_vt',
+        'BkgEff0p005': 'wp0p47_t',
+        'BkgEff0p010': 'wp0p52_m',
+        'BkgEff0p025': 'wp0p61_l',
+        'BkgEff0p050': 'wp0p69_vl',
     },
     'HOTVR': {
         'Standard': 'default',
     },
+}
+
+wp_to_MisTagEffString = {
+    'BkgEff0p001': 'mis0p001',
+    'BkgEff0p005': 'mis0p005',
+    'BkgEff0p010': 'mis0p010',
+    'BkgEff0p025': 'mis0p025',
+    'BkgEff0p050': 'mis0p050',
 }
 
 def take_Yerrors_from_second(graph1, graph2):
@@ -74,6 +82,8 @@ def combine_scale_factor_files(tasks):
         if task.JetVersion == 'BTag':
             folder_name.append('subjetbtag')
         folder_name.append(wps[task.Algo][task.WP])
+        if task.Algo == 'AK8' and task.JetVersion == 'All':
+            folder_name.append(wp_to_MisTagEffString[task.WP])
         folder_name = '_'.join(folder_name)
         folder = outfile.mkdir(folder_name)
         folder.cd()
