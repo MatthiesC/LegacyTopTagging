@@ -56,9 +56,9 @@ double HOTVR_mpair(const TopJet & topjet, const bool safe) {
     else return -1.;
   }
   sort_by_pt(subjets);
-  double m01 = (subjets.at(0).v4() + subjets.at(1).v4()).M();
-  double m02 = (subjets.at(0).v4() + subjets.at(2).v4()).M();
-  double m12 = (subjets.at(1).v4() + subjets.at(2).v4()).M();
+  const double m01 = (subjets.at(0).v4() + subjets.at(1).v4()).M();
+  const double m02 = (subjets.at(0).v4() + subjets.at(2).v4()).M();
+  const double m12 = (subjets.at(1).v4() + subjets.at(2).v4()).M();
   return min(m01, min(m02, m12));
 }
 
@@ -90,8 +90,8 @@ const TopJet * nextTopJet(const Particle & p, const vector<TopJet> & topjets) {
 METSelection::METSelection(const double _met_min, const double _met_max): met_min(_met_min), met_max(_met_max) {}
 
 bool METSelection::passes(const Event & event) {
-  bool passed_lower_limit = event.met->v4().Pt() > met_min;
-  bool passed_upper_limit = event.met->v4().Pt() < met_max;
+  const bool passed_lower_limit = event.met->v4().Pt() > met_min;
+  const bool passed_upper_limit = event.met->v4().Pt() < met_max;
   return passed_lower_limit && passed_upper_limit;
 }
 
@@ -100,9 +100,9 @@ PTWSelection::PTWSelection(Context & ctx, const double _ptw_min, const double _p
 
 bool PTWSelection::passes(const Event & event) {
   const FlavorParticle & primlep = event.get(h_primlep);
-  LorentzVector v4 = event.met->v4() + primlep.v4();
-  bool passed_lower_limit = v4.Pt() > ptw_min;
-  bool passed_upper_limit = v4.Pt() < ptw_max;
+  const LorentzVector v4 = event.met->v4() + primlep.v4();
+  const bool passed_lower_limit = v4.Pt() > ptw_min;
+  const bool passed_upper_limit = v4.Pt() < ptw_max;
   return passed_lower_limit && passed_upper_limit;
 }
 
@@ -112,8 +112,8 @@ TwoDSelection::TwoDSelection(Context & ctx, const double _ptrel_min, const doubl
 bool TwoDSelection::passes(const Event & event) {
   const FlavorParticle & primlep = event.get(h_primlep);
   const Jet *nextjet = nextJet(primlep, *event.jets);
-  bool passed_ptrel_cut = pTrel(primlep, nextjet) > ptrel_min;
-  bool passed_dr_cut = deltaR(primlep.v4(), nextjet->v4()) > dr_min;
+  const bool passed_ptrel_cut = pTrel(primlep, nextjet) > ptrel_min;
+  const bool passed_dr_cut = deltaR(primlep.v4(), nextjet->v4()) > dr_min;
   return passed_ptrel_cut || passed_dr_cut;
 }
 
