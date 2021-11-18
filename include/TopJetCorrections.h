@@ -29,6 +29,8 @@ private:
   std::shared_ptr<RunSwitcher> jec_switcher_16_topjets, jec_switcher_16_subjets;
   std::shared_ptr<RunSwitcher> jec_switcher_17_topjets, jec_switcher_17_subjets;
   std::shared_ptr<RunSwitcher> jec_switcher_18_topjets, jec_switcher_18_subjets;
+  std::shared_ptr<RunSwitcher> jec_switcher_UL16preVFP_topjets, jec_switcher_UL16preVFP_subjets;
+  std::shared_ptr<RunSwitcher> jec_switcher_UL16postVFP_topjets, jec_switcher_UL16postVFP_subjets;
   std::shared_ptr<RunSwitcher> jec_switcher_UL17_topjets, jec_switcher_UL17_subjets;
   std::shared_ptr<RunSwitcher> jec_switcher_UL18_topjets, jec_switcher_UL18_subjets;
   std::unique_ptr<GenericJetResolutionSmearer> tjet_resolution_smearer;
@@ -46,6 +48,8 @@ private:
   std::string jec_tag_2016, jec_ver_2016, jer_tag_2016;
   std::string jec_tag_2017, jec_ver_2017, jer_tag_2017;
   std::string jec_tag_2018, jec_ver_2018, jer_tag_2018;
+  std::string jec_tag_UL16preVFP, jec_ver_UL16preVFP, jer_tag_UL16preVFP;
+  std::string jec_tag_UL16postVFP, jec_ver_UL16postVFP, jer_tag_UL16postVFP;
   std::string jec_tag_UL17, jec_ver_UL17, jer_tag_UL17;
   std::string jec_tag_UL18, jec_ver_UL18, jer_tag_UL18;
 
