@@ -487,6 +487,61 @@ bool HEM2018Selection::passes(const Event & event) {
 }
 
 //____________________________________________________________________________________________________
+PrefiringWeights::PrefiringWeights(Context & ctx, const bool apply): fYear(extract_year(ctx)), fApply(apply) {
+  const string config = ctx.get("SystDirection_Prefiring", "nominal");
+  h_weight_nominal = ctx.declare_event_output<double>("weight_prefire");
+  h_weight_up      = ctx.declare_event_output<double>("weight_prefire_up");
+  h_weight_down    = ctx.declare_event_output<double>("weight_prefire_down");
+  if(config == "nominal") {
+    applied_variation = PrefireVariation::nominal;
+  }
+  else if(config == "up") {
+    applied_variation = PrefireVariation::up;
+  }
+  else if(config == "down") {
+    applied_variation = PrefireVariation::down;
+  }
+  else {
+    throw invalid_argument("PrefiringWeights: Invalid systematic variation given in XML config.");
+  }
+}
+
+void PrefiringWeights::set_dummy_weights(Event & event) {
+  event.set(h_weight_nominal, fDummyWeight);
+  event.set(h_weight_up,      fDummyWeight);
+  event.set(h_weight_down,    fDummyWeight);
+}
+
+bool PrefiringWeights::process(Event & event) {
+  if(event.isRealData || fYear == Year::is2018) { // UL18 still gets prefiring weights because of prefired muons, but not rereco 2018
+    set_dummy_weights(event);
+    return true;
+  }
+
+  const double w_nominal = event.prefiringWeight;
+  const double w_up      = event.prefiringWeightUp;
+  const double w_down    = event.prefiringWeightDown;
+
+  event.set(h_weight_nominal, w_nominal);
+  event.set(h_weight_up     , w_up);
+  event.set(h_weight_down   , w_down);
+
+  if(fApply) {
+    if(applied_variation == PrefireVariation::nominal) {
+      event.weight *= w_nominal;
+    }
+    else if(applied_variation == PrefireVariation::up) {
+      event.weight *= w_up;
+    }
+    else if(applied_variation == PrefireVariation::down) {
+      event.weight *= w_down;
+    }
+  }
+
+  return true;
+}
+
+//____________________________________________________________________________________________________
 TopPtReweighting::TopPtReweighting(Context & ctx, const bool apply): fApply(apply) {
   const string config = ctx.get("SystDirection_TopPt", "nominal");
   h_weight_nominal = ctx.declare_event_output<double>("weight_toppt");

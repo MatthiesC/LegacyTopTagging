@@ -242,6 +242,29 @@ private:
 };
 
 //____________________________________________________________________________________________________
+// https://twiki.cern.ch/twiki/bin/viewauth/CMS/L1PrefiringWeightRecipe
+// (superseeds https://twiki.cern.ch/twiki/bin/viewauth/CMS/L1ECALPrefiringWeightRecipe)
+class PrefiringWeights: public uhh2::AnalysisModule {
+public:
+  PrefiringWeights(uhh2::Context & ctx, const bool apply = true);
+  virtual bool process(uhh2::Event & event) override;
+private:
+  const Year fYear;
+  uhh2::Event::Handle<double> h_weight_nominal;
+  uhh2::Event::Handle<double> h_weight_up;
+  uhh2::Event::Handle<double> h_weight_down;
+  void set_dummy_weights(uhh2::Event & event);
+  const double fDummyWeight = 1.;
+  const bool fApply;
+  enum class PrefireVariation {
+    nominal,
+    up,
+    down,
+  };
+  PrefireVariation applied_variation;
+};
+
+//____________________________________________________________________________________________________
 // https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopPtReweighting
 class TopPtReweighting: public uhh2::AnalysisModule {
 public:

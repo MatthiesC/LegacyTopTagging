@@ -35,6 +35,7 @@ private:
 
   unique_ptr<Selection> slct_lumi;
   unique_ptr<AnalysisModule> sf_lumi;
+  unique_ptr<AnalysisModule> sf_prefire;
   unique_ptr<AnalysisModule> sf_muon;
   unique_ptr<CommonModules> common_modules;
   unique_ptr<Selection> slct_elec;
@@ -74,6 +75,7 @@ TagAndProbePreSelectionModule::TagAndProbePreSelectionModule(Context & ctx) {
 
   slct_lumi.reset(new LumiSelection(ctx));
   sf_lumi.reset(new MCLumiWeight(ctx));
+  sf_prefire.reset(new PrefiringWeights(ctx));
   sf_muon.reset(new MuonScaleFactors(ctx));
 
   common_modules.reset(new CommonModules());
@@ -116,7 +118,7 @@ bool TagAndProbePreSelectionModule::process(Event & event) {
   if(debug) cout << "Lumi selection (need to do this manually before CommonModules)" << endl; // else getting error for some data samples, e.g. "RunSwitcher cannot handle run number 275656 for year 2016"
   if(event.isRealData && !slct_lumi->passes(event)) return false;
   sf_lumi->process(event);
-  // prefiring weights not yet available for UL (for updates on this, see https://twiki.cern.ch/twiki/bin/viewauth/CMS/L1ECALPrefiringWeightRecipe)
+  sf_prefire->process(event);
   hist_nocuts->fill(event);
 
   if(debug) cout << "CommonModules: jet, electron, muon id cleaning; jet-lepton cleaning; MET+PV filter; AK4+MET corrections; PU weights" << endl;
