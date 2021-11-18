@@ -190,8 +190,7 @@ bool MuonScaleFactors::process(Event & event) {
 
 //____________________________________________________________________________________________________
 // Twiki: https://twiki.cern.ch/twiki/bin/view/CMS/MuonUL201{6,7,8}
-LttTriggerSelection::LttTriggerSelection(const Context & ctx) {
-  year = extract_year(ctx);
+LttTriggerSelection::LttTriggerSelection(const Context & ctx): fYear(extract_year(ctx)) {
   slct_trigger_Mu50.reset(new TriggerSelection("HLT_Mu50_v*"));
   slct_trigger_TkMu50.reset(new TriggerSelection("HLT_TkMu50_v*"));
   slct_trigger_OldMu100.reset(new TriggerSelection("HLT_OldMu100_v*"));
@@ -199,12 +198,12 @@ LttTriggerSelection::LttTriggerSelection(const Context & ctx) {
 }
 
 bool LttTriggerSelection::passes(const Event & event) {
-  if(year == Year::isUL16preVFP || year == Year::isUL16postVFP) {
+  if(fYear == Year::isUL16preVFP || fYear == Year::isUL16postVFP) {
     if(slct_trigger_Mu50->passes(event) || slct_trigger_TkMu50->passes(event)) {
       return true;
     }
   }
-  else if(year == Year::isUL17 || year == Year::isUL18) {
+  else if(fYear == Year::isUL17 || fYear == Year::isUL18) {
     if(slct_trigger_Mu50->passes(event) || slct_trigger_OldMu100->passes(event) || slct_trigger_TkMu100->passes(event)) {
       return true;
     }
@@ -656,7 +655,7 @@ bool TopPtReweighting::process(Event & event) {
 //____________________________________________________________________________________________________
 // Copy of https://github.com/MatthiesC/HighPtSingleTop/blob/master/src/TheoryCorrections.cxx
 VJetsReweighting::VJetsReweighting(Context & ctx, const string& weight_name):
-  is_2016_nonUL(extract_year(ctx) == Year::is2016v3),
+  is_2016_nonUL(extract_year(ctx) == Year::is2016v3 || extract_year(ctx) == Year::is2016v2),
   is_WJets(ctx.get("dataset_version").find("WJets") == 0),
   is_DYJets(ctx.get("dataset_version").find("DYJets") == 0),
   apply_EWK(string2bool(ctx.get("VJetsReweighting_do_EWK"))),

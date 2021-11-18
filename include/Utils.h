@@ -50,10 +50,10 @@ public:
   explicit HOTVRTopTag(const double _mass_min = kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).mass_min, const double _mass_max = kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).mass_max, const double _fpt_max = 0.8, const double _mpair_min = 50.);
   bool operator()(const TopJet & jet, const uhh2::Event & event) const;
 private:
-  double mass_min;
-  double mass_max;
-  double fpt_max;
-  double mpair_min;
+  const double mass_min;
+  const double mass_max;
+  const double fpt_max;
+  const double mpair_min;
 };
 
 //____________________________________________________________________________________________________
@@ -65,8 +65,8 @@ public:
   METSelection(const double _met_min = 0., const double _met_max = std::numeric_limits<double>::infinity());
   virtual bool passes(const uhh2::Event & event) override;
 private:
-  double met_min;
-  double met_max;
+  const double met_min;
+  const double met_max;
 };
 
 //____________________________________________________________________________________________________
@@ -75,8 +75,8 @@ public:
   PTWSelection(uhh2::Context & ctx, const double _ptw_min = 0., const double _ptw_max = std::numeric_limits<double>::infinity());
   virtual bool passes(const uhh2::Event & event) override;
 private:
-  double ptw_min;
-  double ptw_max;
+  const double ptw_min;
+  const double ptw_max;
   uhh2::Event::Handle<FlavorParticle> h_primlep;
 };
 
@@ -86,8 +86,8 @@ public:
   TwoDSelection(uhh2::Context & ctx, const double _ptrel_min = 0., const double _dr_min = 0.);
   virtual bool passes(const uhh2::Event & event) override;
 private:
-  double ptrel_min;
-  double dr_min;
+  const double ptrel_min;
+  const double dr_min;
   uhh2::Event::Handle<FlavorParticle> h_primlep;
 };
 
@@ -97,8 +97,8 @@ public:
   BTagCloseToLeptonSelection(uhh2::Context & ctx, const double _dr_max, const JetId & _btagID);
   virtual bool passes(const uhh2::Event & event) override;
 private:
-  double dr_max;
-  JetId btagID;
+  const double dr_max;
+  const JetId btagID;
   uhh2::Event::Handle<FlavorParticle> h_primlep;
 };
 
@@ -161,7 +161,7 @@ public:
   LttTriggerSelection(const uhh2::Context & ctx);
   virtual bool passes(const uhh2::Event & event) override;
 private:
-  Year year;
+  const Year fYear;
   std::unique_ptr<uhh2::Selection> slct_trigger_Mu50;
   std::unique_ptr<uhh2::Selection> slct_trigger_TkMu50;
   std::unique_ptr<uhh2::Selection> slct_trigger_OldMu100;
@@ -206,7 +206,7 @@ public:
   MergeScenarioHandleSetter(uhh2::Context & ctx, const ProbeJetAlgo & _algo);
   virtual bool process(uhh2::Event & event) override;
 private:
-  ProbeJetAlgo algo;
+  const ProbeJetAlgo algo;
   uhh2::Event::Handle<TopJet> h_probejet;
   uhh2::Event::Handle<GenParticle> h_hadronictop;
   uhh2::Event::Handle<bool> output_has_probejet;
@@ -234,7 +234,7 @@ public:
   virtual bool passes(const uhh2::Event & event) override;
   double GetAffectedLumiFraction() const { return fAffectedLumiFraction; };
 private:
-  Year fYear;
+  const Year fYear;
   const int fRunNumber = 319077;
   const std::pair<double, double> fEtaRange = {-3.2, -1.3};
   const std::pair<double, double> fPhiRange = {-1.57, -0.87};
@@ -330,13 +330,13 @@ class VJetsReweighting: public uhh2::AnalysisModule {
   double get_v_pt(uhh2::Event & event);
   double evaluate(const std::string& name, double pt);
 
-  bool is_2016_nonUL;
-  bool is_WJets;
-  bool is_DYJets;
-  bool apply_EWK;
-  bool apply_QCD_EWK;
-  bool apply_QCD_NLO;
-  bool apply_QCD_NNLO;
+  const bool is_2016_nonUL;
+  const bool is_WJets;
+  const bool is_DYJets;
+  const bool apply_EWK;
+  const bool apply_QCD_EWK;
+  const bool apply_QCD_NLO;
+  const bool apply_QCD_NNLO;
 
   uhh2::Event::Handle<double> h_weight_EWK;
   uhh2::Event::Handle<double> h_weight_QCD_EWK;
