@@ -44,6 +44,7 @@ private:
   unique_ptr<AnalysisModule> scale_variation;
   unique_ptr<AnalysisModule> ps_variation;
   unique_ptr<AnalysisModule> sf_lumi;
+  unique_ptr<AnalysisModule> sf_prefire;
   unique_ptr<AnalysisModule> sf_pileup;
   unique_ptr<AnalysisModule> sf_muon;
   unique_ptr<AnalysisModule> sf_btag;
@@ -108,6 +109,7 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx) {
   scale_variation.reset(new MCScaleVariation(ctx));
   ps_variation.reset(new PartonShowerVariation(ctx));
   sf_lumi.reset(new MCLumiWeight(ctx));
+  sf_prefire.reset(new PrefiringWeights(ctx));
   sf_pileup.reset(new MCPileupReweight(ctx, ctx.get("SystDirection_Pileup", "nominal")));
   sf_muon.reset(new MuonScaleFactors(ctx));
   const string xml_key_of_btag_eff_file = "BTagMCEffFile";
@@ -177,6 +179,7 @@ bool TagAndProbeMainSelectionModule::process(Event & event) {
   scale_variation->process(event);
   ps_variation->process(event);
   sf_lumi->process(event);
+  sf_prefire->process(event);
   sf_pileup->process(event);
   sf_muon->process(event);
   sf_toppt->process(event);
