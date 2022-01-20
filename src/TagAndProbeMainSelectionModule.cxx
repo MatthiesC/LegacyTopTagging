@@ -184,7 +184,6 @@ bool TagAndProbeMainSelectionModule::process(Event & event) {
   sf_muon->process(event);
   sf_toppt->process(event);
   sf_vjets->process(event);
-  // TODO: Prefiring weights not yet available for UL (for updates on this, see https://twiki.cern.ch/twiki/bin/viewauth/CMS/L1ECALPrefiringWeightRecipe)
   hist_presel->fill(event);
 
    // It is required to have >= 1 AK4 jet to calculate values like dR(jet, lepton) for the TwoDSelection.
