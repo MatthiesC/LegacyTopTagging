@@ -17,6 +17,7 @@
 
 #include "UHH2/LegacyTopTagging/include/Utils.h"
 #include "UHH2/LegacyTopTagging/include/AndHists.h"
+#include "UHH2/LegacyTopTagging/include/METXYCorrection.h"
 
 using namespace std;
 using namespace uhh2;
@@ -44,10 +45,12 @@ private:
   unique_ptr<Selection> slct_met;
   unique_ptr<Selection> slct_ptw;
   unique_ptr<AnalysisModule> primlep;
+  unique_ptr<AnalysisModule> met_xy_correction;
 
   unique_ptr<AndHists> hist_nocuts;
   unique_ptr<AndHists> hist_common;
   unique_ptr<AndHists> hist_muon;
+  unique_ptr<AndHists> hist_met_xy_correction;
   unique_ptr<AndHists> hist_met;
   unique_ptr<AndHists> hist_ptw;
 };
@@ -64,14 +67,16 @@ TagAndProbePreSelectionModule::TagAndProbePreSelectionModule(Context & ctx) {
   // const ElectronId elecID_veto = AndId<Electron>(PtEtaCut(30., 2.4), ElectronID_Fall17_veto_noIso);
   // const MuonId muonID_veto = AndId<Muon>(PtEtaCut(30., 2.4), MuonID(Muon::Selector::CutBasedIdLoose));
   // for more selection efficiency, use medium lepton IDs for the lepton vetoes:
-  const ElectronId elecID_veto = AndId<Electron>(PtEtaCut(30., 2.4), ElectronID_Fall17_medium_noIso); // Christopher's Selection
+  // const ElectronId elecID_veto = AndId<Electron>(PtEtaCut(30., 2.4), ElectronID_Fall17_medium_noIso); // Christopher's Selection (in 106X_v1)
+  const ElectronId elecID_veto = AndId<Electron>(PtEtaCut(30., 2.4), ElectronTagID(Electron::mvaEleID_Fall17_noIso_V2_wpLoose)); // Christopher's Selection (in 106X_v2)
   // const ElectronId elecID_veto = AndId<Electron>(PtEtaCut(55., 2.4), ElectronID_Fall17_medium_noIso);
   const MuonId muonID_veto = AndId<Muon>(PtEtaCut(30., 2.4), MuonID(Muon::Selector::CutBasedIdMedium)); // Christopher's Selection
   // const MuonId muonID_veto = AndId<Muon>(PtEtaCut(55., 2.4), MuonID(Muon::Selector::CutBasedIdTight));
 
-  const MuonId muonID_tag = AndId<Muon>(PtEtaCut(40., 2.4), MuonID(Muon::Selector::CutBasedIdTight)); // Christopher's Selection
+  // const MuonId muonID_tag = AndId<Muon>(PtEtaCut(40., 2.4), MuonID(Muon::Selector::CutBasedIdTight)); // Christopher's Selection
   // pT(tag muon) = 55 GeV should be the final value (will be required in the TagAndProbeMainSelectionModule);
   // in order to plot trigger efficiency histograms starting at values lower than the trigger threshold, we use a looser cut here
+  const MuonId muonID_tag = AndId<Muon>(PtEtaCut(55., 2.4), MuonID(Muon::Selector::CutBasedIdTight)); // in order to save disk space, I cut at 55 GeV already in presel!
 
   slct_lumi.reset(new LumiSelection(ctx));
   sf_lumi.reset(new MCLumiWeight(ctx));
@@ -97,10 +102,12 @@ TagAndProbePreSelectionModule::TagAndProbePreSelectionModule(Context & ctx) {
   slct_ptw.reset(new PTWSelection(ctx, 150.));
 
   primlep.reset(new PrimaryLepton(ctx));
+  met_xy_correction.reset(new METXYCorrector(ctx));
 
   hist_nocuts.reset(new AndHists(ctx, "0_NoCuts"));
   hist_common.reset(new AndHists(ctx, "1_Common"));
   hist_muon.reset(new AndHists(ctx, "2_Muon"));
+  hist_met_xy_correction.reset(new AndHists(ctx, "3_METXYcorr"));
   hist_met.reset(new AndHists(ctx, "3_MET"));
   hist_ptw.reset(new AndHists(ctx, "4_PtW"));
 }
@@ -133,6 +140,10 @@ bool TagAndProbePreSelectionModule::process(Event & event) {
   primlep->process(event);
   sf_muon->process(event);
   hist_muon->fill(event);
+
+  if(debug) cout << "MET XY correction" << endl;
+  met_xy_correction->process(event);
+  hist_met_xy_correction->fill(event);
 
   if(debug) cout << "MET selection" << endl;
   if(!slct_met->passes(event)) return false;
