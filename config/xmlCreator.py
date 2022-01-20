@@ -6,6 +6,15 @@ import csv
 from collections import OrderedDict
 import argparse
 from itertools import permutations
+from termcolor import colored
+
+# to include CrossSectionHelper:
+sys.path.append(os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/common/UHH2-datasets'))
+from CrossSectionHelper import MCSampleValuesHelper
+helper = MCSampleValuesHelper()
+
+sys.path.append(os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/Analysis'))
+from constants import _YEARS
 
 
 class configContainer:
@@ -37,39 +46,39 @@ class configContainer:
       }
 
       self.yearVars['targetLumis'] = {
-         'UL17': 41480.,
-         'UL18': 59830.,
+         'UL17': _YEARS['UL17'].get('lumi_pb'),
+         'UL18': _YEARS['UL18'].get('lumi_pb'),
       }
 
       self.yearVars['lumiFiles'] = {
-         'UL17': self.uhh2Dir+'common/data/UL17/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON_normtag.root',
-         'UL18': self.uhh2Dir+'common/data/UL18/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON_normtag.root',
+         'UL17': self.uhh2Dir+'common/UHH2-data/UL17/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON_normtag.root',
+         'UL18': self.uhh2Dir+'common/UHH2-data/UL18/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON_normtag.root',
       }
 
       self.yearVars['pileupFiles'] = {
          'mc': {
-            'UL17': self.uhh2Dir+'common/data/UL17/MyMCPileupHistogram_UL17.root',
-            'UL18': self.uhh2Dir+'common/data/UL18/MyMCPileupHistogram_UL18.root',
+            'UL17': self.uhh2Dir+'common/UHH2-data/UL17/MyMCPileupHistogram_UL17.root',
+            'UL18': self.uhh2Dir+'common/UHH2-data/UL18/MyMCPileupHistogram_UL18.root',
          },
          'data': {
-            'UL17': self.uhh2Dir+'common/data/UL17/MyDataPileupHistogram_UL17.root',
-            'UL18': self.uhh2Dir+'common/data/UL18/MyDataPileupHistogram_UL18.root',
+            'UL17': self.uhh2Dir+'common/UHH2-data/UL17/MyDataPileupHistogram_UL17.root',
+            'UL18': self.uhh2Dir+'common/UHH2-data/UL18/MyDataPileupHistogram_UL18.root',
          },
          'dataUp': {
-            'UL17': self.uhh2Dir+'common/data/UL17/MyDataPileupHistogram_UL17_72383.root',
-            'UL18': self.uhh2Dir+'common/data/UL18/MyDataPileupHistogram_UL18_72383.root',
+            'UL17': self.uhh2Dir+'common/UHH2-data/UL17/MyDataPileupHistogram_UL17_72383.root',
+            'UL18': self.uhh2Dir+'common/UHH2-data/UL18/MyDataPileupHistogram_UL18_72383.root',
          },
          'dataDown': {
-            'UL17': self.uhh2Dir+'common/data/UL17/MyDataPileupHistogram_UL17_66017.root',
-            'UL18': self.uhh2Dir+'common/data/UL18/MyDataPileupHistogram_UL18_66017.root',
+            'UL17': self.uhh2Dir+'common/UHH2-data/UL17/MyDataPileupHistogram_UL17_66017.root',
+            'UL18': self.uhh2Dir+'common/UHH2-data/UL18/MyDataPileupHistogram_UL18_66017.root',
          },
       }
 
       self.yearVars['triggerSFFiles'] = {
-         'UL16preVFP': self.uhh2Dir+'common/data/UL16preVFP/Efficiencies_muon_generalTracks_Z_Run2016_UL_HIPM_SingleMuonTriggers.root',
-         'UL16postVFP': self.uhh2Dir+'common/data/UL16postVFP/Efficiencies_muon_generalTracks_Z_Run2016_UL_SingleMuonTriggers.root',
-         'UL17': self.uhh2Dir+'common/data/UL17/Efficiencies_muon_generalTracks_Z_Run2017_UL_SingleMuonTriggers.root',
-         'UL18': self.uhh2Dir+'common/data/UL18/Efficiencies_muon_generalTracks_Z_Run2018_UL_SingleMuonTriggers.root',
+         'UL16preVFP': self.uhh2Dir+'common/UHH2-data/UL16preVFP/Efficiencies_muon_generalTracks_Z_Run2016_UL_HIPM_SingleMuonTriggers.root',
+         'UL16postVFP': self.uhh2Dir+'common/UHH2-data/UL16postVFP/Efficiencies_muon_generalTracks_Z_Run2016_UL_SingleMuonTriggers.root',
+         'UL17': self.uhh2Dir+'common/UHH2-data/UL17/Efficiencies_muon_generalTracks_Z_Run2017_UL_SingleMuonTriggers.root',
+         'UL18': self.uhh2Dir+'common/UHH2-data/UL18/Efficiencies_muon_generalTracks_Z_Run2018_UL_SingleMuonTriggers.root',
       }
       self.yearVars['triggerSFHists'] = {
          'UL16preVFP': 'NUM_Mu50_or_TkMu50_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_abseta_pt',
@@ -79,10 +88,10 @@ class configContainer:
       }
 
       self.yearVars['muonidSFFiles'] = {
-         'UL16preVFP': self.uhh2Dir+'common/data/UL16preVFP/Efficiencies_muon_generalTracks_Z_Run2016_UL_HIPM_ID.root',
-         'UL16postVFP': self.uhh2Dir+'common/data/UL16postVFP/Efficiencies_muon_generalTracks_Z_Run2016_UL_ID.root',
-         'UL17': self.uhh2Dir+'common/data/UL17/Efficiencies_muon_generalTracks_Z_Run2017_UL_ID.root',
-         'UL18': self.uhh2Dir+'common/data/UL18/Efficiencies_muon_generalTracks_Z_Run2018_UL_ID.root',
+         'UL16preVFP': self.uhh2Dir+'common/UHH2-data/UL16preVFP/Efficiencies_muon_generalTracks_Z_Run2016_UL_HIPM_ID.root',
+         'UL16postVFP': self.uhh2Dir+'common/UHH2-data/UL16postVFP/Efficiencies_muon_generalTracks_Z_Run2016_UL_ID.root',
+         'UL17': self.uhh2Dir+'common/UHH2-data/UL17/Efficiencies_muon_generalTracks_Z_Run2017_UL_ID.root',
+         'UL18': self.uhh2Dir+'common/UHH2-data/UL18/Efficiencies_muon_generalTracks_Z_Run2018_UL_ID.root',
       }
       self.yearVars['muonidSFHists'] = {
          'UL16preVFP': 'NUM_TightID_DEN_TrackerMuons_abseta_pt',
@@ -97,9 +106,9 @@ class configContainer:
       }
 
       self.yearVars['deepjetSFFiles'] = {
-         # 'UL17': self.uhh2Dir+'common/data/UL17/DeepJet_106XUL17SF_WPonly.csv',
+         # 'UL17': self.uhh2Dir+'common/UHH2-data/UL17/DeepJet_106XUL17SF_WPonly.csv',
          'UL17': self.uhh2Dir+'LegacyTopTagging/data/ScaleFactors/BTagging/DeepJet_106XUL17SF_WPonly_V2p1.csv',
-         'UL18': self.uhh2Dir+'common/data/UL18/DeepJet_106XUL18SF_WPonly.csv',
+         'UL18': self.uhh2Dir+'common/UHH2-data/UL18/DeepJet_106XUL18SF_WPonly.csv',
       }
 
       self.systematics = list()
@@ -116,9 +125,25 @@ class configContainer:
             for row in reader:
                use_me = row['use_for_sf']=='True' and row['year']==year
                if use_me:
-                  used_samples[year].append(sampleEntity(row))
+                  used_samples[year].append(sampleEntity('106X_v1', row))
       configContainer.used_samples = used_samples
 
+   @staticmethod
+   def read_database_106X_v2(years: list):
+
+      from database import samplesDict
+      used_samples = OrderedDict()
+      for year in years:
+         used_samples[year] = list()
+         for k, v in samplesDict.items():
+            use_me = v.get('years') == None or year in v.get('years', [])
+            if use_me:
+               sample_entity = sampleEntity('106X_v2', (k, v, year,))
+               if not os.path.isfile(sample_entity.xmlPath):
+                  print(colored('XML for sample  '+sample_entity.nickName+' ('+year+')  does not exist. Skipping this sample', 'red'))
+                  continue
+               used_samples[year].append(sample_entity)
+      configContainer.used_samples = used_samples
 
    def setup_systematics(self, selection: str, year: str):
 
@@ -130,8 +155,7 @@ class configContainer:
          self.systematics.append(systEntity('murmuf', 'N/A')) # Need to access ScaleVariationMuR and ScaleVariationMuF in another way
          self.systematics.append(systEntity('ps', 'SystDirection_PS', directions=['FSRup_2', 'FSRdown_2', 'ISRup_2', 'ISRdown_2']))
          self.systematics.append(systEntity('pileup', 'SystDirection_Pileup'))
-         # if year in ['2016', '2017']:
-         #    self.systematics.append(systEntity('prefiring', 'SystDirection_Prefiring'))
+         self.systematics.append(systEntity('prefiring', 'SystDirection_Prefiring'))
          self.systematics.append(systEntity('muontrigger', 'SystDirection_MuonTrigger'))
          self.systematics.append(systEntity('muonid', 'SystDirection_MuonID'))
          # self.systematics.append(systEntity('muoniso', 'SystDirection_MuonIso'))
@@ -145,21 +169,37 @@ class sampleEntity:
 
    '''Container to hold information about a data or MC sample, as read from CSV database'''
 
-   def __init__(self, csvRow: OrderedDict):
+   def __init__(self, ver, csvRow):
 
-      self.year = csvRow['year']
-      self.is_data = True if csvRow['is_data']=='True' else False
-      self.nickName = csvRow['nick_name']
-      self.n_das = int(csvRow['n_das'])
-      self.n_pnfs = int(csvRow['n_pnfs'])
-      self.pnfs_sum_of_weights = float(self.n_pnfs) if csvRow['pnfs_sum_of_weights']=='-' else float(csvRow['pnfs_sum_of_weights'])
-      self.xs_gen = None if csvRow['xs_gen']=='-' else float(csvRow['xs_gen'])
-      self.xs_theo = None if csvRow['xs_theo']=='-' else float(csvRow['xs_theo'])
-      if not self.is_data and self.xs_gen==None and self.xs_theo==None:
-         sys.exit('No cross section given for sample labelled as simulation: '+self.nickName+' ('+self.year+')')
-      self.xsection = self.xs_gen if self.xs_theo==None else self.xs_theo
-      self.xmlPath = csvRow['xml_path']
-      self.lumi = 1. if self.is_data else self.pnfs_sum_of_weights/self.xsection
+      if ver == '106X_v1':
+         self.year = csvRow['year']
+         self.is_data = True if csvRow['is_data']=='True' else False
+         self.nickName = csvRow['nick_name']
+         self.n_das = int(csvRow['n_das'])
+         self.n_pnfs = int(csvRow['n_pnfs'])
+         self.pnfs_sum_of_weights = float(self.n_pnfs) if csvRow['pnfs_sum_of_weights']=='-' else float(csvRow['pnfs_sum_of_weights'])
+         self.xs_gen = None if csvRow['xs_gen']=='-' else float(csvRow['xs_gen'])
+         self.xs_theo = None if csvRow['xs_theo']=='-' else float(csvRow['xs_theo'])
+         if not self.is_data and self.xs_gen==None and self.xs_theo==None:
+            sys.exit('No cross section given for sample labelled as simulation: '+self.nickName+' ('+self.year+')')
+         self.xsection = self.xs_gen if self.xs_theo==None else self.xs_theo
+         self.xmlPath = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/config/datasets', csvRow['xml_path'])
+         self.lumi = 1. if self.is_data else self.pnfs_sum_of_weights/self.xsection
+
+      elif ver == '106X_v2':
+         k, v, year = csvRow
+         self.year = year
+         self.is_data = k.startswith('DATA_')
+         self.nickName = k
+         self.n_das = None
+         self.n_pnfs = None
+         self.pnfs_sum_of_weights = helper.get_nevt(v['db_name'], '13TeV', self.year)
+         self.xs_gen = None
+         self.xs_theo = None
+         self.lumi = 1. if self.is_data else helper.get_lumi(v['db_name'], '13TeV', self.year, kFactor=v.get('kfac', False), Corrections=v.get('corr', False))
+         self.xsection = self.pnfs_sum_of_weights / self.lumi
+         self.xmlPath = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/common/UHH2-datasets', helper.get_xml(v['db_name'], '13TeV', self.year))
+
       self.mainsel_versions = list()
 
       # init mainsel_versions
@@ -249,7 +289,7 @@ class xmlCreator:
             if self.is_mainsel:
                file.write('''<!ENTITY '''+s.nickName+''' "&PRESELdir;/&PRESELfilename;'''+('.DATA.' if s.is_data else '.MC.')+s.nickName+'''&YEARsuffix;.root">\n''')
             else:
-               file.write('''<!ENTITY '''+s.nickName+''' SYSTEM "'''+self.uhh2Dir+'LegacyTopTagging/config/datasets/'+s.xmlPath+'''">\n''')
+               file.write('''<!ENTITY '''+s.nickName+''' SYSTEM "'''+s.xmlPath+'''">\n''')
          file.write('''\n''')
          file.write(''']>\n''')
          file.write('''\n''')
@@ -439,7 +479,8 @@ if __name__=='__main__':
    print('  Selections: '+', '.join(str(x) for x in args.selections))
    print('  Years: '+', '.join(str(x) for x in args.years))
 
-   configContainer.read_database(args.years)
+   # configContainer.read_database(args.years)
+   configContainer.read_database_106X_v2(args.years)
 
    for selection in args.selections:
       for year in args.years:
