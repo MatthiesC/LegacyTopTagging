@@ -2,6 +2,8 @@ import ROOT as root
 import os
 from copy import deepcopy
 
+log = True
+
 basepath = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/output/TT_Mtt_study')
 
 file_TT_inclusive = root.TFile.Open(os.path.join(basepath, 'uhh2.AnalysisModuleRunner.MC.TT_inclusive_UL16postVFP.root'), 'READ')
@@ -41,6 +43,7 @@ p = root.TPad('pad', '', 0, 0, 1, 1)
 p.SetMargin(0.15, 0.05, 0.15, 0.05)
 p.Draw()
 p.cd()
+if log: p.SetLogy()
 
 for hist in [hist_TT_inclusive, hist_TT_Mtt700to1000, hist_TT_Mtt1000toInf]:
     hist.SetMarkerStyle(0)
@@ -90,6 +93,8 @@ hist_TT_inclusive.GetXaxis().SetTitleOffset(1.5)
 # hist_TT_inclusive.GetYaxis().SetTitle('Expected events for #it{L}_{int} = 10000 pb^{#minus1}')
 hist_TT_inclusive.GetYaxis().SetTitle('Expected events [arb. units]')
 
-leg.Draw()
+leg.SetFillStyle(0)
+leg.SetBorderSize(0)
+if not log: leg.Draw()
 
-c.SaveAs('mtt_plot.pdf')
+c.SaveAs('mtt_plot'+('_log' if log else '')+'.pdf')
