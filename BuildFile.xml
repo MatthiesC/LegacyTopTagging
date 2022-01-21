@@ -7,4 +7,7 @@
 <use name="tensorflow"/>
 <use name="protobuf"/>
 <use name="Eigen"/>
-<use name="RecoBTag/TensorFlow"/>
+<!-- <use name="RecoBTag/TensorFlow"/> -->
+<export>
+    <lib name="1" />
+</export>
