@@ -8,7 +8,7 @@ namespace uhh2 { namespace ltt {
 
 class CommonHists: public uhh2::Hists {
 public:
-  CommonHists(uhh2::Context & ctx, const std::string & dirname);
+  CommonHists(uhh2::Context & ctx, const std::string & dirname, const unsigned int default_nbins = 1000);
 
   virtual void fill(const uhh2::Event & event) override;
 
