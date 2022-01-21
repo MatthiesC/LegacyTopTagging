@@ -49,6 +49,15 @@ double maxDeepCSVSubJetValue(const TopJet & topjet) {
 }
 
 //____________________________________________________________________________________________________
+double maxDeepJetSubJetValue(const TopJet & topjet) {
+  double result(-99999.);
+  for(auto subjet : topjet.subjets()) {
+    if(subjet.btag_DeepJet() > result) result = subjet.btag_DeepJet();
+  }
+  return min(result, 0.99999);
+}
+
+//____________________________________________________________________________________________________
 double HOTVR_mpair(const TopJet & topjet, const bool safe) {
   vector<Jet> subjets = topjet.subjets();
   if(subjets.size() < 3) {
@@ -194,6 +203,7 @@ LttTriggerSelection::LttTriggerSelection(const Context & ctx): fYear(extract_yea
   slct_trigger_Mu50.reset(new TriggerSelection("HLT_Mu50_v*"));
   slct_trigger_TkMu50.reset(new TriggerSelection("HLT_TkMu50_v*"));
   slct_trigger_OldMu100.reset(new TriggerSelection("HLT_OldMu100_v*"));
+  // slct_trigger_Mu100.reset(new TriggerSelection("HLT_Mu100_v*"));
   slct_trigger_TkMu100.reset(new TriggerSelection("HLT_TkMu100_v*"));
 }
 

@@ -39,6 +39,9 @@ double mSD(const TopJet & topjet);
 double maxDeepCSVSubJetValue(const TopJet & topjet);
 
 //____________________________________________________________________________________________________
+double maxDeepJetSubJetValue(const TopJet & topjet);
+
+//____________________________________________________________________________________________________
 double HOTVR_mpair(const TopJet & topjet, const bool safe = true);
 
 //____________________________________________________________________________________________________
@@ -165,6 +168,7 @@ private:
   std::unique_ptr<uhh2::Selection> slct_trigger_Mu50;
   std::unique_ptr<uhh2::Selection> slct_trigger_TkMu50;
   std::unique_ptr<uhh2::Selection> slct_trigger_OldMu100;
+  // std::unique_ptr<uhh2::Selection> slct_trigger_Mu100;
   std::unique_ptr<uhh2::Selection> slct_trigger_TkMu100;
 };
 
