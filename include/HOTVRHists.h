@@ -8,7 +8,7 @@ namespace uhh2 { namespace ltt {
 
 class HOTVRHists: public uhh2::Hists {
 public:
-  HOTVRHists(uhh2::Context & ctx, const std::string & dirname, const std::string & coll_rec = "");
+  HOTVRHists(uhh2::Context & ctx, const std::string & dirname, const std::string & coll_rec = "", const unsigned int default_nbins = 1000);
 
   virtual void fill(const uhh2::Event & event) override;
 
