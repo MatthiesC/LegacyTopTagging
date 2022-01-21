@@ -18,6 +18,7 @@
 #include "UHH2/LegacyTopTagging/include/TopJetCorrections.h"
 #include "UHH2/LegacyTopTagging/include/Constants.h"
 #include "UHH2/LegacyTopTagging/include/ProbeJetHists.h"
+#include "UHH2/LegacyTopTagging/include/LeptonScaleFactors.h"
 
 using namespace std;
 using namespace uhh2;
@@ -46,9 +47,11 @@ private:
   unique_ptr<AnalysisModule> sf_lumi;
   unique_ptr<AnalysisModule> sf_prefire;
   unique_ptr<AnalysisModule> sf_pileup;
-  unique_ptr<AnalysisModule> sf_muon;
+  // unique_ptr<AnalysisModule> sf_muon;
+  unique_ptr<AnalysisModule> sf_muon_id;
   unique_ptr<AnalysisModule> sf_btag;
-  unique_ptr<AnalysisModule> sf_trigger;
+  // unique_ptr<AnalysisModule> sf_trigger;
+  unique_ptr<AnalysisModule> sf_muon_trigger;
   unique_ptr<Selection> slct_ak4;
   unique_ptr<HEM2018Selection> slct_hem2018;
   unique_ptr<Selection> slct_trigger;
@@ -97,9 +100,13 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx) {
   const double hotvr_pt_min = 200.;
   const double hotvr_eta_max = 2.5;
   const double ak8_pt_min = 300.;
-  const double ak8_eta_max = 2.4;
+  const double ak8_eta_max = 2.5;
 
-  const MuonId muonID_tag = AndId<Muon>(PtEtaCut(55., 2.4), MuonID(Muon::Selector::CutBasedIdTight));
+  const Muon::Selector muonSelector = Muon::CutBasedIdGlobalHighPt; // recommended to use this, see https://twiki.cern.ch/twiki/bin/view/CMS/MuonUL2017#High_pT_above_120_GeV (see also AN-2018/008 and in the corresponding paper MUO-17-001)
+  // Nachteil dieser ID ist, dass sie nicht auf der loose/medium/tight ID aufbaut, d.h. wenn ich einen Electron channel einbauen sollte, dann kann ich dort nicht durch ein veto auf looseID garantieren, dass events mit GlobalHighPt muon auch vetoed sind !!!
+  // Ausserdem wurde die HighPtID benutzt fuer die Bestimmung der HLT_Mu50 trigger-SFs und ist laut oben erwaehntem TWiki fuer die gleichzeitige Benutztung mit diesen sehr gut geeignet
+  // Die Benutztung der Mu50 trigger anstatt der IsoMu24/27 etc. trigger in Kombiniation mit der TightID ist sinnvoll, weil die IsoMu24/27 trigger isolierte Myonen verlangen, aber wir wenden eine custom 2D isolation an
+  const MuonId muonID_tag = AndId<Muon>(PtEtaCut(55., 2.4), MuonID(muonSelector));
   const BTag::algo btagALGO = BTag::DEEPJET;
   const BTag::wp btagWP = BTag::WP_MEDIUM;
   const JetId btagID = BTag(btagALGO, btagWP);
@@ -111,16 +118,18 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx) {
   sf_lumi.reset(new MCLumiWeight(ctx));
   sf_prefire.reset(new PrefiringWeights(ctx));
   sf_pileup.reset(new MCPileupReweight(ctx, ctx.get("SystDirection_Pileup", "nominal")));
-  sf_muon.reset(new MuonScaleFactors(ctx));
+  // sf_muon.reset(new MuonScaleFactors(ctx));
+  sf_muon_id.reset(new ltt::MuonIdScaleFactors(ctx, muonSelector));
   const string xml_key_of_btag_eff_file = "BTagMCEffFile";
   run_btag_sf = ctx.has(xml_key_of_btag_eff_file);
   if(run_btag_sf) sf_btag.reset(new MCBTagScaleFactor(ctx, btagALGO, btagWP, "jets", ctx.get("SystDirection_BTag", "nominal"), "mujets", "incl", xml_key_of_btag_eff_file, "", "BTagScaleFactorFile"));
-  sf_trigger.reset(new TriggerScaleFactors(ctx));
+  // sf_trigger.reset(new TriggerScaleFactors(ctx));
+  sf_muon_trigger.reset(new ltt::MuonTriggerScaleFactors(ctx, true, false));
 
   slct_ak4.reset(new NJetSelection(1, -1));
   slct_hem2018.reset(new HEM2018Selection(ctx));
-  slct_trigger.reset(new TriggerSelection("HLT_Mu50_v*"));
-  // slct_trigger.reset(new LttTriggerSelection(ctx));
+  // slct_trigger.reset(new TriggerSelection("HLT_Mu50_v*"));
+  slct_trigger.reset(new LttTriggerSelection(ctx));
   slct_muon.reset(new NMuonSelection(1, 1, muonID_tag));
   slct_btag.reset(new BTagCloseToLeptonSelection(ctx, deltaR_leptonicHemisphere, btagID));
   slct_twod.reset(new TwoDSelection(ctx, 25., 0.4));
@@ -181,7 +190,8 @@ bool TagAndProbeMainSelectionModule::process(Event & event) {
   sf_lumi->process(event);
   sf_prefire->process(event);
   sf_pileup->process(event);
-  sf_muon->process(event);
+  // sf_muon->process(event);
+  sf_muon_id->process(event);
   sf_toppt->process(event);
   sf_vjets->process(event);
   hist_presel->fill(event);
@@ -207,7 +217,8 @@ bool TagAndProbeMainSelectionModule::process(Event & event) {
 
   if(passes_trigger) {
     if(debug) cout << "Apply trigger scale factor" << endl;
-    sf_trigger->process(event);
+    // sf_trigger->process(event);
+    sf_muon_trigger->process(event);
   }
   else {
     if(debug) cout << "Skipped trigger scale factor application" << endl;
