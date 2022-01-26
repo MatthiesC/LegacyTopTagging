@@ -1,6 +1,7 @@
 from collections import OrderedDict
 
 # Source: https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopSystematics#Luminosity
+# See also: https://twiki.cern.ch/twiki/bin/view/CMS/TWikiLUM#SummaryTable (includes links to CMS publications which you can cite)
 _YEARS = OrderedDict([
     ('UL16', {
         'short_name': 'UL16',
