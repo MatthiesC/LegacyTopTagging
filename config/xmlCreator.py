@@ -7,6 +7,7 @@ from collections import OrderedDict
 import argparse
 from itertools import permutations
 from termcolor import colored
+import subprocess
 
 # to include CrossSectionHelper:
 sys.path.append(os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/common/UHH2-datasets'))
@@ -137,6 +138,7 @@ class configContainer:
          used_samples[year] = list()
          for k, v in samplesDict.items():
             use_me = v.get('years') == None or year in v.get('years', [])
+            use_me = use_me and (v.get('analysis') == None or 'sf' in v.get('analysis'))
             if use_me:
                sample_entity = sampleEntity('106X_v2', (k, v, year,))
                if not os.path.isfile(sample_entity.xmlPath):
@@ -421,26 +423,30 @@ class xmlCreator:
 
    def write_bash_scripts(self):
 
-       scriptFilePath_sframe_batch = os.path.join(self.xmlFilePathBase, 'run_all_sframe_batch.sh')
-       with open(scriptFilePath_sframe_batch, 'w') as outfile:
-          outfile.write('#!/bin/bash\n')
-          newline_base = 'sframe_batch.py $1 '
-          outfile.write(newline_base+self.xmlFilePath+'\n')
-          for systXmlFilePath in self.systXmlFilePaths:
-             outfile.write(newline_base+systXmlFilePath+'\n')
-       print('Created '+scriptFilePath_sframe_batch)
+      scriptFilePath_sframe_batch = os.path.join(self.xmlFilePathBase, 'run_all_sframe_batch.sh')
+      with open(scriptFilePath_sframe_batch, 'w') as outfile:
+         outfile.write('#!/bin/bash\n')
+         newline_base = 'sframe_batch.py $1 '
+         outfile.write(newline_base+self.xmlFilePath+'\n')
+         for systXmlFilePath in self.systXmlFilePaths:
+            outfile.write(newline_base+systXmlFilePath+'\n')
+      p = subprocess.Popen('chmod +x '+scriptFilePath_sframe_batch, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+      p.wait()
+      print('Created '+scriptFilePath_sframe_batch)
 
-       scriptFilePath_run_local = os.path.join(self.xmlFilePathBase, 'run_all_local.sh')
-       with open(scriptFilePath_run_local, 'w') as outfile:
-          outfile.write('#!/bin/bash\n')
-          newline_base = 'python run_local.py $1 '
-          outfile.write(newline_base+self.workdirName+'\n')
-          for systWorkdirName in self.systWorkdirNames:
-             outfile.write(newline_base+systWorkdirName+'\n')
-       print('Created '+scriptFilePath_run_local)
-       # copy_run_local_command = 'cp -n '+os.path.join(self.xmlFilePathBase, '..', 'run_local.py')+' '+os.path.join(self.xmlFilePathBase, '.')
-       link_run_local_command = 'ln -s '+os.path.abspath(os.path.join(self.xmlFilePathBase, '..', 'run_local.py'))+' '+os.path.join(self.xmlFilePathBase, 'run_local.py')
-       os.system(link_run_local_command)
+      scriptFilePath_run_local = os.path.join(self.xmlFilePathBase, 'run_all_local.sh')
+      with open(scriptFilePath_run_local, 'w') as outfile:
+         outfile.write('#!/bin/bash\n')
+         newline_base = 'python run_local.py $1 '
+         outfile.write(newline_base+self.workdirName+'\n')
+         for systWorkdirName in self.systWorkdirNames:
+            outfile.write(newline_base+systWorkdirName+'\n')
+      p = subprocess.Popen('chmod +x '+scriptFilePath_run_local, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+      p.wait()
+      print('Created '+scriptFilePath_run_local)
+      link_run_local_command = 'ln -s '+os.path.abspath(os.path.join(self.xmlFilePathBase, '..', 'run_local.py'))+' '+os.path.join(self.xmlFilePathBase, 'run_local.py')
+      p = subprocess.Popen(link_run_local_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+      p.wait()
 
 
 

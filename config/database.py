@@ -41,6 +41,7 @@ samplesDict = {
     },
     'TTbarToHadronic': {
         'db_name': 'TTToHadronic',
+        'analysis': ['wp', 'sf'],
     },
     #_________________________________________________
     'ST_tW_DR_NoFullyHadronic_T': {
@@ -154,5 +155,47 @@ samplesDict = {
     # },
     # 'QCD_Mu_Pt1000toInf': {
     #     'db_name': '',
+    # },
+    #_________________________________________________
+    'QCD_HT300to500': {
+        'db_name': 'QCD_HT300to500',
+        'analysis': ['wp'],
+    },
+    'QCD_HT500to700': {
+        'db_name': 'QCD_HT500to700',
+        'analysis': ['wp'],
+    },
+    'QCD_HT700to1000': {
+        'db_name': 'QCD_HT700to1000',
+        'analysis': ['wp'],
+    },
+    'QCD_HT1000to1500': {
+        'db_name': 'QCD_HT1000to1500',
+        'analysis': ['wp'],
+    },
+    'QCD_HT1500to2000': {
+        'db_name': 'QCD_HT1500to2000',
+        'analysis': ['wp'],
+    },
+    'QCD_HT2000toInf': {
+        'db_name': 'QCD_HT2000toInf',
+        'analysis': ['wp'],
+    },
+    #_________________________________________________
+    # 'WJetsToQQ_HT200to400': {
+    #     'db_name': 'WJetsToQQ_HT-200to400',
+    #     'analysis': ['wp'],
+    # },
+    # 'WJetsToQQ_HT400to600': {
+    #     'db_name': 'WJetsToQQ_HT-400to600',
+    #     'analysis': ['wp'],
+    # },
+    # 'WJetsToQQ_HT600to800': {
+    #     'db_name': 'WJetsToQQ_HT-600to800',
+    #     'analysis': ['wp'],
+    # },
+    # 'WJetsToQQ_HT800toInf': {
+    #     'db_name': 'WJetsToQQ_HT-800toInf',
+    #     'analysis': ['wp'],
     # },
 }
