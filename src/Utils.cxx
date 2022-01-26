@@ -79,6 +79,22 @@ double HOTVR_fpt(const TopJet & topjet, const unsigned int subjet_i) {
 }
 
 //____________________________________________________________________________________________________
+double particleNet_TvsWandQCD(const TopJet & topjet) {
+  return min((double)(
+    (topjet.btag_ParticleNetJetTags_probTbcq() + topjet.btag_ParticleNetJetTags_probTbqq()) /
+    (topjet.btag_ParticleNetJetTags_probTbcq() + topjet.btag_ParticleNetJetTags_probTbqq() + topjet.btag_ParticleNetJetTags_probWcq() + topjet.btag_ParticleNetJetTags_probWqq() + topjet.btag_ParticleNetJetTags_probQCD())
+  ), 0.99999);
+}
+
+//____________________________________________________________________________________________________
+double particleNet_WvsTandQCD(const TopJet & topjet) {
+  return min((double)(
+    (topjet.btag_ParticleNetJetTags_probWcq() + topjet.btag_ParticleNetJetTags_probWqq()) /
+    (topjet.btag_ParticleNetJetTags_probWcq() + topjet.btag_ParticleNetJetTags_probWqq() + topjet.btag_ParticleNetJetTags_probTbcq() + topjet.btag_ParticleNetJetTags_probTbqq() + topjet.btag_ParticleNetJetTags_probQCD())
+  ), 0.99999);
+}
+
+//____________________________________________________________________________________________________
 HOTVRTopTag::HOTVRTopTag(const double _mass_min, const double _mass_max, const double _fpt_max, const double _mpair_min):
   mass_min(_mass_min), mass_max(_mass_max), fpt_max(_fpt_max), mpair_min(_mpair_min) {}
 

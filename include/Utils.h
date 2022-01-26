@@ -48,6 +48,12 @@ double HOTVR_mpair(const TopJet & topjet, const bool safe = true);
 double HOTVR_fpt(const TopJet & topjet, const unsigned int subjet_i = 0);
 
 //____________________________________________________________________________________________________
+double particleNet_TvsWandQCD(const TopJet & topjet);
+
+//____________________________________________________________________________________________________
+double particleNet_WvsTandQCD(const TopJet & topjet);
+
+//____________________________________________________________________________________________________
 class HOTVRTopTag {
 public:
   explicit HOTVRTopTag(const double _mass_min = kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).mass_min, const double _mass_max = kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).mass_max, const double _fpt_max = 0.8, const double _mpair_min = 50.);
