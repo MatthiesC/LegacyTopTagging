@@ -21,7 +21,7 @@ ElectronRecoScaleFactors::ElectronRecoScaleFactors(Context & ctx, const bool dum
     fHandles.push_back(ctx.declare_event_output<float>((string)"weight_sfelec_"+weight_postfix+"_down"));
   }
   else {
-    const string base_file_path = ctx.get("uhh2Dir")+"LegacyTopTagging/data/ScaleFactors/egamma_SFs/";
+    const string base_file_path = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/data/ScaleFactors/egamma_SFs/";
     fYearSwitcher.reset(new YearSwitcher(ctx));
     fYearSwitcher->setupUL16preVFP(
       make_shared<MCElecScaleFactor>(
@@ -98,7 +98,7 @@ ElectronIdScaleFactors::ElectronIdScaleFactors(Context & ctx, const Electron::ta
     fHandles.push_back(ctx.declare_event_output<float>((string)"weight_sfelec_"+weight_postfix+"_down"));
   }
   else {
-    const string base_file_path = ctx.get("uhh2Dir")+"LegacyTopTagging/data/ScaleFactors/egamma_SFs/";
+    const string base_file_path = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/data/ScaleFactors/egamma_SFs/";
     string file_name_UL16preVFP;
     string file_name_UL16postVFP;
     string file_name_UL17;
@@ -231,7 +231,7 @@ MuonIdScaleFactors::MuonIdScaleFactors(Context & ctx, const Muon::Selector & sel
     fHandles.push_back(ctx.declare_event_output<float>((string)"weight_sfmu_"+weight_postfix+"_down"));
   }
   else {
-    const string base_file_path = ctx.get("uhh2Dir")+"LegacyTopTagging/data/ScaleFactors/muon_SFs/";
+    const string base_file_path = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/data/ScaleFactors/muon_SFs/";
     string hist_name = "NUM_";
     switch(selectorID) {
       case Muon::Selector::CutBasedIdGlobalHighPt :
@@ -331,7 +331,7 @@ MuonIsoScaleFactors::MuonIsoScaleFactors(Context & ctx, const Muon::Selector & s
     fHandles.push_back(ctx.declare_event_output<float>((string)"weight_sfmu_"+weight_postfix+"_down"));
   }
   else {
-    const string base_file_path = ctx.get("uhh2Dir")+"LegacyTopTagging/data/ScaleFactors/muon_SFs/";
+    const string base_file_path = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/data/ScaleFactors/muon_SFs/";
     string hist_name = "NUM_";
     if(selectorISO == Muon::Selector::PFIsoLoose && selectorID == Muon::Selector::CutBasedIdLoose) {
       hist_name += "LooseRelIso_DEN_LooseID";
@@ -442,7 +442,7 @@ MuonTriggerScaleFactors::MuonTriggerScaleFactors(Context & ctx, const bool use_M
     fHandles.push_back(ctx.declare_event_output<float>((string)"weight_sfmu_"+weight_postfix+"_down"));
   }
   else {
-    const string base_file_path = ctx.get("uhh2Dir")+"LegacyTopTagging/data/ScaleFactors/muon_SFs/";
+    const string base_file_path = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/data/ScaleFactors/muon_SFs/";
     string hist_name_UL16preVFP;
     string hist_name_UL16postVFP;
     string hist_name_UL17;
