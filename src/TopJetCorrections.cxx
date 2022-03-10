@@ -1,4 +1,5 @@
 #include "UHH2/LegacyTopTagging/include/TopJetCorrections.h"
+#include "UHH2/LegacyTopTagging/include/Constants.h"
 
 using namespace std;
 using namespace uhh2;
@@ -11,33 +12,33 @@ TopJetCorrections::TopJetCorrections(const string & coll_rec, const string & col
 
   cout << "Hello World from TopJetCorrections!" << endl;
 
-  jec_tag_2016 = "Summer16_07Aug2017";
-  jec_ver_2016 = "11";
-  jer_tag_2016 = "Summer16_25nsV1";
+  jec_tag_2016 = k_jec_tag_2016;
+  jec_ver_2016 = k_jec_ver_2016;
+  jer_tag_2016 = k_jer_tag_2016;
 
-  jec_tag_2017 = "Fall17_17Nov2017";
-  jec_ver_2017 = "32";
-  jer_tag_2017 = "Fall17_V3";
+  jec_tag_2017 = k_jec_tag_2017;
+  jec_ver_2017 = k_jec_ver_2017;
+  jer_tag_2017 = k_jer_tag_2017;
 
-  jec_tag_2018 = "Autumn18";
-  jec_ver_2018 = "19";
-  jer_tag_2018 = "Autumn18_V7";
+  jec_tag_2018 = k_jec_tag_2018;
+  jec_ver_2018 = k_jec_ver_2018;
+  jer_tag_2018 = k_jer_tag_2018;
 
-  jec_tag_UL16preVFP = "Summer19UL16APV";
-  jec_ver_UL16preVFP = "7";
-  jer_tag_UL16preVFP = "Summer20UL16APV_JRV3";
+  jec_tag_UL16preVFP = k_jec_tag_UL16preVFP;
+  jec_ver_UL16preVFP = k_jec_ver_UL16preVFP;
+  jer_tag_UL16preVFP = k_jer_tag_UL16preVFP;
 
-  jec_tag_UL16postVFP = "Summer19UL16";
-  jec_ver_UL16postVFP = "7";
-  jer_tag_UL16postVFP = "Summer20UL16_JRV3";
+  jec_tag_UL16postVFP = k_jec_tag_UL16postVFP;
+  jec_ver_UL16postVFP = k_jec_ver_UL16postVFP;
+  jer_tag_UL16postVFP = k_jer_tag_UL16postVFP;
 
-  jec_tag_UL17 = "Summer19UL17";
-  jec_ver_UL17 = "5";
-  jer_tag_UL17 = "Summer19UL17_JRV2";
+  jec_tag_UL17 = k_jec_tag_UL17;
+  jec_ver_UL17 = k_jec_ver_UL17;
+  jer_tag_UL17 = k_jer_tag_UL17;
 
-  jec_tag_UL18 = "Summer19UL18";
-  jec_ver_UL18 = "5";
-  jer_tag_UL18 = "Summer19UL18_JRV2";
+  jec_tag_UL18 = k_jec_tag_UL18;
+  jec_ver_UL18 = k_jec_ver_UL18;
+  jer_tag_UL18 = k_jer_tag_UL18;
 
   if(!coll_rec.empty()) {
     collection_rec = coll_rec;

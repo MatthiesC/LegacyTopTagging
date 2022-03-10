@@ -2,6 +2,34 @@
 
 namespace uhh2 { namespace ltt {
 
+const std::string k_jec_tag_2016 = "Summer16_07Aug2017";
+const std::string k_jec_ver_2016 = "11";
+const std::string k_jer_tag_2016 = "Summer16_25nsV1";
+
+const std::string k_jec_tag_2017 = "Fall17_17Nov2017";
+const std::string k_jec_ver_2017 = "32";
+const std::string k_jer_tag_2017 = "Fall17_V3";
+
+const std::string k_jec_tag_2018 = "Autumn18";
+const std::string k_jec_ver_2018 = "19";
+const std::string k_jer_tag_2018 = "Autumn18_V7";
+
+const std::string k_jec_tag_UL16preVFP = "Summer19UL16APV";
+const std::string k_jec_ver_UL16preVFP = "7";
+const std::string k_jer_tag_UL16preVFP = "Summer20UL16APV_JRV3";
+
+const std::string k_jec_tag_UL16postVFP = "Summer19UL16";
+const std::string k_jec_ver_UL16postVFP = "7";
+const std::string k_jer_tag_UL16postVFP = "Summer20UL16_JRV3";
+
+const std::string k_jec_tag_UL17 = "Summer19UL17";
+const std::string k_jec_ver_UL17 = "5";
+const std::string k_jer_tag_UL17 = "Summer19UL17_JRV2";
+
+const std::string k_jec_tag_UL18 = "Summer19UL18";
+const std::string k_jec_ver_UL18 = "5";
+const std::string k_jer_tag_UL18 = "Summer19UL18_JRV2";
+
 enum class Process {
   isTTbar,
   isST,
