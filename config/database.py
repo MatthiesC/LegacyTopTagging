@@ -2,35 +2,43 @@ samplesDict = {
     #_________________________________________________
     'DATA_SingleMuon_A': {
         'db_name': 'SingleMuon_RunA',
-        'years': ['UL18']
+        'years': ['UL18'],
+        'channel': ['muo'],
     },
     'DATA_SingleMuon_B': {
         'db_name': 'SingleMuon_RunB',
-        'years': ['UL16preVFP', 'UL17', 'UL18']
+        'years': ['UL16preVFP', 'UL17', 'UL18'],
+        'channel': ['muo'],
     },
     'DATA_SingleMuon_C': {
         'db_name': 'SingleMuon_RunC',
-        'years': ['UL16preVFP', 'UL17', 'UL18']
+        'years': ['UL16preVFP', 'UL17', 'UL18'],
+        'channel': ['muo'],
     },
     'DATA_SingleMuon_D': {
         'db_name': 'SingleMuon_RunD',
-        'years': ['UL16preVFP', 'UL17', 'UL18']
+        'years': ['UL16preVFP', 'UL17', 'UL18'],
+        'channel': ['muo'],
     },
     'DATA_SingleMuon_E': {
         'db_name': 'SingleMuon_RunE',
-        'years': ['UL16preVFP', 'UL17']
+        'years': ['UL16preVFP', 'UL17'],
+        'channel': ['muo'],
     },
     'DATA_SingleMuon_F': {
         'db_name': 'SingleMuon_RunF',
-        'years': ['UL16preVFP', 'UL16postVFP', 'UL17']
+        'years': ['UL16preVFP', 'UL16postVFP', 'UL17'],
+        'channel': ['muo'],
     },
     'DATA_SingleMuon_G': {
         'db_name': 'SingleMuon_RunG',
-        'years': ['UL16postVFP']
+        'years': ['UL16postVFP'],
+        'channel': ['muo'],
     },
     'DATA_SingleMuon_H': {
         'db_name': 'SingleMuon_RunH',
-        'years': ['UL16postVFP']
+        'years': ['UL16postVFP'],
+        'channel': ['muo'],
     },
     #_________________________________________________
     'TTbarTo2L2Nu': {
@@ -41,21 +49,54 @@ samplesDict = {
     },
     'TTbarToHadronic': {
         'db_name': 'TTToHadronic',
-        'analysis': ['wp', 'sf'],
+        'analysis': ['wp', 'sf', 'tw'],
     },
     #_________________________________________________
+    'TTbarMtt700to1000': {
+        'db_name': 'TT_Mtt-700to1000',
+        'analysis': ['tw'],
+        'corr': True,
+    },
+    'TTbarMtt1000toInf': {
+        'db_name': 'TT_Mtt-1000toInf',
+        'analysis': ['tw'],
+        'corr': True,
+    },
+    #_________________________________________________
+    'ST_tW_DR_inclusiveDecays_T': {
+        'db_name': 'ST_tW_top_5f_inclusiveDecays',
+    },
+    'ST_tW_DR_inclusiveDecays_Tbar': {
+        'db_name': 'ST_tW_antitop_5f_inclusiveDecays',
+    },
     'ST_tW_DR_NoFullyHadronic_T': {
         'db_name': 'ST_tW_top_5f_NoFullyHadronicDecays',
     },
     'ST_tW_DR_NoFullyHadronic_Tbar': {
         'db_name': 'ST_tW_antitop_5f_NoFullyHadronicDecays',
     },
+    'ST_tW_DR_NoFullyHadronic_PDFWeights_T': {
+        'db_name': 'ST_tW_top_5f_NoFullyHadronicDecays_PDFWeights',
+    },
+    'ST_tW_DR_NoFullyHadronic_PDFWeights_Tbar': {
+        'db_name': 'ST_tW_antitop_5f_NoFullyHadronicDecays_PDFWeights',
+    },
+    'ST_tW_DS_NoFullyHadronic_T': {
+        'db_name': 'ST_tW_top_5f_DS_NoFullyHadronicDecays',
+        'analysis': ['tw'],
+    },
+    'ST_tW_DS_NoFullyHadronic_Tbar': {
+        'db_name': 'ST_tW_antitop_5f_DS_NoFullyHadronicDecays',
+        'analysis': ['tw'],
+    },
+    #_________________________________________________
     'ST_tChannel_T': {
         'db_name': 'ST_t-channel_top_4f_InclusiveDecays',
     },
     'ST_tChannel_Tbar': {
         'db_name': 'ST_t-channel_antitop_4f_InclusiveDecays',
     },
+    #_________________________________________________
     'ST_sChannel_leptonDecays': {
         'db_name': 'ST_s-channel_4f_leptonDecays',
     },
@@ -120,43 +161,59 @@ samplesDict = {
         'db_name': 'ZZ',
     },
     #_________________________________________________
-    # 'QCD_Mu_Pt15to20': {
-    #     'db_name': '',
-    # },
-    # 'QCD_Mu_Pt20to30': {
-    #     'db_name': '',
-    # },
-    # 'QCD_Mu_Pt30to50': {
-    #     'db_name': '',
-    # },
-    # 'QCD_Mu_Pt50to80': {
-    #     'db_name': '',
-    # },
-    # 'QCD_Mu_Pt80to120': {
-    #     'db_name': '',
-    # },
-    # 'QCD_Mu_Pt120to170': {
-    #     'db_name': '',
-    # },
-    # 'QCD_Mu_Pt170to300': {
-    #     'db_name': '',
-    # },
-    # 'QCD_Mu_Pt300to470': {
-    #     'db_name': '',
-    # },
-    # 'QCD_Mu_Pt470to600': {
-    #     'db_name': '',
-    # },
-    # 'QCD_Mu_Pt600to800': {
-    #     'db_name': '',
-    # },
-    # 'QCD_Mu_Pt800to1000': {
-    #     'db_name': '',
-    # },
-    # 'QCD_Mu_Pt1000toInf': {
-    #     'db_name': '',
-    # },
+    'QCD_Mu_Pt15to20': {
+        'db_name': 'QCD_Pt-15To20_MuEnrichedPt5',
+        'channel': ['muo'],
+    },
+    'QCD_Mu_Pt20to30': {
+        'db_name': 'QCD_Pt-20To30_MuEnrichedPt5',
+        'channel': ['muo'],
+    },
+    'QCD_Mu_Pt30to50': {
+        'db_name': 'QCD_Pt-30To50_MuEnrichedPt5',
+        'channel': ['muo'],
+    },
+    'QCD_Mu_Pt50to80': {
+        'db_name': 'QCD_Pt-50To80_MuEnrichedPt5',
+        'channel': ['muo'],
+    },
+    'QCD_Mu_Pt80to120': {
+        'db_name': 'QCD_Pt-80To120_MuEnrichedPt5',
+        'channel': ['muo'],
+    },
+    'QCD_Mu_Pt120to170': {
+        'db_name': 'QCD_Pt-120To170_MuEnrichedPt5',
+        'channel': ['muo'],
+    },
+    'QCD_Mu_Pt170to300': {
+        'db_name': 'QCD_Pt-170To300_MuEnrichedPt5',
+        'channel': ['muo'],
+    },
+    'QCD_Mu_Pt300to470': {
+        'db_name': 'QCD_Pt-300To470_MuEnrichedPt5',
+        'channel': ['muo'],
+    },
+    'QCD_Mu_Pt470to600': {
+        'db_name': 'QCD_Pt-470To600_MuEnrichedPt5',
+        'channel': ['muo'],
+    },
+    'QCD_Mu_Pt600to800': {
+        'db_name': 'QCD_Pt-600To800_MuEnrichedPt5',
+        'channel': ['muo'],
+    },
+    'QCD_Mu_Pt800to1000': {
+        'db_name': 'QCD_Pt-800To1000_MuEnrichedPt5',
+        'channel': ['muo'],
+    },
+    'QCD_Mu_Pt1000toInf': {
+        'db_name': 'QCD_Pt-1000_MuEnrichedPt5',
+        'channel': ['muo'],
+    },
     #_________________________________________________
+    'QCD_HT200to300': {
+        'db_name': 'QCD_HT200to300',
+        'analysis': ['wp'],
+    },
     'QCD_HT300to500': {
         'db_name': 'QCD_HT300to500',
         'analysis': ['wp'],
@@ -182,20 +239,20 @@ samplesDict = {
         'analysis': ['wp'],
     },
     #_________________________________________________
-    # 'WJetsToQQ_HT200to400': {
-    #     'db_name': 'WJetsToQQ_HT-200to400',
-    #     'analysis': ['wp'],
-    # },
-    # 'WJetsToQQ_HT400to600': {
-    #     'db_name': 'WJetsToQQ_HT-400to600',
-    #     'analysis': ['wp'],
-    # },
-    # 'WJetsToQQ_HT600to800': {
-    #     'db_name': 'WJetsToQQ_HT-600to800',
-    #     'analysis': ['wp'],
-    # },
-    # 'WJetsToQQ_HT800toInf': {
-    #     'db_name': 'WJetsToQQ_HT-800toInf',
-    #     'analysis': ['wp'],
-    # },
+    'WJetsToQQ_HT200to400': {
+        'db_name': 'WJetsToQQ_HT200to400',
+        'analysis': ['wp'],
+    },
+    'WJetsToQQ_HT400to600': {
+        'db_name': 'WJetsToQQ_HT400to600',
+        'analysis': ['wp'],
+    },
+    'WJetsToQQ_HT600to800': {
+        'db_name': 'WJetsToQQ_HT600to800',
+        'analysis': ['wp'],
+    },
+    'WJetsToQQ_HT800toInf': {
+        'db_name': 'WJetsToQQ_HT800toInf',
+        'analysis': ['wp'],
+    },
 }

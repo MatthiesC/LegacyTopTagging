@@ -10,6 +10,7 @@
 #include "UHH2/common/include/Utils.h"
 
 #include "UHH2/LegacyTopTagging/include/Constants.h"
+#include "UHH2/LegacyTopTagging/include/SingleTopGen_tWch.h"
 
 
 namespace uhh2 { namespace ltt {
@@ -48,6 +49,9 @@ double HOTVR_mpair(const TopJet & topjet, const bool safe = true);
 double HOTVR_fpt(const TopJet & topjet, const unsigned int subjet_i = 0);
 
 //____________________________________________________________________________________________________
+double HOTVR_Reff(const TopJet & topjet);
+
+//____________________________________________________________________________________________________
 double particleNet_TvsWandQCD(const TopJet & topjet);
 
 //____________________________________________________________________________________________________
@@ -67,6 +71,18 @@ private:
 
 //____________________________________________________________________________________________________
 const TopJet * nextTopJet(const Particle & p, const std::vector<TopJet> & topjets);
+
+//____________________________________________________________________________________________________
+class NoLeptonInJet {
+public:
+  explicit NoLeptonInJet(const std::string & _lepton, const double _dr, const boost::optional<ElectronId> & _ele_id = boost::none, const boost::optional<MuonId> & _muo_id = boost::none);
+  bool operator()(const Jet & jet, const uhh2::Event & event) const;
+private:
+  const std::string lepton;
+  const double dr;
+  const boost::optional<ElectronId> ele_id;
+  const boost::optional<MuonId> muo_id;
+};
 
 //____________________________________________________________________________________________________
 class METSelection: public uhh2::Selection {
@@ -352,6 +368,41 @@ class VJetsReweighting: public uhh2::AnalysisModule {
   uhh2::Event::Handle<double> h_weight_QCD_EWK;
   uhh2::Event::Handle<double> h_weight_QCD_NLO;
   uhh2::Event::Handle<double> h_weight_QCD_NNLO;
+};
+
+//____________________________________________________________________________________________________
+class WeightTrickery: public uhh2::AnalysisModule {
+public:
+  WeightTrickery(uhh2::Context & ctx, const std::string & handle_name_GENtW, const bool doing_PDF_variations = false, const bool apply = true);
+  virtual bool process(uhh2::Event & event) override;
+private:
+  const bool fDoingPDFVariations;
+  const bool fApply;
+  uhh2::Event::Handle<double> fHandle_weight;
+  std::unique_ptr<Selection> slct_Mtt0to700;
+  uhh2::Event::Handle<ltt::SingleTopGen_tWch> fHandle_GENtW;
+
+  bool is_TTbar;
+  bool is_TTbar_Mtt;
+  bool is_TTbar_syst;
+
+  bool is_tW;
+  bool is_tW_incl;
+  bool is_tW_nfhd;
+  bool is_tW_nfhd_syst;
+  bool is_tW_nfhd_DS;
+  bool is_tW_nfhd_PDF;
+};
+
+//____________________________________________________________________________________________________
+// https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2
+class METFilterSelection: public uhh2::Selection {
+public:
+  METFilterSelection(uhh2::Context & ctx);
+  virtual bool passes(const uhh2::Event & event) override;
+private:
+  const Year fYear;
+  std::unique_ptr<uhh2::AndSelection> fAndSel;
 };
 
 }}

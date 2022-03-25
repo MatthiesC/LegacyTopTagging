@@ -1,5 +1,6 @@
 #include "UHH2/common/include/Utils.h"
 #include "UHH2/common/include/MCWeight.h"
+#include "UHH2/common/include/AdditionalSelections.h"
 
 #include "UHH2/LegacyTopTagging/include/Utils.h"
 
@@ -79,6 +80,11 @@ double HOTVR_fpt(const TopJet & topjet, const unsigned int subjet_i) {
 }
 
 //____________________________________________________________________________________________________
+double HOTVR_Reff(const TopJet & topjet) {
+  return min(1.5, max(0.1, 600. / (topjet.v4().Pt() * topjet.JEC_factor_raw())));
+}
+
+//____________________________________________________________________________________________________
 double particleNet_TvsWandQCD(const TopJet & topjet) {
   return min((double)(
     (topjet.btag_ParticleNetJetTags_probTbcq() + topjet.btag_ParticleNetJetTags_probTbqq()) /
@@ -109,6 +115,30 @@ bool HOTVRTopTag::operator()(const TopJet & jet, const Event & event) const {
 //____________________________________________________________________________________________________
 const TopJet * nextTopJet(const Particle & p, const vector<TopJet> & topjets) {
   return closestParticle(p, topjets);
+}
+
+//____________________________________________________________________________________________________
+// Copy of NoLeptonInJet from common/src/JetIds.cxx but reduced to only asking for deltaR
+NoLeptonInJet::NoLeptonInJet(const string & _lepton, const double _dr, const boost::optional<ElectronId> & _ele_id, const boost::optional<MuonId> & _muo_id):
+  lepton(_lepton), dr(_dr), ele_id(_ele_id), muo_id(_muo_id) {}
+
+bool NoLeptonInJet::operator()(const Jet & jet, const Event & event) const {
+
+  const bool doMuons = event.muons && (lepton == "muon" || lepton == "all");
+  const bool doElectrons = event.electrons && (lepton == "ele" || lepton == "all");
+  if(doMuons) {
+    for(const auto & muo : *event.muons) {
+      if(muo_id && !(*muo_id)(muo, event)) continue;
+      if(deltaR(jet, muo) < dr) return false;
+    }
+  }
+  if(doElectrons) {
+    for(const auto & ele : *event.electrons) {
+      if(ele_id && !(*ele_id)(ele, event)) continue;
+      if(deltaR(jet, ele) < dr) return false;
+    }
+  }
+  return true;
 }
 
 //____________________________________________________________________________________________________
@@ -405,7 +435,7 @@ bool MergeScenarioHandleSetter::process(Event & event) {
     dRmatch = 0.8;
   }
   else if(algo == ProbeJetAlgo::isHOTVR) {
-    dRmatch = min(1.5, max(0.1, 600./(probejet.v4().pt()*probejet.JEC_factor_raw())));
+    dRmatch = HOTVR_Reff(probejet);
   }
   GenParticle gen_w;
   GenParticle gen_b;
@@ -502,8 +532,11 @@ HEM2018Selection::HEM2018Selection(Context & ctx): fYear(extract_year(ctx)) {}
 // Caveat: Returns "true" if event is affected by the HEM issue.
 bool HEM2018Selection::passes(const Event & event) {
   if(fYear == Year::isUL18 && ((event.isRealData && event.run >= fRunNumber) || !event.isRealData)) {
-    for(const Jet & jet : *event.jets) {
-      if(jet.v4().eta() > fEtaRange.first && jet.v4().eta() < fEtaRange.second && jet.v4().phi() > fPhiRange.first && jet.v4().phi() < fPhiRange.second) {
+    vector<Particle> relevant_objects;
+    relevant_objects.insert(relevant_objects.end(), event.jets->begin(), event.jets->end());
+    relevant_objects.insert(relevant_objects.end(), event.electrons->begin(), event.electrons->end());
+    for(const Particle & obj : relevant_objects) {
+      if(obj.v4().eta() > fEtaRange.first && obj.v4().eta() < fEtaRange.second && obj.v4().phi() > fPhiRange.first && obj.v4().phi() < fPhiRange.second) {
         return true;
       }
     }
@@ -804,6 +837,93 @@ bool VJetsReweighting::process(Event & event) {
   event.set(h_weight_QCD_EWK, weight_QCD_EWK);
   event.set(h_weight_QCD_NLO, weight_QCD_NLO);
   event.set(h_weight_QCD_NNLO, weight_QCD_NNLO);
+
+  return true;
+}
+
+//____________________________________________________________________________________________________
+WeightTrickery::WeightTrickery(Context & ctx, const string & handle_name_GENtW, const bool doing_PDF_variations, const bool apply): fDoingPDFVariations(doing_PDF_variations), fApply(apply) {
+  fHandle_weight = ctx.declare_event_output<double>("weight_trickery");
+
+  slct_Mtt0to700.reset(new MttbarGenSelection(0, 700));
+  fHandle_GENtW = ctx.get_handle<ltt::SingleTopGen_tWch>(handle_name_GENtW);
+
+  const string dataset_version = ctx.get("dataset_version");
+
+  is_TTbar = dataset_version.find("TTbar") == 0;
+  is_TTbar_Mtt = is_TTbar && dataset_version.find("Mtt") != string::npos;
+  is_TTbar_syst = is_TTbar && dataset_version.find("syst") != string::npos;
+
+  is_tW = dataset_version.find("ST_tW") == 0;
+  is_tW_incl = is_tW && dataset_version.find("inclusiveDecays") != string::npos;
+  is_tW_nfhd = is_tW && dataset_version.find("NoFullyHadronic") != string::npos;
+  is_tW_nfhd_syst = is_tW_nfhd && dataset_version.find("syst") != string::npos;
+  is_tW_nfhd_DS = is_tW_nfhd && dataset_version.find("_DS_") != string::npos;
+  is_tW_nfhd_PDF = is_tW_nfhd && dataset_version.find("PDF") != string::npos;
+}
+
+bool WeightTrickery::process(Event & event) {
+
+  double weight(1.);
+
+  // The regular MiniAODv2 UL TT samples provide ca. 15-30 MC events per expected real TT event.
+  // The TT_Mtt samples provide ca. 20 MC events per expected real TT event.
+  // In order to not make things too complicated, we can simply respectively apply a global weight of 0.5 to the samples in the region with Mtt > 700.
+  if(is_TTbar) {
+    if(!is_TTbar_syst) {
+      if(is_TTbar_Mtt) weight = 0.5;
+      else if(!slct_Mtt0to700->passes(event)) weight = 0.5;
+    }
+  }
+
+  // Get the maximum MC statistics for NoFullyHadronic decays from the actual NoFullyHadronicDecays samples, the inclusiveDecays samples and the NoFullyHadronicDecays samples with PDFWeights stored in them.
+  // The weights given here have been calculated manually and are based on the average number of MC events across years and top/antitop samples.
+  // For events with fully hadronic decays, we rely on the inclusiveDecays samples and let weight = 1.
+  else if(is_tW) {
+    const auto & GENtW = event.get(fHandle_GENtW);
+    if(is_tW_incl && !(GENtW.IsTopHadronicDecay() && GENtW.IsAssHadronicDecay())) weight = 0.16;
+    else if(is_tW_nfhd && !is_tW_nfhd_syst && !is_tW_nfhd_PDF && !is_tW_nfhd_DS) weight = 0.41;
+    // Need to make sure not to adjust the event weights in PDFWeights samples if we actually rely solely on the PDFWeights samples to get the tW distrubtions with varied PDFs.
+    else if(is_tW_nfhd_PDF && !fDoingPDFVariations) weight = 0.43;
+  }
+
+  if(fApply) event.weight *= weight;
+  event.set(fHandle_weight, weight);
+
+  return true;
+}
+
+//____________________________________________________________________________________________________
+// https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2
+METFilterSelection::METFilterSelection(Context & ctx): fYear(extract_year(ctx)) {
+
+  fAndSel.reset(new AndSelection(ctx, "metfilters"));
+  const bool is_mc = ctx.get("dataset_type") == "MC";
+  cout << "WARNING: Applying certain MET filtes only to MC, not data!" << endl;
+
+  if(is_UL(fYear)) {
+    fAndSel->add<TriggerSelection>("goodVertices", "Flag_goodVertices");
+    fAndSel->add<TriggerSelection>("globalSuperTightHalo2016Filter", "Flag_globalSuperTightHalo2016Filter");
+    fAndSel->add<TriggerSelection>("HBHENoiseFilter", "Flag_HBHENoiseFilter");
+    fAndSel->add<TriggerSelection>("HBHENoiseIsoFilter", "Flag_HBHENoiseIsoFilter");
+    fAndSel->add<TriggerSelection>("EcalDeadCellTriggerPrimitiveFilter", "Flag_EcalDeadCellTriggerPrimitiveFilter");
+    fAndSel->add<TriggerSelection>("BadPFMuonFilter", "Flag_BadPFMuonFilter");
+    if(is_mc) fAndSel->add<TriggerSelection>("BadPFMuonDzFilter", "Flag_BadPFMuonDzFilter"); // right now not available in data ntuples
+    // fAndSel->add<TriggerSelection>("BadChargedCandidateFilter", "Flag_BadChargedCandidateFilter"); // currently not recommended
+    fAndSel->add<TriggerSelection>("eeBadScFilter", "Flag_eeBadScFilter");
+    if(fYear == Year::isUL17 || fYear == Year::isUL18) {
+      fAndSel->add<TriggerSelection>("ecalBadCalibFilter", "Flag_ecalBadCalibFilter");
+      // fAndSel->add<TriggerSelection>("hfNoisyHitsFilter", "Flag_hfNoisyHitsFilter"); // currently not recommended
+    }
+  }
+  else {
+    throw runtime_error("METFilterSelection: Non-UL years not implemented!");
+  }
+}
+
+bool METFilterSelection::passes(const Event & event) {
+
+  if(!fAndSel->passes(event)) return false;
 
   return true;
 }

@@ -36,70 +36,86 @@ class configContainer:
       self.userMail = '@'.join([self.userName, 'mail.desy.de']) # Avoid spam due to public code on GitHub
 
       self.yearVars['yearVersions'] = { # e.g. 'v3' in case  of 2016v3
+         'UL16preVFP': '',
+         'UL16postVFP': '',
          'UL17': '',
          'UL18': '',
       }
 
       # Set these values such that there are no more than 2,500 jobs per preselection. This way, you can submit two preselections in parallel to avoid going over 5,000 jobs (current user limit for NAF)
       self.yearVars['preselFileSplit'] = {
-         'UL17': '50',
-         'UL18': '50',
+         'UL16preVFP': '70',
+         'UL16postVFP': '70',
+         'UL17': '70',
+         'UL18': '70',
       }
 
       self.yearVars['targetLumis'] = {
+         'UL16preVFP': _YEARS['UL16preVFP'].get('lumi_pb'),
+         'UL16postVFP': _YEARS['UL16postVFP'].get('lumi_pb'),
          'UL17': _YEARS['UL17'].get('lumi_pb'),
          'UL18': _YEARS['UL18'].get('lumi_pb'),
       }
 
       self.yearVars['lumiFiles'] = {
+         'UL16preVFP': self.uhh2Dir+'common/UHH2-data/UL16preVFP/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON_UL16preVFP_normtag.root',
+         'UL16postVFP': self.uhh2Dir+'common/UHH2-data/UL16postVFP/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON_UL16postVFP_normtag.root',
          'UL17': self.uhh2Dir+'common/UHH2-data/UL17/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON_normtag.root',
          'UL18': self.uhh2Dir+'common/UHH2-data/UL18/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON_normtag.root',
       }
 
       self.yearVars['pileupFiles'] = {
          'mc': {
+            'UL16preVFP': self.uhh2Dir+'common/UHH2-data/UL16preVFP/MyMCPileupHistogram_UL16preVFP.root',
+            'UL16postVFP': self.uhh2Dir+'common/UHH2-data/UL16postVFP/MyMCPileupHistogram_UL16postVFP.root',
             'UL17': self.uhh2Dir+'common/UHH2-data/UL17/MyMCPileupHistogram_UL17.root',
             'UL18': self.uhh2Dir+'common/UHH2-data/UL18/MyMCPileupHistogram_UL18.root',
          },
          'data': {
+            'UL16preVFP': self.uhh2Dir+'common/UHH2-data/UL16preVFP/MyDataPileupHistogram_UL16preVFP.root',
+            'UL16postVFP': self.uhh2Dir+'common/UHH2-data/UL16postVFP/MyDataPileupHistogram_UL16postVFP.root',
             'UL17': self.uhh2Dir+'common/UHH2-data/UL17/MyDataPileupHistogram_UL17.root',
             'UL18': self.uhh2Dir+'common/UHH2-data/UL18/MyDataPileupHistogram_UL18.root',
          },
          'dataUp': {
+            'UL16preVFP': self.uhh2Dir+'common/UHH2-data/UL16preVFP/MyDataPileupHistogram_UL16preVFP_72383.root',
+            'UL16postVFP': self.uhh2Dir+'common/UHH2-data/UL16postVFP/MyDataPileupHistogram_UL16postVFP_72383.root',
             'UL17': self.uhh2Dir+'common/UHH2-data/UL17/MyDataPileupHistogram_UL17_72383.root',
             'UL18': self.uhh2Dir+'common/UHH2-data/UL18/MyDataPileupHistogram_UL18_72383.root',
          },
          'dataDown': {
+            'UL16preVFP': self.uhh2Dir+'common/UHH2-data/UL16preVFP/MyDataPileupHistogram_UL16preVFP_66017.root',
+            'UL16postVFP': self.uhh2Dir+'common/UHH2-data/UL16postVFP/MyDataPileupHistogram_UL16postVFP_66017.root',
             'UL17': self.uhh2Dir+'common/UHH2-data/UL17/MyDataPileupHistogram_UL17_66017.root',
             'UL18': self.uhh2Dir+'common/UHH2-data/UL18/MyDataPileupHistogram_UL18_66017.root',
          },
       }
 
-      self.yearVars['triggerSFFiles'] = {
-         'UL16preVFP': self.uhh2Dir+'common/UHH2-data/UL16preVFP/Efficiencies_muon_generalTracks_Z_Run2016_UL_HIPM_SingleMuonTriggers.root',
-         'UL16postVFP': self.uhh2Dir+'common/UHH2-data/UL16postVFP/Efficiencies_muon_generalTracks_Z_Run2016_UL_SingleMuonTriggers.root',
-         'UL17': self.uhh2Dir+'common/UHH2-data/UL17/Efficiencies_muon_generalTracks_Z_Run2017_UL_SingleMuonTriggers.root',
-         'UL18': self.uhh2Dir+'common/UHH2-data/UL18/Efficiencies_muon_generalTracks_Z_Run2018_UL_SingleMuonTriggers.root',
-      }
-      self.yearVars['triggerSFHists'] = {
-         'UL16preVFP': 'NUM_Mu50_or_TkMu50_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_abseta_pt',
-         'UL16postVFP': 'NUM_Mu50_or_TkMu50_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_abseta_pt',
-         'UL17': 'NUM_Mu50_or_OldMu100_or_TkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_abseta_pt',
-         'UL18': 'NUM_Mu50_or_OldMu100_or_TkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_abseta_pt',
-      }
+      # self.yearVars['triggerSFFiles'] = {
+      #    'UL16preVFP': self.uhh2Dir+'common/UHH2-data/UL16preVFP/Efficiencies_muon_generalTracks_Z_Run2016_UL_HIPM_SingleMuonTriggers.root',
+      #    'UL16postVFP': self.uhh2Dir+'common/UHH2-data/UL16postVFP/Efficiencies_muon_generalTracks_Z_Run2016_UL_SingleMuonTriggers.root',
+      #    'UL17': self.uhh2Dir+'common/UHH2-data/UL17/Efficiencies_muon_generalTracks_Z_Run2017_UL_SingleMuonTriggers.root',
+      #    'UL18': self.uhh2Dir+'common/UHH2-data/UL18/Efficiencies_muon_generalTracks_Z_Run2018_UL_SingleMuonTriggers.root',
+      # }
+      # self.yearVars['triggerSFHists'] = {
+      #    'UL16preVFP': 'NUM_Mu50_or_TkMu50_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_abseta_pt',
+      #    'UL16postVFP': 'NUM_Mu50_or_TkMu50_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_abseta_pt',
+      #    'UL17': 'NUM_Mu50_or_OldMu100_or_TkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_abseta_pt',
+      #    'UL18': 'NUM_Mu50_or_OldMu100_or_TkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_abseta_pt',
+      # }
 
-      self.yearVars['muonidSFFiles'] = {
-         'UL16preVFP': self.uhh2Dir+'common/UHH2-data/UL16preVFP/Efficiencies_muon_generalTracks_Z_Run2016_UL_HIPM_ID.root',
-         'UL16postVFP': self.uhh2Dir+'common/UHH2-data/UL16postVFP/Efficiencies_muon_generalTracks_Z_Run2016_UL_ID.root',
-         'UL17': self.uhh2Dir+'common/UHH2-data/UL17/Efficiencies_muon_generalTracks_Z_Run2017_UL_ID.root',
-         'UL18': self.uhh2Dir+'common/UHH2-data/UL18/Efficiencies_muon_generalTracks_Z_Run2018_UL_ID.root',
-      }
-      self.yearVars['muonidSFHists'] = {
-         'UL16preVFP': 'NUM_TightID_DEN_TrackerMuons_abseta_pt',
-         'UL16postVFP': 'NUM_TightID_DEN_TrackerMuons_abseta_pt',
-         'UL17': 'NUM_TightID_DEN_TrackerMuons_abseta_pt',
-         'UL18': 'NUM_TightID_DEN_TrackerMuons_abseta_pt',
-      }
+      # self.yearVars['muonidSFFiles'] = {
+      #    'UL16preVFP': self.uhh2Dir+'common/UHH2-data/UL16preVFP/Efficiencies_muon_generalTracks_Z_Run2016_UL_HIPM_ID.root',
+      #    'UL16postVFP': self.uhh2Dir+'common/UHH2-data/UL16postVFP/Efficiencies_muon_generalTracks_Z_Run2016_UL_ID.root',
+      #    'UL17': self.uhh2Dir+'common/UHH2-data/UL17/Efficiencies_muon_generalTracks_Z_Run2017_UL_ID.root',
+      #    'UL18': self.uhh2Dir+'common/UHH2-data/UL18/Efficiencies_muon_generalTracks_Z_Run2018_UL_ID.root',
+      # }
+      # self.yearVars['muonidSFHists'] = {
+      #    'UL16preVFP': 'NUM_TightID_DEN_TrackerMuons_abseta_pt',
+      #    'UL16postVFP': 'NUM_TightID_DEN_TrackerMuons_abseta_pt',
+      #    'UL17': 'NUM_TightID_DEN_TrackerMuons_abseta_pt',
+      #    'UL18': 'NUM_TightID_DEN_TrackerMuons_abseta_pt',
+      # }
 
       self.yearVars['deepjetMCEffFiles'] = {
          'UL17': self.uhh2Dir+'LegacyTopTagging/Analysis/BTagMCEff/files/BTagMCEfficiencyHists_UL17.root',
@@ -331,13 +347,13 @@ class xmlCreator:
             file.write('''<Item Name="AK8Collection_gen" Value="genjetsAk8SubstructureSoftDrop"/>\n''')
          file.write('''\n''')
          file.write('''<Item Name="lumi_file" Value="'''+self.yearVars['lumiFiles'][self.year]+'''"/>\n''')
-         file.write('''<Item Name="lumihists_lumi_per_bin" Value="500."/>\n''')
+         file.write('''<Item Name="lumihists_lumi_per_bin" Value="1000."/>\n''')
          file.write('''\n''')
-         file.write('''<Item Name="MuonIDScaleFactorFile" Value="'''+self.yearVars['muonidSFFiles'][self.year]+'''"/>\n''')
-         file.write('''<Item Name="MuonIDScaleFactorHist" Value="'''+self.yearVars['muonidSFHists'][self.year]+'''"/>\n''')
-         file.write('''<Item Name="TriggerScaleFactorFile" Value="'''+self.yearVars['triggerSFFiles'][self.year]+'''"/>\n''')
-         file.write('''<Item Name="TriggerScaleFactorHist" Value="'''+self.yearVars['triggerSFHists'][self.year]+'''"/>\n''')
-         file.write('''\n''')
+         # file.write('''<Item Name="MuonIDScaleFactorFile" Value="'''+self.yearVars['muonidSFFiles'][self.year]+'''"/>\n''')
+         # file.write('''<Item Name="MuonIDScaleFactorHist" Value="'''+self.yearVars['muonidSFHists'][self.year]+'''"/>\n''')
+         # file.write('''<Item Name="TriggerScaleFactorFile" Value="'''+self.yearVars['triggerSFFiles'][self.year]+'''"/>\n''')
+         # file.write('''<Item Name="TriggerScaleFactorHist" Value="'''+self.yearVars['triggerSFHists'][self.year]+'''"/>\n''')
+         # file.write('''\n''')
          file.write('''<Item Name="pileup_directory" Value="'''+self.yearVars['pileupFiles']['mc'][self.year]+'''"/>\n''')
          file.write('''<Item Name="pileup_directory_data" Value="'''+self.yearVars['pileupFiles']['data'][self.year]+'''"/>\n''')
          if self.is_mainsel:
@@ -346,6 +362,8 @@ class xmlCreator:
             file.write('''\n''')
             file.write('''<Item Name="BTagMCEffFile" Value="'''+self.yearVars['deepjetMCEffFiles'][self.year]+'''"/>\n''')
             file.write('''<Item Name="BTagScaleFactorFile" Value="'''+self.yearVars['deepjetSFFiles'][self.year]+'''"/>\n''')
+            file.write('''\n''')
+            file.write('''<Item Name="apply_TopPtReweighting" Value="false"/>\n''')
             file.write('''\n''')
             file.write('''<Item Name="VJetsReweighting_do_EWK" Value="true"/>\n''')
             file.write('''<Item Name="VJetsReweighting_do_QCD_EWK" Value="false"/>\n''')
