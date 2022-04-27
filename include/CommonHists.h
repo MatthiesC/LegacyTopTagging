@@ -8,7 +8,7 @@ namespace uhh2 { namespace ltt {
 
 class CommonHists: public uhh2::Hists {
 public:
-  CommonHists(uhh2::Context & ctx, const std::string & dirname, const unsigned int default_nbins = 1000);
+  CommonHists(uhh2::Context & ctx, const std::string & dirname, const unsigned int default_nbins = 100);
 
   virtual void fill(const uhh2::Event & event) override;
 
@@ -18,12 +18,16 @@ protected:
 
   TH1F *hist_ntrue;
   TH1F *hist_npv;
+  TH1F *hist_rho;
+  TH1F *hist_npv_no_reweight;
 
   TH1F *hist_met_pt;
   TH1F *hist_met_phi;
 
   TH1F *hist_nmuons;
+  TH1F *hist_muons_pt;
   TH1F *hist_nelectrons;
+  TH1F *hist_electrons_pt;
 
   TH1F *hist_primlep_pt;
   TH1F *hist_ptw;
@@ -32,6 +36,8 @@ protected:
   TH1F *hist_primlep_drjet;
   TH1F *hist_primlep_ptrel;
   TH2F *hist_twodselection;
+  TH1F *hist_primlep_relpfiso;
+  TH1F *hist_primlep_relpfiso_wide;
 
   TH1F *hist_nak4;
   TH1F *hist_ak4jets_pt;
@@ -46,7 +52,11 @@ protected:
   TH1F *hist_ht_lep;
 
 private:
-  uhh2::Event::Handle<FlavorParticle> h_primlep;
+  const uhh2::Event::Handle<FlavorParticle> h_primlep;
+  const uhh2::Event::Handle<float> h_pu_weight_up;
+  const uhh2::Event::Handle<float> h_pu_weight_down;
+  const std::string h_pu_syst_direction;
+  const uhh2::Event::Handle<float> h_pu_weight;
 };
 
 }}

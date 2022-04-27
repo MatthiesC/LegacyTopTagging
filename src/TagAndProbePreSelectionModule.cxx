@@ -35,6 +35,8 @@ public:
 private:
   bool debug;
 
+  // unique_ptr<AnalysisModule> weight_trickery;
+
   unique_ptr<Selection> slct_lumi;
   unique_ptr<AnalysisModule> sf_lumi;
   unique_ptr<AnalysisModule> sf_prefire;
@@ -72,7 +74,7 @@ TagAndProbePreSelectionModule::TagAndProbePreSelectionModule(Context & ctx) {
   // const MuonId muonID_veto = AndId<Muon>(PtEtaCut(30., 2.4), MuonID(Muon::Selector::CutBasedIdLoose));
   // for more selection efficiency, use medium lepton IDs for the lepton vetoes:
   // const ElectronId elecID_veto = AndId<Electron>(PtEtaCut(30., 2.4), ElectronID_Fall17_medium_noIso); // Christopher's Selection (in 106X_v1)
-  const ElectronId elecID_veto = AndId<Electron>(PtEtaCut(30., 2.4), ElectronTagID(Electron::mvaEleID_Fall17_noIso_V2_wpLoose)); // Christopher's Selection (in 106X_v2)
+  const ElectronId elecID_veto = AndId<Electron>(PtEtaCut(30., 2.4), ElectronTagID(Electron::tag::mvaEleID_Fall17_noIso_V2_wpLoose)); // Christopher's Selection (in 106X_v2)
   // const ElectronId elecID_veto = AndId<Electron>(PtEtaCut(55., 2.4), ElectronID_Fall17_medium_noIso);
   const MuonId muonID_veto = AndId<Muon>(PtEtaCut(30., 2.4), MuonID(Muon::Selector::CutBasedIdMedium)); // Christopher's Selection
   // const MuonId muonID_veto = AndId<Muon>(PtEtaCut(55., 2.4), MuonID(Muon::Selector::CutBasedIdTight));
@@ -81,18 +83,20 @@ TagAndProbePreSelectionModule::TagAndProbePreSelectionModule(Context & ctx) {
   // pT(tag muon) = 55 GeV should be the final value (will be required in the TagAndProbeMainSelectionModule);
   // in order to plot trigger efficiency histograms starting at values lower than the trigger threshold, we use a looser cut here
 
-  // const Muon::Selector muonSelector = Muon::CutBasedIdTight;
-  const Muon::Selector muonSelector = Muon::CutBasedIdGlobalHighPt; // recommended to use this, see https://twiki.cern.ch/twiki/bin/view/CMS/MuonUL2017#High_pT_above_120_GeV (see also AN-2018/008 and in the corresponding paper MUO-17-001)
+  // const Muon::Selector muonIdSelector = Muon::CutBasedIdTight;
+  const Muon::Selector muonIdSelector = Muon::Selector::CutBasedIdGlobalHighPt; // recommended to use this, see https://twiki.cern.ch/twiki/bin/view/CMS/MuonUL2017#High_pT_above_120_GeV (see also AN-2018/008 and in the corresponding paper MUO-17-001)
   // Nachteil dieser ID ist, dass sie nicht auf der loose/medium/tight ID aufbaut, d.h. wenn ich einen Electron channel einbauen sollte, dann kann ich dort nicht durch ein veto auf looseID garantieren, dass events mit GlobalHighPt muon auch vetoed sind !!!
   // Ausserdem wurde die HighPtID benutzt fuer die Bestimmung der HLT_Mu50 trigger-SFs und ist laut oben erwaehntem TWiki fuer die gleichzeitige Benutztung mit diesen sehr gut geeignet
   // Die Benutztung der Mu50 trigger anstatt der IsoMu24/27 etc. trigger in Kombiniation mit der TightID ist sinnvoll, weil die IsoMu24/27 trigger isolierte Myonen verlangen, aber wir wenden eine custom 2D isolation an
-  const MuonId muonID_tag = AndId<Muon>(PtEtaCut(55., 2.4), MuonID(muonSelector)); // in order to save disk space, I cut at 55 GeV already in presel!
+  const MuonId muonID_tag = AndId<Muon>(PtEtaCut(55., 2.4), MuonID(muonIdSelector)); // in order to save disk space, I cut at 55 GeV already in presel!
+
+  // weight_trickery.reset(new WeightTrickery(ctx));
 
   slct_lumi.reset(new LumiSelection(ctx));
   sf_lumi.reset(new MCLumiWeight(ctx));
   sf_prefire.reset(new PrefiringWeights(ctx));
   // sf_muon.reset(new MuonScaleFactors(ctx));
-  sf_muon_id.reset(new ltt::MuonIdScaleFactors(ctx, muonSelector));
+  sf_muon_id.reset(new ltt::MuonIdScaleFactors(ctx, muonIdSelector));
 
   common_modules.reset(new CommonModules());
   common_modules->change_pf_id(jetPFID);
@@ -109,7 +113,7 @@ TagAndProbePreSelectionModule::TagAndProbePreSelectionModule(Context & ctx) {
   slct_elec.reset(new NElectronSelection(0, 0));
   slct_muon.reset(new NMuonSelection(1, 1));
   clnr_muon.reset(new MuonCleaner(muonID_tag));
-  slct_met.reset(new METSelection(50.));
+  slct_met.reset(new METSelection(ctx, 50.));
   slct_ptw.reset(new PTWSelection(ctx, 150.));
 
   primlep.reset(new PrimaryLepton(ctx));
@@ -123,6 +127,7 @@ TagAndProbePreSelectionModule::TagAndProbePreSelectionModule(Context & ctx) {
   hist_ptw.reset(new AndHists(ctx, "4_PtW"));
 
   // slct_trigger.reset(new LttTriggerSelection(ctx));
+  // slct_trigger.reset(new TriggerSelection("asdf"));
 }
 
 
@@ -134,6 +139,12 @@ bool TagAndProbePreSelectionModule::process(Event & event) {
     cout << "| NEW EVENT |" << endl;
     cout << "+-----------+" << endl;
   }
+
+  // // just for trigger debugging
+  // if(!slct_trigger->passes(event)) return false;
+
+  // if(debug) cout << "MC weight magic" << endl;
+  // weight_trickery->process(event);
 
   if(debug) cout << "Lumi selection (need to do this manually before CommonModules)" << endl; // else getting error for some data samples, e.g. "RunSwitcher cannot handle run number 275656 for year 2016"
   if(event.isRealData && !slct_lumi->passes(event)) return false;
@@ -166,9 +177,6 @@ bool TagAndProbePreSelectionModule::process(Event & event) {
   if(debug) cout << "PTW selection" << endl;
   if(!slct_ptw->passes(event)) return false;
   hist_ptw->fill(event);
-
-  // just for trigger debugging
-  // if(!slct_trigger->passes(event)) return false;
 
   if(debug) cout << "End of TagAndProbePreSelectionModule" << endl;
   return true;

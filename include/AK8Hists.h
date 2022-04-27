@@ -8,7 +8,7 @@ namespace uhh2 { namespace ltt {
 
 class AK8Hists: public uhh2::Hists {
 public:
-  AK8Hists(uhh2::Context & ctx, const std::string & dirname, const std::string & coll_rec = "", const std::string & coll_gen = "", const unsigned int default_nbins = 1000);
+  AK8Hists(uhh2::Context & ctx, const std::string & dirname, const std::string & coll_rec = "", const std::string & coll_gen = "", const std::string & handle_name_tag = "AK8Hists_dummy_handle", const unsigned int default_nbins = 100);
 
   virtual void fill(const uhh2::Event & event) override;
 
@@ -53,20 +53,20 @@ protected:
   TH1F *hist_ak8jet1_PNet_TvsQCD;
   TH1F *hist_ak8jet1_PNet_WvsQCD;
 
-  TH1F *hist_ak8jet2_pt;
-  TH1F *hist_ak8jet2_drlepton;
-  TH1F *hist_ak8jet2_eta;
-  TH1F *hist_ak8jet2_phi;
-  TH1F *hist_ak8jet2_mass;
-  TH1F *hist_ak8jet2_mSD;
-  TH1F *hist_ak8jet2_tau32;
-  TH1F *hist_ak8jet2_tau21;
-  TH1F *hist_ak8jet2_maxDeepCSV;
-  TH1F *hist_ak8jet2_maxDeepJet;
-  TH1F *hist_ak8jet2_DeepAK8_TvsQCD;
-  TH1F *hist_ak8jet2_DeepAK8_WvsQCD;
-  TH1F *hist_ak8jet2_PNet_TvsQCD;
-  TH1F *hist_ak8jet2_PNet_WvsQCD;
+  // TH1F *hist_ak8jet2_pt;
+  // TH1F *hist_ak8jet2_drlepton;
+  // TH1F *hist_ak8jet2_eta;
+  // TH1F *hist_ak8jet2_phi;
+  // TH1F *hist_ak8jet2_mass;
+  // TH1F *hist_ak8jet2_mSD;
+  // TH1F *hist_ak8jet2_tau32;
+  // TH1F *hist_ak8jet2_tau21;
+  // TH1F *hist_ak8jet2_maxDeepCSV;
+  // TH1F *hist_ak8jet2_maxDeepJet;
+  // TH1F *hist_ak8jet2_DeepAK8_TvsQCD;
+  // TH1F *hist_ak8jet2_DeepAK8_WvsQCD;
+  // TH1F *hist_ak8jet2_PNet_TvsQCD;
+  // TH1F *hist_ak8jet2_PNet_WvsQCD;
 
   const unsigned int fDRbins = 15;
 
@@ -81,6 +81,7 @@ private:
   uhh2::Event::Handle<std::vector<TopJet>> h_ak8jets;
   uhh2::Event::Handle<std::vector<GenTopJet>> h_ak8genjets;
   uhh2::Event::Handle<FlavorParticle> h_primlep;
+  uhh2::Event::Handle<TopJet> h_taggedjet;
 };
 
 }}

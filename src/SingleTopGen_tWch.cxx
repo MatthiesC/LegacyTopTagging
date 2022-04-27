@@ -276,6 +276,36 @@ GenParticle SingleTopGen_tWch::WAssDecay2() const{
   return m_WAssDecay2;
 }
 
+GenParticle SingleTopGen_tWch::LeptonicW() const{
+  if(IsAssLeptonicDecay() && IsTopHadronicDecay()) return m_WAss;
+  else if(IsAssHadronicDecay() && IsTopLeptonicDecay()) return m_WTop;
+  else throw runtime_error("SingleTopGen_tWch::LeptonicW(): This is not a l+jets event!");
+}
+
+GenParticle SingleTopGen_tWch::SingleLepton() const{
+  if(IsAssLeptonicDecay() && IsTopHadronicDecay()) {
+    if(abs(m_WAssDecay1.pdgId()) == 11 || abs(m_WAssDecay1.pdgId()) == 13 || abs(m_WAssDecay1.pdgId()) == 15) return m_WAssDecay1;
+    else return m_WAssDecay2;
+  }
+  else if(IsAssHadronicDecay() && IsTopLeptonicDecay()) {
+    if(abs(m_WTopDecay1.pdgId()) == 11 || abs(m_WTopDecay1.pdgId()) == 13 || abs(m_WTopDecay1.pdgId()) == 15) return m_WTopDecay1;
+    else return m_WTopDecay2;
+  }
+  else throw runtime_error("SingleTopGen_tWch::SingleLepton(): This is not a l+jets event!");
+}
+
+GenParticle SingleTopGen_tWch::SingleNeutrino() const{
+  if(IsAssLeptonicDecay() && IsTopHadronicDecay()) {
+    if(abs(m_WAssDecay1.pdgId()) == 11 || abs(m_WAssDecay1.pdgId()) == 13 || abs(m_WAssDecay1.pdgId()) == 15) return m_WAssDecay2;
+    else return m_WAssDecay1;
+  }
+  else if(IsAssHadronicDecay() && IsTopLeptonicDecay()) {
+    if(abs(m_WTopDecay1.pdgId()) == 11 || abs(m_WTopDecay1.pdgId()) == 13 || abs(m_WTopDecay1.pdgId()) == 15) return m_WTopDecay2;
+    else return m_WTopDecay1;
+  }
+  else throw runtime_error("SingleTopGen_tWch::SingleNeutrino(): This is not a l+jets event!");
+}
+
 GenParticle SingleTopGen_tWch::LeptAss() const{
   if(!(IsAssLeptonicDecay())) throw runtime_error("SingleTopGen_tWch: funciton LeptAss() called but this is no event with Wass decaying leptonically");
   if(abs(m_WAssDecay1.pdgId()) == 11 || abs(m_WAssDecay1.pdgId()) == 13 || abs(m_WAssDecay1.pdgId()) == 15) return m_WAssDecay1;
@@ -342,8 +372,9 @@ bool SingleTopGen_tWch::IsTopHadronicDecay() const{
   return abs(m_WTopDecay1.pdgId()) <= 5;
 }
 
-bool SingleTopGen_tWch::IsTopLeptonicDecay() const{
-  return !(m_type == e_assele_tophad || m_type == e_assmuo_tophad || m_type == e_asstau_tophad || m_type == e_asshad_tophad || m_type == e_notfound);
+bool SingleTopGen_tWch::IsTopLeptonicDecay(const bool consider_taus) const{
+  if(consider_taus) return IsTopToElectronDecay() || IsTopToMuonDecay() || IsTopToTauonDecay();
+  else return IsTopToElectronDecay() || IsTopToMuonDecay();
 }
 
 bool SingleTopGen_tWch::IsTopToElectronDecay() const{
@@ -364,8 +395,9 @@ bool SingleTopGen_tWch::IsAssHadronicDecay() const{
   return abs(m_WAssDecay1.pdgId()) <= 5;
 }
 
-bool SingleTopGen_tWch::IsAssLeptonicDecay() const{
-  return !(m_type == e_asshad_topele || m_type == e_asshad_topmuo || m_type == e_asshad_toptau || m_type == e_asshad_tophad || m_type == e_notfound);
+bool SingleTopGen_tWch::IsAssLeptonicDecay(const bool consider_taus) const{
+  if(consider_taus) return IsAssToElectronDecay() || IsAssToMuonDecay() || IsAssToTauonDecay();
+  else return IsAssToElectronDecay() || IsAssToMuonDecay();
 }
 
 bool SingleTopGen_tWch::IsAssToElectronDecay() const{
@@ -380,6 +412,14 @@ bool SingleTopGen_tWch::IsAssToTauonDecay() const{
   return m_type == e_asstau_topele || m_type == e_asstau_topmuo || m_type == e_asstau_toptau || m_type == e_asstau_tophad;
 }
 
+
+bool SingleTopGen_tWch::IsSemiLeptonic(const bool consider_taus) const{
+  if(
+    ( IsTopHadronicDecay() && IsAssLeptonicDecay(consider_taus) ) ||
+    ( IsTopLeptonicDecay(consider_taus) && IsAssHadronicDecay() )
+  ) return true;
+  else return false;
+}
 
 
 SingleTopGen_tWchProducer::SingleTopGen_tWchProducer(uhh2::Context & ctx, const std::string & name, bool throw_on_failure_): throw_on_failure(throw_on_failure_){

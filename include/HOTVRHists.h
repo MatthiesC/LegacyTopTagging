@@ -8,7 +8,7 @@ namespace uhh2 { namespace ltt {
 
 class HOTVRHists: public uhh2::Hists {
 public:
-  HOTVRHists(uhh2::Context & ctx, const std::string & dirname, const std::string & coll_rec = "", const std::string & coll_gen = "", const unsigned int default_nbins = 1000);
+  HOTVRHists(uhh2::Context & ctx, const std::string & dirname, const std::string & coll_rec = "", const std::string & coll_gen = "", const std::string & handle_name_tag = "HOTVRHists_dummy_handle", const unsigned int default_nbins = 100);
 
   virtual void fill(const uhh2::Event & event) override;
 
@@ -40,14 +40,14 @@ protected:
   TH1F *hist_hotvrjet1_tau32;
   TH1F *hist_hotvrjet1_fpt1;
 
-  TH1F *hist_hotvrjet2_pt;
-  TH1F *hist_hotvrjet2_drlepton;
-  TH1F *hist_hotvrjet2_eta;
-  TH1F *hist_hotvrjet2_phi;
-  TH1F *hist_hotvrjet2_mass;
-  TH1F *hist_hotvrjet2_mpair;
-  TH1F *hist_hotvrjet2_tau32;
-  TH1F *hist_hotvrjet2_fpt1;
+  // TH1F *hist_hotvrjet2_pt;
+  // TH1F *hist_hotvrjet2_drlepton;
+  // TH1F *hist_hotvrjet2_eta;
+  // TH1F *hist_hotvrjet2_phi;
+  // TH1F *hist_hotvrjet2_mass;
+  // TH1F *hist_hotvrjet2_mpair;
+  // TH1F *hist_hotvrjet2_tau32;
+  // TH1F *hist_hotvrjet2_fpt1;
 
   const unsigned int fDRbins = 15;
 
@@ -62,6 +62,7 @@ private:
   uhh2::Event::Handle<std::vector<TopJet>> h_hotvrjets;
   uhh2::Event::Handle<std::vector<GenTopJet>> h_hotvrgenjets;
   uhh2::Event::Handle<FlavorParticle> h_primlep;
+  uhh2::Event::Handle<TopJet> h_taggedjet;
 };
 
 }}

@@ -10,18 +10,31 @@
 
 namespace uhh2 { namespace ltt {
 
+enum class UnclEnergyVariation {
+  nominal,
+  up,
+  down,
+};
+
 class JetMETCorrections: public uhh2::AnalysisModule {
 public:
-  JetMETCorrections(const std::string & coll_rec = "", const std::string & coll_gen = "");
+  JetMETCorrections(
+    const boost::optional<std::string> & coll_rec = boost::none,
+    const boost::optional<std::string> & coll_gen = boost::none,
+    const boost::optional<std::string> & met_name = boost::none
+  );
   virtual bool process(uhh2::Event & event) override;
   void init(uhh2::Context & ctx);
   void switch_jlc(const bool b = true) { fail_if_init_done(); do_jlc = b; }
   void switch_jec(const bool b = true) { fail_if_init_done(); do_jec = b; }
+  void switch_pu_jet_id(const bool b = true) { fail_if_init_done(); do_pu_jet_id = b; }
   void switch_met_type1_correction(const bool b = true) { fail_if_init_done(); do_met_type1_correction = b; }
   void switch_met_xy_correction(const bool b = true) { fail_if_init_done(); do_met_xy_correction = b; }
 
 private:
   void fail_if_init_done() const { if(init_done) throw std::runtime_error("JetMETCorrections: Not allowed to call a configuration switch after JetMETCorrections::init() has already been called"); }
+
+  bool debug;
 
   std::string jec_tag_2016, jec_ver_2016, jer_tag_2016;
   std::string jec_tag_2017, jec_ver_2017, jer_tag_2017;
@@ -40,16 +53,24 @@ private:
 
   bool do_jlc = true;
   bool do_jec = true;
+  bool do_pu_jet_id = false;
   bool do_met_type1_correction = true;
   bool do_met_xy_correction = true;
+
+  UnclEnergyVariation fUnclEnergyVariation;
 
   bool is_mc;
   Year year;
 
+  bool is_chs = true;
+
   uhh2::Event::Handle<std::vector<Jet>> h_jets;
   // uhh2::Event::Handle<std::vector<GenJet>> h_genjets;
+  const std::string fMETName;
+  uhh2::Event::Handle<MET> h_met;
 
   std::unique_ptr<AnalysisModule> clnr_jetpfid;
+  std::unique_ptr<AnalysisModule> clnr_jetpuid;
 
   std::unique_ptr<YearSwitcher> jlc_MC;
   std::unique_ptr<YearSwitcher> jet_corrector_MC;

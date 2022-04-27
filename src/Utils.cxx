@@ -1,3 +1,5 @@
+#include <iomanip>
+
 #include "UHH2/common/include/Utils.h"
 #include "UHH2/common/include/MCWeight.h"
 #include "UHH2/common/include/AdditionalSelections.h"
@@ -10,6 +12,26 @@ using namespace ltt;
 
 
 namespace uhh2 { namespace ltt {
+
+//____________________________________________________________________________________________________
+Particle add_Particles(const Particle & p1, const Particle & p2) {
+  Particle sum;
+  sum.set_v4(p1.v4() + p2.v4());
+  sum.set_charge(p1.charge() + p2.charge());
+  return sum;
+}
+
+//____________________________________________________________________________________________________
+void print_jet_info(const Jet & jet, const string & prefix) {
+  cout << scientific << prefix+"pt = " << jet.v4().pt() << " ; JEC_factor_raw = " << jet.JEC_factor_raw() << endl;
+}
+
+//____________________________________________________________________________________________________
+void print_topjet_info(const TopJet & jet, const string & prefix) {
+  print_jet_info(jet, prefix);
+  cout << prefix+" subjets:" << endl;
+  for(const Jet & subjet : jet.subjets()) print_jet_info(subjet, prefix+"  ");
+}
 
 //____________________________________________________________________________________________________
 double tau32(const TopJet & topjet) {
@@ -105,6 +127,7 @@ HOTVRTopTag::HOTVRTopTag(const double _mass_min, const double _mass_max, const d
   mass_min(_mass_min), mass_max(_mass_max), fpt_max(_fpt_max), mpair_min(_mpair_min) {}
 
 bool HOTVRTopTag::operator()(const TopJet & jet, const Event & event) const {
+  (void) event;
   if(jet.subjets().size() < 3) return false;
   if(jet.v4().M() < mass_min || jet.v4().M() > mass_max) return false;
   if(HOTVR_fpt(jet) > fpt_max) return false;
@@ -142,16 +165,19 @@ bool NoLeptonInJet::operator()(const Jet & jet, const Event & event) const {
 }
 
 //____________________________________________________________________________________________________
-METSelection::METSelection(const double _met_min, const double _met_max): met_min(_met_min), met_max(_met_max) {}
+METSelection::METSelection(Context & ctx, const boost::optional<double> & _met_min, const boost::optional<double> & _met_max, const boost::optional<string> & _met_name): met_min(_met_min), met_max(_met_max), h_met(ctx.get_handle<MET>(_met_name ? *_met_name : "met")) {}
 
 bool METSelection::passes(const Event & event) {
-  const bool passed_lower_limit = event.met->v4().Pt() > met_min;
-  const bool passed_upper_limit = event.met->v4().Pt() < met_max;
+  const MET *met = &event.get(h_met);
+  bool passed_lower_limit(true);
+  bool passed_upper_limit(true);
+  if(met_min) passed_lower_limit = met->pt() > *met_min;
+  if(met_max) passed_upper_limit = met->pt() < *met_max;
   return passed_lower_limit && passed_upper_limit;
 }
 
 //____________________________________________________________________________________________________
-PTWSelection::PTWSelection(Context & ctx, const double _ptw_min, const double _ptw_max): ptw_min(_ptw_min), ptw_max(_ptw_max), h_primlep(ctx.get_handle<FlavorParticle>("PrimaryLepton")) {}
+PTWSelection::PTWSelection(Context & ctx, const double _ptw_min, const double _ptw_max): ptw_min(_ptw_min), ptw_max(_ptw_max), h_primlep(ctx.get_handle<FlavorParticle>(kHandleName_PrimaryLepton)) {}
 
 bool PTWSelection::passes(const Event & event) {
   const FlavorParticle & primlep = event.get(h_primlep);
@@ -162,10 +188,11 @@ bool PTWSelection::passes(const Event & event) {
 }
 
 //____________________________________________________________________________________________________
-TwoDSelection::TwoDSelection(Context & ctx, const double _ptrel_min, const double _dr_min): ptrel_min(_ptrel_min), dr_min(_dr_min), h_primlep(ctx.get_handle<FlavorParticle>("PrimaryLepton")) {}
+TwoDSelection::TwoDSelection(Context & ctx, const double _ptrel_min, const double _dr_min): ptrel_min(_ptrel_min), dr_min(_dr_min), h_primlep(ctx.get_handle<FlavorParticle>(kHandleName_PrimaryLepton)) {}
 
 bool TwoDSelection::passes(const Event & event) {
   const FlavorParticle & primlep = event.get(h_primlep);
+  throw runtime_error("fix TwoDSelection with new PUPPI CHS matching setup");
   const Jet *nextjet = nextJet(primlep, *event.jets);
   const bool passed_ptrel_cut = pTrel(primlep, nextjet) > ptrel_min;
   const bool passed_dr_cut = deltaR(primlep.v4(), nextjet->v4()) > dr_min;
@@ -173,14 +200,18 @@ bool TwoDSelection::passes(const Event & event) {
 }
 
 //____________________________________________________________________________________________________
-BTagCloseToLeptonSelection::BTagCloseToLeptonSelection(Context & ctx, const double _dr_max, const JetId & _btagID): dr_max(_dr_max), btagID(_btagID), h_primlep(ctx.get_handle<FlavorParticle>("PrimaryLepton")) {}
+BTagCloseToLeptonSelection::BTagCloseToLeptonSelection(Context & ctx, const double _dr_max):
+  dr_max(_dr_max),
+  h_primlep(ctx.get_handle<FlavorParticle>(kHandleName_PrimaryLepton)),
+  h_bJets(ctx.get_handle<vector<Jet>>(kHandleName_bJets))
+{}
 
 bool BTagCloseToLeptonSelection::passes(const Event & event) {
   const FlavorParticle & primlep = event.get(h_primlep);
+  const vector<Jet> & bjets = event.get(h_bJets);
   unsigned int btags_close_to_lepton(0);
-  for(const Jet & jet : *event.jets) {
-    if(deltaR(jet.v4(), primlep.v4()) > dr_max) continue;
-    if(btagID(jet, event)) ++btags_close_to_lepton;
+  for(const Jet & jet : bjets) {
+    if(deltaR(jet.v4(), primlep.v4()) < dr_max) ++btags_close_to_lepton;
   }
   return btags_close_to_lepton > 0;
 }
@@ -189,7 +220,7 @@ bool BTagCloseToLeptonSelection::passes(const Event & event) {
 PartonShowerVariation::PartonShowerVariation(Context & ctx) {
   const string config = ctx.get("SystDirection_PS", "nominal");
   for(const auto & v : kPSVariations) {
-    weights_map[v.first] = ctx.declare_event_output<double>("weight_partonshower_"+v.second.name);
+    weights_map[v.first] = ctx.declare_event_output<float>("weight_partonshower_"+v.second.name);
     if(v.second.name == config) applied_variation = v.first;
   }
   if(applied_variation != PSVariation::None) {
@@ -527,13 +558,16 @@ bool MainOutputSetter::process(Event & event) {
 }
 
 //____________________________________________________________________________________________________
-HEM2018Selection::HEM2018Selection(Context & ctx): fYear(extract_year(ctx)) {}
+HEM2018Selection::HEM2018Selection(Context & ctx, const string & handle_name_jets):
+  fYear(extract_year(ctx)),
+  fHandle_jets(ctx.get_handle<vector<Jet>>(handle_name_jets))
+{}
 
 // Caveat: Returns "true" if event is affected by the HEM issue.
 bool HEM2018Selection::passes(const Event & event) {
   if(fYear == Year::isUL18 && ((event.isRealData && event.run >= fRunNumber) || !event.isRealData)) {
     vector<Particle> relevant_objects;
-    relevant_objects.insert(relevant_objects.end(), event.jets->begin(), event.jets->end());
+    relevant_objects.insert(relevant_objects.end(), event.get(fHandle_jets).begin(), event.get(fHandle_jets).end());
     relevant_objects.insert(relevant_objects.end(), event.electrons->begin(), event.electrons->end());
     for(const Particle & obj : relevant_objects) {
       if(obj.v4().eta() > fEtaRange.first && obj.v4().eta() < fEtaRange.second && obj.v4().phi() > fPhiRange.first && obj.v4().phi() < fPhiRange.second) {
@@ -547,9 +581,9 @@ bool HEM2018Selection::passes(const Event & event) {
 //____________________________________________________________________________________________________
 PrefiringWeights::PrefiringWeights(Context & ctx, const bool apply): fYear(extract_year(ctx)), fApply(apply) {
   const string config = ctx.get("SystDirection_Prefiring", "nominal");
-  h_weight_nominal = ctx.declare_event_output<double>("weight_prefire");
-  h_weight_up      = ctx.declare_event_output<double>("weight_prefire_up");
-  h_weight_down    = ctx.declare_event_output<double>("weight_prefire_down");
+  h_weight_nominal = ctx.declare_event_output<float>("weight_prefire");
+  h_weight_up      = ctx.declare_event_output<float>("weight_prefire_up");
+  h_weight_down    = ctx.declare_event_output<float>("weight_prefire_down");
   if(config == "nominal") {
     applied_variation = PrefireVariation::nominal;
   }
@@ -576,9 +610,9 @@ bool PrefiringWeights::process(Event & event) {
     return true;
   }
 
-  const double w_nominal = event.prefiringWeight;
-  const double w_up      = event.prefiringWeightUp;
-  const double w_down    = event.prefiringWeightDown;
+  const float w_nominal = event.prefiringWeight;
+  const float w_up      = event.prefiringWeightUp;
+  const float w_down    = event.prefiringWeightDown;
 
   event.set(h_weight_nominal, w_nominal);
   event.set(h_weight_up     , w_up);
@@ -602,11 +636,12 @@ bool PrefiringWeights::process(Event & event) {
 //____________________________________________________________________________________________________
 TopPtReweighting::TopPtReweighting(Context & ctx, const bool apply): fApply(apply) {
   const string config = ctx.get("SystDirection_TopPt", "nominal");
-  h_weight_nominal = ctx.declare_event_output<double>("weight_toppt");
-  h_weight_a_up    = ctx.declare_event_output<double>("weight_toppt_a_up");
-  h_weight_a_down  = ctx.declare_event_output<double>("weight_toppt_a_down");
-  h_weight_b_up    = ctx.declare_event_output<double>("weight_toppt_b_up");
-  h_weight_b_down  = ctx.declare_event_output<double>("weight_toppt_b_down");
+  h_weight_nominal = ctx.declare_event_output<float>("weight_toppt");
+  h_weight_a_up    = ctx.declare_event_output<float>("weight_toppt_a_up");
+  h_weight_a_down  = ctx.declare_event_output<float>("weight_toppt_a_down");
+  h_weight_b_up    = ctx.declare_event_output<float>("weight_toppt_b_up");
+  h_weight_b_down  = ctx.declare_event_output<float>("weight_toppt_b_down");
+  h_weight_applied = ctx.declare_event_output<float>("weight_toppt_applied");
   if(config == "nominal") {
     applied_variation = TopPtVariation::nominal;
   }
@@ -633,6 +668,7 @@ void TopPtReweighting::set_dummy_weights(Event & event) {
   event.set(h_weight_a_down,  fDummyWeight);
   event.set(h_weight_b_up,    fDummyWeight);
   event.set(h_weight_b_down,  fDummyWeight);
+  event.set(h_weight_applied, fDummyWeight);
 }
 
 bool TopPtReweighting::process(Event & event) {
@@ -642,8 +678,8 @@ bool TopPtReweighting::process(Event & event) {
   }
 
   unsigned int n_tops(0);
-  double top_pt(-1.);
-  double antitop_pt(-1.);
+  float top_pt(-1.);
+  float antitop_pt(-1.);
   for(const GenParticle & gp : *event.genparticles) {
     if(abs(gp.pdgId()) == 6) ++n_tops;
     if(gp.pdgId() == 6) {
@@ -667,53 +703,56 @@ bool TopPtReweighting::process(Event & event) {
   }
   if(top_pt < 0 || antitop_pt < 0) throw runtime_error("TopPtReweighting::process(): top or antitop pT is negative.");
 
-  const double sf_top_nominal     = exp(fA+fB*top_pt);
-  const double sf_top_a_up        = exp(fA_up+fB*top_pt);
-  const double sf_top_a_down      = exp(fA_down+fB*top_pt);
-  const double sf_top_b_up        = exp(fA+fB_up*top_pt);
-  const double sf_top_b_down      = exp(fA+fB_down*top_pt);
-  const double sf_antitop_nominal = exp(fA+fB*antitop_pt);
-  const double sf_antitop_a_up    = exp(fA_up+fB*antitop_pt);
-  const double sf_antitop_a_down  = exp(fA_down+fB*antitop_pt);
-  const double sf_antitop_b_up    = exp(fA+fB_up*antitop_pt);
-  const double sf_antitop_b_down  = exp(fA+fB_down*antitop_pt);
+  const float sf_top_nominal     = exp(fA+fB*top_pt);
+  const float sf_top_a_up        = exp(fA_up+fB*top_pt);
+  const float sf_top_a_down      = exp(fA_down+fB*top_pt);
+  const float sf_top_b_up        = exp(fA+fB_up*top_pt);
+  const float sf_top_b_down      = exp(fA+fB_down*top_pt);
+  const float sf_antitop_nominal = exp(fA+fB*antitop_pt);
+  const float sf_antitop_a_up    = exp(fA_up+fB*antitop_pt);
+  const float sf_antitop_a_down  = exp(fA_down+fB*antitop_pt);
+  const float sf_antitop_b_up    = exp(fA+fB_up*antitop_pt);
+  const float sf_antitop_b_down  = exp(fA+fB_down*antitop_pt);
 
-  const double sf_nominal = sqrt(sf_top_nominal*sf_antitop_nominal);
-  const double sf_a_up    = sqrt(sf_top_a_up*sf_antitop_a_up);
-  const double sf_a_down  = sqrt(sf_top_a_down*sf_antitop_a_down);
-  const double sf_b_up    = sqrt(sf_top_b_up*sf_antitop_b_up);
-  const double sf_b_down  = sqrt(sf_top_b_down*sf_antitop_b_down);
+  const float sf_nominal = sqrt(sf_top_nominal*sf_antitop_nominal);
+  const float sf_a_up    = sqrt(sf_top_a_up*sf_antitop_a_up);
+  const float sf_a_down  = sqrt(sf_top_a_down*sf_antitop_a_down);
+  const float sf_b_up    = sqrt(sf_top_b_up*sf_antitop_b_up);
+  const float sf_b_down  = sqrt(sf_top_b_down*sf_antitop_b_down);
+  float sf_applied = 1.0f;
+
+  if(fApply) {
+    if(applied_variation == TopPtVariation::nominal) {
+      sf_applied *= sf_nominal;
+    }
+    else if(applied_variation == TopPtVariation::a_up) {
+      sf_applied *= sf_a_up;
+    }
+    else if(applied_variation == TopPtVariation::a_down) {
+      sf_applied *= sf_a_down;
+    }
+    else if(applied_variation == TopPtVariation::b_up) {
+      sf_applied *= sf_b_up;
+    }
+    else if(applied_variation == TopPtVariation::b_down) {
+      sf_applied *= sf_b_down;
+    }
+  }
+  event.weight *= sf_applied;
 
   event.set(h_weight_nominal, sf_nominal);
   event.set(h_weight_a_up,    sf_a_up);
   event.set(h_weight_a_down,  sf_a_down);
   event.set(h_weight_b_up,    sf_b_up);
   event.set(h_weight_b_down,  sf_b_down);
-
-  if(fApply) {
-    if(applied_variation == TopPtVariation::nominal) {
-      event.weight *= sf_nominal;
-    }
-    else if(applied_variation == TopPtVariation::a_up) {
-      event.weight *= sf_a_up;
-    }
-    else if(applied_variation == TopPtVariation::a_down) {
-      event.weight *= sf_a_down;
-    }
-    else if(applied_variation == TopPtVariation::b_up) {
-      event.weight *= sf_b_up;
-    }
-    else if(applied_variation == TopPtVariation::b_down) {
-      event.weight *= sf_b_down;
-    }
-  }
+  event.set(h_weight_applied, sf_applied);
 
   return true;
 }
 
 //____________________________________________________________________________________________________
 // Copy of https://github.com/MatthiesC/HighPtSingleTop/blob/master/src/TheoryCorrections.cxx
-VJetsReweighting::VJetsReweighting(Context & ctx, const string& weight_name):
+VJetsReweighting::VJetsReweighting(Context & ctx, const string & weight_name):
   is_2016_nonUL(extract_year(ctx) == Year::is2016v3 || extract_year(ctx) == Year::is2016v2),
   is_WJets(ctx.get("dataset_version").find("WJets") == 0),
   is_DYJets(ctx.get("dataset_version").find("DYJets") == 0),
@@ -721,16 +760,17 @@ VJetsReweighting::VJetsReweighting(Context & ctx, const string& weight_name):
   apply_QCD_EWK(string2bool(ctx.get("VJetsReweighting_do_QCD_EWK"))),
   apply_QCD_NLO(string2bool(ctx.get("VJetsReweighting_do_QCD_NLO"))),
   apply_QCD_NNLO(string2bool(ctx.get("VJetsReweighting_do_QCD_NNLO"))),
-  h_weight_EWK(ctx.declare_event_output<double>(weight_name+"_EWK")),
-  h_weight_QCD_EWK(ctx.declare_event_output<double>(weight_name+"_QCD_EWK")),
-  h_weight_QCD_NLO(ctx.declare_event_output<double>(weight_name+"_QCD_NLO")),
-  h_weight_QCD_NNLO(ctx.declare_event_output<double>(weight_name+"_QCD_NNLO"))
+  h_weight_applied(ctx.declare_event_output<float>(weight_name+"_applied")),
+  h_weight_EWK(ctx.declare_event_output<float>(weight_name+"_EWK")),
+  h_weight_QCD_EWK(ctx.declare_event_output<float>(weight_name+"_QCD_EWK")),
+  h_weight_QCD_NLO(ctx.declare_event_output<float>(weight_name+"_QCD_NLO")),
+  h_weight_QCD_NNLO(ctx.declare_event_output<float>(weight_name+"_QCD_NNLO"))
 {
   if((apply_QCD_EWK && (apply_EWK || apply_QCD_NLO)) || (apply_QCD_NNLO && !(apply_QCD_EWK || (apply_EWK && apply_QCD_NLO)))) {
     throw invalid_argument("VJetsReweighting: You are not allowed to use the specified combination of correction scale factors.");
   }
 
-  string filesDir = ctx.get("uhh2Dir")+"LegacyTopTagging/data/ScaleFactors/VJetsCorrections/";
+  string filesDir = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/data/ScaleFactors/VJetsCorrections/";
   for(const string& proc : {"w", "z"}) {
     TFile* file = new TFile((filesDir+"merged_kfactors_"+proc+"jets.root").c_str());
     for(const string& corr : {"ewk", "qcd", "qcd_ewk"}) load_histo(file, (string)(proc+"_"+corr), (string)("kfactor_monojet_"+corr));
@@ -755,7 +795,7 @@ void VJetsReweighting::load_histo(TFile* file, const string& name, const string&
   histos[name]->SetDirectory(0);
 }
 
-double VJetsReweighting::get_v_pt(Event & event) {
+double VJetsReweighting::get_v_pt(const Event & event) {
 
   if(!(is_DYJets || is_WJets)) throw runtime_error("VJetsReweighting::get_v_pt(): Calling this function on non-WJets/DYJets sample makes no sense.");
   double pt(-1.);
@@ -787,12 +827,12 @@ double VJetsReweighting::get_v_pt(Event & event) {
   return pt;
 }
 
-double VJetsReweighting::evaluate(const string& name, double pt) {
+double VJetsReweighting::evaluate(const string& name, const double pt) {
 
-  int firstBin = 1;
-  int lastBin = histos[name]->GetNbinsX();
-  double h_min = histos[name]->GetBinCenter(firstBin)-0.5*histos[name]->GetBinWidth(firstBin);
-  double h_max = histos[name]->GetBinCenter(lastBin)+0.5*histos[name]->GetBinWidth(lastBin);
+  const int firstBin = 1;
+  const int lastBin = histos[name]->GetNbinsX();
+  const double h_min = histos[name]->GetBinCenter(firstBin)-0.5*histos[name]->GetBinWidth(firstBin);
+  const double h_max = histos[name]->GetBinCenter(lastBin)+0.5*histos[name]->GetBinWidth(lastBin);
   double pt_for_eval = pt;
   pt_for_eval = (pt_for_eval > h_min) ? pt_for_eval : h_min+0.001;
   pt_for_eval = (pt_for_eval < h_max) ? pt_for_eval : h_max-0.001;
@@ -802,10 +842,11 @@ double VJetsReweighting::evaluate(const string& name, double pt) {
 
 bool VJetsReweighting::process(Event & event) {
 
-  double weight_EWK(1.);
-  double weight_QCD_EWK(1.);
-  double weight_QCD_NLO(1.);
-  double weight_QCD_NNLO(1.);
+  float weight_applied(1.);
+  float weight_EWK(1.);
+  float weight_QCD_EWK(1.);
+  float weight_QCD_NLO(1.);
+  float weight_QCD_NNLO(1.);
 
   if(is_WJets || is_DYJets) {
     double pt = get_v_pt(event);
@@ -815,24 +856,27 @@ bool VJetsReweighting::process(Event & event) {
     if(is_WJets) process = "w";
     if(is_DYJets) process = "z";
     weight_QCD_EWK = evaluate(process+"_qcd_ewk", pt);
-    if(apply_QCD_EWK) event.weight *= weight_QCD_EWK;
+    if(apply_QCD_EWK) weight_applied *= weight_QCD_EWK;
 
     // EWK
     weight_EWK = evaluate(process+"_ewk", pt);
-    if(apply_EWK) event.weight *= weight_EWK;
+    if(apply_EWK) weight_applied *= weight_EWK;
 
     // QCD NLO
     if(!is_2016_nonUL && is_DYJets) process = "dy";
     weight_QCD_NLO = evaluate(process+"_qcd"+(is_2016_nonUL ? "" : "_2017"), pt);
-    if(apply_QCD_NLO) event.weight *= weight_QCD_NLO;
+    if(apply_QCD_NLO) weight_applied *= weight_QCD_NLO;
 
     // QCD NNLO
     if(is_DYJets) process = "eej";
     if(is_WJets) process = "evj";
     weight_QCD_NNLO = evaluate(process+"_qcd_nnlo", pt);
-    if(apply_QCD_NNLO) event.weight *= weight_QCD_NNLO;
+    if(apply_QCD_NNLO) weight_applied *= weight_QCD_NNLO;
   }
 
+  event.weight *= weight_applied;
+
+  event.set(h_weight_applied, weight_applied);
   event.set(h_weight_EWK, weight_EWK);
   event.set(h_weight_QCD_EWK, weight_QCD_EWK);
   event.set(h_weight_QCD_NLO, weight_QCD_NLO);
@@ -842,16 +886,22 @@ bool VJetsReweighting::process(Event & event) {
 }
 
 //____________________________________________________________________________________________________
-WeightTrickery::WeightTrickery(Context & ctx, const string & handle_name_GENtW, const bool doing_PDF_variations, const bool apply): fDoingPDFVariations(doing_PDF_variations), fApply(apply) {
-  fHandle_weight = ctx.declare_event_output<double>("weight_trickery");
-
-  slct_Mtt0to700.reset(new MttbarGenSelection(0, 700));
-  fHandle_GENtW = ctx.get_handle<ltt::SingleTopGen_tWch>(handle_name_GENtW);
+WeightTrickery::WeightTrickery(Context & ctx, const string & handle_name_GENtW, const bool doing_PDF_variations, const bool apply):
+  fDoingPDFVariations(doing_PDF_variations),
+  fApply(apply),
+  fYear(extract_year(ctx)),
+  fHandle_weight(ctx.declare_event_output<float>("weight_trickery")),
+  fHandle_GENtW(ctx.get_handle<ltt::SingleTopGen_tWch>(handle_name_GENtW))
+{
+  slct_Mtt700to1000.reset(new MttbarGenSelection(700, 1000));
+  slct_Mtt1000toInf.reset(new MttbarGenSelection(1000, -1));
 
   const string dataset_version = ctx.get("dataset_version");
 
   is_TTbar = dataset_version.find("TTbar") == 0;
   is_TTbar_Mtt = is_TTbar && dataset_version.find("Mtt") != string::npos;
+  is_TTbar_Mtt700to1000 = is_TTbar_Mtt && dataset_version.find("700to1000") != string::npos;
+  is_TTbar_Mtt1000toInf = is_TTbar_Mtt && dataset_version.find("1000toInf") != string::npos;
   is_TTbar_syst = is_TTbar && dataset_version.find("syst") != string::npos;
 
   is_tW = dataset_version.find("ST_tW") == 0;
@@ -864,21 +914,73 @@ WeightTrickery::WeightTrickery(Context & ctx, const string & handle_name_GENtW, 
 
 bool WeightTrickery::process(Event & event) {
 
-  double weight(1.);
+  float weight(1.0f);
 
-  // The regular MiniAODv2 UL TT samples provide ca. 15-30 MC events per expected real TT event.
-  // The TT_Mtt samples provide ca. 20 MC events per expected real TT event.
-  // In order to not make things too complicated, we can simply respectively apply a global weight of 0.5 to the samples in the region with Mtt > 700.
+  // The regular MiniAODv2 UL TT samples provide ca. 13-30 MC events per expected real TT event.
+  // The TT_Mtt samples provide between 6-70 MC events per expected real TT event.
+  // Guessing a contribution of 1% all-jets, 89% semilept, and 10% dilept TT after full event selection, I calculated appropriate weights in Excel
   if(is_TTbar) {
     if(!is_TTbar_syst) {
-      if(is_TTbar_Mtt) weight = 0.5;
-      else if(!slct_Mtt0to700->passes(event)) weight = 0.5;
+      if(is_TTbar_Mtt700to1000) {
+        switch(fYear) {
+          case Year::isUL16preVFP :
+          weight = 0.446; break;
+          case Year::isUL16postVFP :
+          weight = 0.513; break;
+          case Year::isUL17 :
+          weight = 0.315; break;
+          case Year::isUL18 :
+          weight = 0.226; break;
+          default : break;
+        }
+      }
+      else if(is_TTbar_Mtt1000toInf) {
+        switch(fYear) {
+          case Year::isUL16preVFP :
+          weight = 0.761; break;
+          case Year::isUL16postVFP :
+          weight = 0.749; break;
+          case Year::isUL17 :
+          weight = 0.534; break;
+          case Year::isUL18 :
+          weight = 0.470; break;
+          default : break;
+        }
+      }
+      else {
+        if(slct_Mtt700to1000->passes(event)) {
+          switch(fYear) {
+            case Year::isUL16preVFP :
+            weight = 0.554; break;
+            case Year::isUL16postVFP :
+            weight = 0.487; break;
+            case Year::isUL17 :
+            weight = 0.685; break;
+            case Year::isUL18 :
+            weight = 0.774; break;
+            default : break;
+          }
+        }
+        else if(slct_Mtt1000toInf->passes(event)) {
+          switch(fYear) {
+            case Year::isUL16preVFP :
+            weight = 0.239; break;
+            case Year::isUL16postVFP :
+            weight = 0.251; break;
+            case Year::isUL17 :
+            weight = 0.466; break;
+            case Year::isUL18 :
+            weight = 0.530; break;
+            default : break;
+          }
+        }
+      }
     }
   }
-
   // Get the maximum MC statistics for NoFullyHadronic decays from the actual NoFullyHadronicDecays samples, the inclusiveDecays samples and the NoFullyHadronicDecays samples with PDFWeights stored in them.
   // The weights given here have been calculated manually and are based on the average number of MC events across years and top/antitop samples.
   // For events with fully hadronic decays, we rely on the inclusiveDecays samples and let weight = 1.
+  // The value "MC events / real expected event" is way more stable across years than for TT samples. Thus, we do not need to distinguish between years in order to not make things too complicated.
   else if(is_tW) {
     const auto & GENtW = event.get(fHandle_GENtW);
     if(is_tW_incl && !(GENtW.IsTopHadronicDecay() && GENtW.IsAssHadronicDecay())) weight = 0.16;
@@ -898,8 +1000,6 @@ bool WeightTrickery::process(Event & event) {
 METFilterSelection::METFilterSelection(Context & ctx): fYear(extract_year(ctx)) {
 
   fAndSel.reset(new AndSelection(ctx, "metfilters"));
-  const bool is_mc = ctx.get("dataset_type") == "MC";
-  cout << "WARNING: Applying certain MET filtes only to MC, not data!" << endl;
 
   if(is_UL(fYear)) {
     fAndSel->add<TriggerSelection>("goodVertices", "Flag_goodVertices");
@@ -908,7 +1008,7 @@ METFilterSelection::METFilterSelection(Context & ctx): fYear(extract_year(ctx)) 
     fAndSel->add<TriggerSelection>("HBHENoiseIsoFilter", "Flag_HBHENoiseIsoFilter");
     fAndSel->add<TriggerSelection>("EcalDeadCellTriggerPrimitiveFilter", "Flag_EcalDeadCellTriggerPrimitiveFilter");
     fAndSel->add<TriggerSelection>("BadPFMuonFilter", "Flag_BadPFMuonFilter");
-    if(is_mc) fAndSel->add<TriggerSelection>("BadPFMuonDzFilter", "Flag_BadPFMuonDzFilter"); // right now not available in data ntuples
+    fAndSel->add<TriggerSelection>("BadPFMuonDzFilter", "Flag_BadPFMuonDzFilter"); // right now not available in data ntuples
     // fAndSel->add<TriggerSelection>("BadChargedCandidateFilter", "Flag_BadChargedCandidateFilter"); // currently not recommended
     fAndSel->add<TriggerSelection>("eeBadScFilter", "Flag_eeBadScFilter");
     if(fYear == Year::isUL17 || fYear == Year::isUL18) {
@@ -917,7 +1017,7 @@ METFilterSelection::METFilterSelection(Context & ctx): fYear(extract_year(ctx)) 
     }
   }
   else {
-    throw runtime_error("METFilterSelection: Non-UL years not implemented!");
+    throw runtime_error("METFilterSelection: Non-UL years not implemented");
   }
 }
 
@@ -925,6 +1025,326 @@ bool METFilterSelection::passes(const Event & event) {
 
   if(!fAndSel->passes(event)) return false;
 
+  return true;
+}
+
+//____________________________________________________________________________________________________
+// https://twiki.cern.ch/twiki/bin/view/CMS/PileupJetIDUL
+JetPUID::JetPUID(const wp & working_point): fWP(working_point) {}
+
+bool JetPUID::operator()(const Jet & jet, const Event & event) const {
+  const string year = event.year;
+  const double eta = fabs(jet.v4().eta());
+  const double pt = jet.v4().pt();
+  if(eta > 5.0 || pt < 10 || pt > 50) return true;
+
+  double x(-2.); // ranges between -1 and +1 (BDT discriminator)
+  switch(fWP) {
+    case WP_LOOSE :
+      if(year == "UL16preVFP" || year == "UL16postVFP") {
+        if(eta < 2.5) {
+          if(pt < 20) x = -0.95;
+          else if(pt < 30) x = -0.90;
+          else if(pt < 40) x = -0.71;
+          else x = -0.42;
+        }
+        else if(eta < 2.75) {
+          if(pt < 20) x = -0.70;
+          else if(pt < 30) x = -0.57;
+          else if(pt < 40) x = -0.36;
+          else x = -0.09;
+        }
+        else if(eta < 3.0) {
+          if(pt < 20) x = -0.52;
+          else if(pt < 30) x = -0.43;
+          else if(pt < 40) x = -0.29;
+          else x = -0.14;
+        }
+        else {
+          if(pt < 20) x = -0.49;
+          else if(pt < 30) x = -0.42;
+          else if(pt < 40) x = -0.23;
+          else x = -0.02;
+        }
+      }
+      else if(year == "UL17" || year == "UL18") {
+        if(eta < 2.5) {
+          if(pt < 20) x = -0.95;
+          else if(pt < 30) x = -0.88;
+          else if(pt < 40) x = -0.63;
+          else x = -0.19;
+        }
+        else if(eta < 2.75) {
+          if(pt < 20) x = -0.72;
+          else if(pt < 30) x = -0.55;
+          else if(pt < 40) x = -0.18;
+          else x = 0.22;
+        }
+        else if(eta < 3.0) {
+          if(pt < 20) x = -0.68;
+          else if(pt < 30) x = -0.60;
+          else if(pt < 40) x = -0.43;
+          else x = -0.13;
+        }
+        else {
+          if(pt < 20) x = -0.47;
+          else if(pt < 30) x = -0.43;
+          else if(pt < 40) x = -0.24;
+          else x = -0.03;
+        }
+      }
+      else throw runtime_error((string)"JetPUID::operator()(): Year '"+year+"' not implemented");
+      break;
+    case WP_MEDIUM :
+      if(year == "UL16preVFP" || year == "UL16postVFP") {
+        if(eta < 2.5) {
+          if(pt < 20) x = 0.20;
+          else if(pt < 30) x = 0.62;
+          else if(pt < 40) x = 0.86;
+          else x = 0.93;
+        }
+        else if(eta < 2.75) {
+          if(pt < 20) x = -0.56;
+          else if(pt < 30) x = -0.39;
+          else if(pt < 40) x = -0.10;
+          else x = 0.19;
+        }
+        else if(eta < 3.0) {
+          if(pt < 20) x = -0.43;
+          else if(pt < 30) x = -0.32;
+          else if(pt < 40) x = -0.15;
+          else x = 0.04;
+        }
+        else {
+          if(pt < 20) x = -0.38;
+          else if(pt < 30) x = -0.29;
+          else if(pt < 40) x = -0.08;
+          else x = 0.12;
+        }
+      }
+      else if(year == "UL17" || year == "UL18") {
+        if(eta < 2.5) {
+          if(pt < 20) x = 0.26;
+          else if(pt < 30) x = 0.68;
+          else if(pt < 40) x = 0.90;
+          else x = 0.96;
+        }
+        else if(eta < 2.75) {
+          if(pt < 20) x = -0.33;
+          else if(pt < 30) x = -0.04;
+          else if(pt < 40) x = 0.36;
+          else x = 0.61;
+        }
+        else if(eta < 3.0) {
+          if(pt < 20) x = -0.54;
+          else if(pt < 30) x = -0.43;
+          else if(pt < 40) x = -0.16;
+          else x = 0.14;
+        }
+        else {
+          if(pt < 20) x = -0.37;
+          else if(pt < 30) x = -0.30;
+          else if(pt < 40) x = -0.09;
+          else x = 0.12;
+        }
+      }
+      else throw runtime_error((string)"JetPUID::operator()(): Year '"+year+"' not implemented");
+      break;
+    case WP_TIGHT :
+      if(year == "UL16preVFP" || year == "UL16postVFP") {
+        if(eta < 2.5) {
+          if(pt < 20) x = 0.71;
+          else if(pt < 30) x = 0.87;
+          else if(pt < 40) x = 0.94;
+          else x = 0.97;
+        }
+        else if(eta < 2.75) {
+          if(pt < 20) x = -0.32;
+          else if(pt < 30) x = -0.08;
+          else if(pt < 40) x = 0.24;
+          else x = 0.48;
+        }
+        else if(eta < 3.0) {
+          if(pt < 20) x = -0.30;
+          else if(pt < 30) x = -0.16;
+          else if(pt < 40) x = 0.05;
+          else x = 0.26;
+        }
+        else {
+          if(pt < 20) x = -0.22;
+          else if(pt < 30) x = -0.12;
+          else if(pt < 40) x = 0.10;
+          else x = 0.29;
+        }
+      }
+      else if(year == "UL17" || year == "UL18") {
+        if(eta < 2.5) {
+          if(pt < 20) x = 0.77;
+          else if(pt < 30) x = 0.90;
+          else if(pt < 40) x = 0.96;
+          else x = 0.98;
+        }
+        else if(eta < 2.75) {
+          if(pt < 20) x = 0.38;
+          else if(pt < 30) x = 0.60;
+          else if(pt < 40) x = 0.82;
+          else x = 0.92;
+        }
+        else if(eta < 3.0) {
+          if(pt < 20) x = -0.31;
+          else if(pt < 30) x = -0.12;
+          else if(pt < 40) x = 0.20;
+          else x = 0.47;
+        }
+        else {
+          if(pt < 20) x = -0.21;
+          else if(pt < 30) x = -0.13;
+          else if(pt < 40) x = 0.09;
+          else x = 0.29;
+        }
+      }
+      else throw runtime_error((string)"JetPUID::operator()(): Year '"+year+"' not implemented");
+      break;
+    default :
+      throw runtime_error((string)"JetPUID::operator()(): Unknown working point");
+  }
+
+  return jet.pileupID() > x;
+}
+
+//____________________________________________________________________________________________________
+const Jet * getCHSmatch(const Jet & puppijet, const Event & event, const Event::Handle<vector<Jet>> & h_chsjets, const bool safe) {
+  const Jet *chsjet = match(puppijet, event.get(h_chsjets), kDeltaRForPuppiCHSMatch);
+  if(safe && chsjet == nullptr) throw runtime_error("getCHSmatch(): CHS jet not found! Did you properly clean your PUPPI collection by calling 'MatchPuppiToCHSAndSetBTagHandles::process()'?");
+  else return chsjet;
+}
+
+//____________________________________________________________________________________________________
+MatchPuppiToCHSAndSetBTagHandles::MatchPuppiToCHSAndSetBTagHandles(Context & ctx, const BTag::algo & btag_algo, const BTag::wp & btag_wp):
+  fHandle_PUPPIjets(ctx.get_handle<vector<Jet>>("jets")), // after this module, will contain all forward PUPPI jets and all CHS-matched central PUPPI jets
+  fHandle_CHSjets(ctx.get_handle<vector<Jet>>(kCollectionName_AK4CHS)), // all CHS jets, unmodified
+  fHandle_pairedPUPPIjets(ctx.get_handle<vector<Jet>>(kHandleName_pairedPUPPIjets)), // all central PUPPI jets matched to CHS jets
+  fHandle_pairedCHSjets(ctx.get_handle<vector<Jet>>(kHandleName_pairedCHSjets)), // can be used as handle for b-tagging discriminator reweighting class; double-counted CHS jets not strictly ruled out but we'll ignore this
+  fHandle_forwardPUPPIjets(ctx.get_handle<vector<Jet>>(kHandleName_forwardPUPPIjets)), // all forward PUPPI jets
+  fHandle_uncleanedPUPPIjets(ctx.get_handle<vector<Jet>>(kHandleName_uncleanedPUPPIjets)), // all PUPPI jets no matter if matched to CHS jet or not, and no matter if central or forward
+  fBTagWP(btag_wp),
+  fBTagID_loose(BTag(btag_algo, BTag::WP_LOOSE)),
+  fBTagID_medium(BTag(btag_algo, BTag::WP_MEDIUM)),
+  fBTagID_tight(BTag(btag_algo, BTag::WP_TIGHT)),
+  fHandle_bJets(ctx.get_handle<vector<Jet>>(kHandleName_bJets)),
+  fHandle_bJets_loose(ctx.get_handle<vector<Jet>>(kHandleName_bJets_loose)),
+  fHandle_bJets_medium(ctx.get_handle<vector<Jet>>(kHandleName_bJets_medium)),
+  fHandle_bJets_tight(ctx.get_handle<vector<Jet>>(kHandleName_bJets_tight))
+{}
+
+bool MatchPuppiToCHSAndSetBTagHandles::process(Event & event) {
+  const vector<Jet> uncleaned_puppijets = event.get(fHandle_PUPPIjets);
+  event.set(fHandle_uncleanedPUPPIjets, uncleaned_puppijets);
+  //__________________________________________________
+  // Clean all central PUPPI jets which don't have a match to a CHS jet; keep all forward PUPPI jets no matter if matched or not
+  vector<Jet> cleaned_puppijets;
+  vector<Jet> paired_puppijets;
+  vector<Jet> paired_chsjets;
+  vector<Jet> forward_puppijets;
+  for(const Jet & puppijet : uncleaned_puppijets) {
+    if(fabs(puppijet.v4().eta()) >= kAbsEtaBTagThreshold) {
+      forward_puppijets.push_back(puppijet);
+      cleaned_puppijets.push_back(puppijet);
+    }
+    else {
+      const Jet *chsjetPtr = getCHSmatch(puppijet, event, fHandle_CHSjets, false);
+      if(chsjetPtr != nullptr) {
+        Jet chsjet = *chsjetPtr;
+        if(fabs(chsjet.v4().eta()) >= kAbsEtaBTagThreshold) chsjet.set_eta(chsjet.v4().eta() > 0 ? kAbsEtaBTagThreshold-0.0001 : -kAbsEtaBTagThreshold+0.0001); // do this so that b-tagging SF can still be used if CHS eta lies outside SF eta range (but maybe SF = 1 is better?)
+        paired_puppijets.push_back(puppijet);
+        paired_chsjets.push_back(chsjet);
+        cleaned_puppijets.push_back(puppijet);
+      }
+    }
+  }
+  event.set(fHandle_PUPPIjets, cleaned_puppijets);
+  event.set(fHandle_pairedPUPPIjets, paired_puppijets);
+  event.set(fHandle_pairedCHSjets, paired_chsjets);
+  event.set(fHandle_forwardPUPPIjets, forward_puppijets);
+
+  //__________________________________________________
+  // Retrieve the b-tagging information from the matched CHS jets in order to find b-tagged PUPPI jets in central region
+  // At this point, getCHSmatch will *always* find a CHS jet since the central PUPPI jet collection has already been cleaned accordingly (no PUPPI without CHS match, see above)
+  vector<Jet> bjets_loose;
+  vector<Jet> bjets_medium;
+  vector<Jet> bjets_tight;
+  for(const Jet & puppijet : paired_puppijets) {
+    const Jet *chsjetPtr = getCHSmatch(puppijet, event, fHandle_CHSjets);
+    if(fBTagID_loose(*chsjetPtr, event)) bjets_loose.push_back(puppijet);
+    if(fBTagID_medium(*chsjetPtr, event)) bjets_medium.push_back(puppijet);
+    if(fBTagID_tight(*chsjetPtr, event)) bjets_tight.push_back(puppijet);
+  }
+  switch(fBTagWP) {
+    case BTag::WP_LOOSE :
+    event.set(fHandle_bJets, bjets_loose); break;
+    case BTag::WP_MEDIUM :
+    event.set(fHandle_bJets, bjets_medium); break;
+    case BTag::WP_TIGHT :
+    event.set(fHandle_bJets, bjets_tight); break;
+    default :
+    throw invalid_argument("MatchPuppiToCHSAndSetBTagHandles::process(): Invalid b-tagging WP!");
+  }
+  event.set(fHandle_bJets_loose, move(bjets_loose));
+  event.set(fHandle_bJets_medium, move(bjets_medium));
+  event.set(fHandle_bJets_tight, move(bjets_tight));
+
+  return true;
+}
+
+//____________________________________________________________________________________________________
+ObjectPtSorter::ObjectPtSorter(Context & ctx):
+  fHandle_CHSjets(ctx.get_handle<vector<Jet>>(kCollectionName_AK4CHS)),
+  fHandle_AK8Collection_rec(ctx.get_handle<vector<TopJet>>(kCollectionName_AK8_rec)),
+  fHandle_AK8Collection_gen(ctx.get_handle<vector<GenTopJet>>(kCollectionName_AK8_gen))
+{}
+
+bool ObjectPtSorter::process(Event & event) {
+  // Sorts AK4 PUPPI jets
+  sort_by_pt<Jet>(*event.jets);
+  // Sorts AK4 CHS jets
+  vector<Jet> &ak4chsjets = event.get(fHandle_CHSjets);
+  sort_by_pt<Jet>(ak4chsjets);
+  // Sorts AK4 gen jets
+  if(!event.isRealData) sort_by_pt<GenJet>(*event.genjets);
+  // Sorts HOTVR jets
+  sort_by_pt<TopJet>(*event.topjets);
+  for(auto & j : *event.topjets) {
+    vector<Jet> subjets = j.subjets();
+    sort_by_pt<Jet>(subjets);
+    j.set_subjets(move(subjets));
+  }
+  // Sorts HOTVR gen jets
+  if(!event.isRealData) {
+    sort_by_pt<GenTopJet>(*event.gentopjets);
+    // for(auto & j : *event.gentopjets) { // set_subjets not available for GenTopJet
+    //   vector<GenJet> subjets = j.subjets();
+    //   sort_by_pt<GenJet>(subjets);
+    //   j.set_subjets(move(subjets));
+    // }
+  }
+  // Sorts AK8 jets
+  vector<TopJet> &ak8jets = event.get(fHandle_AK8Collection_rec);
+  sort_by_pt<TopJet>(ak8jets);
+  for(auto & j : ak8jets) {
+    vector<Jet> subjets = j.subjets();
+    sort_by_pt<Jet>(subjets);
+    j.set_subjets(move(subjets));
+  }
+  // Sorts AK8 gen jets
+  if(!event.isRealData) {
+    vector<GenTopJet> &ak8genjets = event.get(fHandle_AK8Collection_gen);
+    sort_by_pt<GenTopJet>(ak8genjets);
+    // for(auto & j : ak8genjets) { // set_subjets not available for GenTopJet
+    //   vector<GenJet> subjets = j.subjets();
+    //   sort_by_pt<GenJet>(subjets);
+    //   j.set_subjets(move(subjets));
+    // }
+  }
   return true;
 }
 

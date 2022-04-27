@@ -8,8 +8,10 @@ using namespace ltt;
 
 namespace uhh2 { namespace ltt {
 
-METXYCorrector::METXYCorrector(Context & ctx):
-  fMETType(uhh2::string2lowercase(ctx.get("METName")).find("puppi") != string::npos ? METType::puppi : METType::pf),
+METXYCorrector::METXYCorrector(Context & ctx, const string & met_name, const bool is_puppi):
+  fHandleMET(ctx.get_handle<MET>(met_name)),
+  // fMETType(uhh2::string2lowercase(ctx.get("METName")).find("puppi") != string::npos ? METType::puppi : METType::pf),
+  fMETType(is_puppi ? METType::puppi : METType::pf),
   fYear(extract_year(ctx))
 {
   switch(fYear) {
@@ -53,9 +55,10 @@ METXYCorrector::METXYCorrector(Context & ctx):
 }
 
 bool METXYCorrector::process(Event & event) {
-  auto new_MET_METphi = METXYCorr_Met_MetPhi(event.met->pt(), event.met->phi(), event.run, fYear_TString, !event.isRealData, event.pvs->size(), fIsUL, fMETType == METType::puppi);
-  event.met->set_pt(new_MET_METphi.first);
-  event.met->set_phi(new_MET_METphi.second);
+  MET *met = &event.get(fHandleMET);
+  auto new_MET_METphi = METXYCorr_Met_MetPhi(met->pt(), met->phi(), event.run, fYear_TString, !event.isRealData, event.pvs->size(), fIsUL, fMETType == METType::puppi);
+  met->set_pt(new_MET_METphi.first);
+  met->set_phi(new_MET_METphi.second);
   return true;
 }
 

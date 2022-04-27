@@ -1,7 +1,7 @@
 # Working point study
 
 Usage example for UL17:
-- Run SFrame on `config/WorkingPointStudyUL17.xml`
+- Go to `.../LegacyTopTagging/config`, run `./wpXmlCreator.py -y UL17`, go to the new subdirectory `config_WorkingPointStudy` and run SFrame on the newly created config XML
 - After SFrame hadding is complete, manually hadd all QCD output into a file called `<your/path/to/LegacyTopTaggingOutput>/WorkingPointStudy/UL17/uhh2.AnalysisModuleRunner.MC.QCD_HT300toInf.root`
 - Run `root -l -q -b 'restructure_root_trees.cxx("UL17")'` to produce ROOT files containing flat TTrees with all the jets needed for the WP study (may take some minutes)
 - Run `python root_to_numpy.py -y UL17` to convert the TTrees into numpy format

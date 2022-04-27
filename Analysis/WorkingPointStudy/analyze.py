@@ -13,7 +13,7 @@ import argparse
 # true: re-analyze efficiency vs. tau32 cuts and store results in numpy files
 # false: only load previously saved numpy files and store results in ROOT format
 options_recalculate = ['True', 'False']
-options_year = ['UL17', 'UL18']
+options_year = ['UL16preVFP', 'UL16postVFP', 'UL17', 'UL18']
 
 if not sys.argv[1:]: sys.exit('No arguments provided. Exit.')
 parser = argparse.ArgumentParser()
@@ -60,14 +60,27 @@ if recalculate:
 # 1: pt
 # 2: msd
 # 3: subdeepcsv
-# 4: tau32
-# 5: dr (only for TTbar)
+# 4: subdeepjet
+# 5: tau32
+# 6: dr (only for TTbar)
 
 # define here the softdrop mass window
 msd_min = 105.0
 msd_max = 210.0
 
 deepcsv = {
+    # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation106XUL16preVFP
+    'UL16preVFP': {
+        'loose': 0.2027,
+        'medium': 0.6001,
+        'tight': 0.8819,
+    },
+    # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation106XUL16postVFP
+    'UL16postVFP': {
+        'loose': 0.1918,
+        'medium': 0.5847,
+        'tight': 0.8767,
+    },
     # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation106XUL17
     'UL17': {
         'loose': 0.1355,
@@ -82,8 +95,37 @@ deepcsv = {
     }
 }
 
+deepjet = {
+    # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation106XUL16preVFP
+    'UL16preVFP': {
+        'loose': 0.0508,
+        'medium': 0.2598,
+        'tight': 0.6502,
+    },
+    # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation106XUL16postVFP
+    'UL16postVFP': {
+        'loose': 0.0480,
+        'medium': 0.2489,
+        'tight': 0.6377,
+    },
+    # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation106XUL17
+    'UL17': {
+        'loose': 0.0532,
+        'medium': 0.3040,
+        'tight': 0.7476,
+    },
+    # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation106XUL18
+    'UL18': {
+        'loose': 0.0490,
+        'medium': 0.2783,
+        'tight': 0.7100,
+    }
+}
+
+
 # define here which b-tagging selection you want to use
 deepcsv_value = deepcsv[year]['loose']
+deepjet_value = deepjet[year]['loose']
 
 # define here the jet pt intervals you want to analyze
 pt_intervals = {
@@ -124,7 +166,7 @@ pt_intervals = {
 
 def get_eff_vs_tau32cut(ARG_array, ARG_sumofweights=1, ARG_nx=1000):
     weights = ARG_array[:,0].flatten()
-    tau32 = ARG_array[:,4].flatten()
+    tau32 = ARG_array[:,5].flatten()
     x = np.array([1.], dtype='f') # tau32 cut value
     y = np.array([weights.sum()], dtype='f') # efficiency
     for i in tqdm(reversed(range(ARG_nx)), desc='Calculating efficiency vs. N-subjettiness cut', total=ARG_nx, dynamic_ncols=True, leave=False):
@@ -146,7 +188,8 @@ for pt in pt_intervals.keys():
     os.system('mkdir -p '+workdir_pt)
     tau32cuts, eff_qcd, eff_ttbar = None, None, None
     tau32cuts_msd, eff_qcd_msd, eff_ttbar_msd = None, None, None
-    tau32cuts_msd_btag, eff_qcd_msd_btag, eff_ttbar_msd_btag = None, None, None
+    tau32cuts_msd_deepcsv, eff_qcd_msd_deepcsv, eff_ttbar_msd_deepcsv = None, None, None
+    tau32cuts_msd_deepjet, eff_qcd_msd_deepjet, eff_ttbar_msd_deepjet = None, None, None
     if recalculate:
         print '> inclusive'
         nx = 1000
@@ -172,17 +215,28 @@ for pt in pt_intervals.keys():
         array_ttbar_msd = array_ttbar[(array_ttbar[:,2] > msd_min) & (array_ttbar[:,2] < msd_max)]
         tau32cuts_msd, eff_ttbar_msd = get_eff_vs_tau32cut(array_ttbar_msd, total_sum_ttbar, nx)
         np.save(workdir_pt+'eff_ttbar_msd.npy', eff_ttbar_msd)
-        print '> mSD window + b-tag'
-        nx_msd_btag = 1000
+        print '> mSD window + DeepCSV b-tag'
+        nx_msd_deepcsv = 1000
         print ' >> QCD'
-        array_qcd_msd_btag = array_qcd_msd[array_qcd_msd[:,3] > deepcsv_value]
-        tau32cuts_msd_btag, eff_qcd_msd_btag = get_eff_vs_tau32cut(array_qcd_msd_btag, total_sum_qcd, nx)
-        np.save(workdir_pt+'tau32cuts_msd_btag.npy', tau32cuts_msd_btag)
-        np.save(workdir_pt+'eff_qcd_msd_btag.npy', eff_qcd_msd_btag)
+        array_qcd_msd_deepcsv = array_qcd_msd[array_qcd_msd[:,3] > deepcsv_value]
+        tau32cuts_msd_deepcsv, eff_qcd_msd_deepcsv = get_eff_vs_tau32cut(array_qcd_msd_deepcsv, total_sum_qcd, nx)
+        np.save(workdir_pt+'tau32cuts_msd_deepcsv.npy', tau32cuts_msd_deepcsv)
+        np.save(workdir_pt+'eff_qcd_msd_deepcsv.npy', eff_qcd_msd_deepcsv)
         print ' >> TTbar'
-        array_ttbar_msd_btag = array_ttbar_msd[array_ttbar_msd[:,3] > deepcsv_value]
-        tau32cuts_msd_btag, eff_ttbar_msd_btag = get_eff_vs_tau32cut(array_ttbar_msd_btag, total_sum_ttbar, nx)
-        np.save(workdir_pt+'eff_ttbar_msd_btag.npy', eff_ttbar_msd_btag)
+        array_ttbar_msd_deepcsv = array_ttbar_msd[array_ttbar_msd[:,3] > deepcsv_value]
+        tau32cuts_msd_deepcsv, eff_ttbar_msd_deepcsv = get_eff_vs_tau32cut(array_ttbar_msd_deepcsv, total_sum_ttbar, nx)
+        np.save(workdir_pt+'eff_ttbar_msd_deepcsv.npy', eff_ttbar_msd_deepcsv)
+        print '> mSD window + DeepJet b-tag'
+        nx_msd_deepjet = 1000
+        print ' >> QCD'
+        array_qcd_msd_deepjet = array_qcd_msd[array_qcd_msd[:,4] > deepjet_value]
+        tau32cuts_msd_deepjet, eff_qcd_msd_deepjet = get_eff_vs_tau32cut(array_qcd_msd_deepjet, total_sum_qcd, nx)
+        np.save(workdir_pt+'tau32cuts_msd_deepjet.npy', tau32cuts_msd_deepjet)
+        np.save(workdir_pt+'eff_qcd_msd_deepjet.npy', eff_qcd_msd_deepjet)
+        print ' >> TTbar'
+        array_ttbar_msd_deepjet = array_ttbar_msd[array_ttbar_msd[:,4] > deepjet_value]
+        tau32cuts_msd_deepjet, eff_ttbar_msd_deepjet = get_eff_vs_tau32cut(array_ttbar_msd_deepjet, total_sum_ttbar, nx)
+        np.save(workdir_pt+'eff_ttbar_msd_deepjet.npy', eff_ttbar_msd_deepjet)
     else:
         print 'Using previously saved efficiencies'
         tau32cuts = np.load(workdir_pt+'tau32cuts.npy')
@@ -191,22 +245,14 @@ for pt in pt_intervals.keys():
         tau32cuts_msd = np.load(workdir_pt+'tau32cuts_msd.npy')
         eff_qcd_msd = np.load(workdir_pt+'eff_qcd_msd.npy')
         eff_ttbar_msd = np.load(workdir_pt+'eff_ttbar_msd.npy')
-        tau32cuts_msd_btag = np.load(workdir_pt+'tau32cuts_msd_btag.npy')
-        eff_qcd_msd_btag = np.load(workdir_pt+'eff_qcd_msd_btag.npy')
-        eff_ttbar_msd_btag = np.load(workdir_pt+'eff_ttbar_msd_btag.npy')
+        tau32cuts_msd_deepcsv = np.load(workdir_pt+'tau32cuts_msd_deepcsv.npy')
+        eff_qcd_msd_deepcsv = np.load(workdir_pt+'eff_qcd_msd_deepcsv.npy')
+        eff_ttbar_msd_deepcsv = np.load(workdir_pt+'eff_ttbar_msd_deepcsv.npy')
+        tau32cuts_msd_deepjet = np.load(workdir_pt+'tau32cuts_msd_deepjet.npy')
+        eff_qcd_msd_deepjet = np.load(workdir_pt+'eff_qcd_msd_deepjet.npy')
+        eff_ttbar_msd_deepjet = np.load(workdir_pt+'eff_ttbar_msd_deepjet.npy')
 
         print 'Conversion to ROOT TGraph objects'
-        # rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
-        # # rc('text', usetex=True)
-        # fig, ax = plt.subplots()
-        # ax.plot(tau32cuts, eff_qcd, color='royalblue', linestyle='solid', linewidth=1)
-        # ax.plot(tau32cuts, eff_qcd_msd, color='darkorange', linestyle='dashed', linewidth=1)
-        # ax.plot(tau32cuts, eff_qcd_msd_btag, color='magenta', linestyle='dashdot', linewidth=1)
-        # fig.gca().set_xlabel(r'$\tau_3/\tau_2$ upper limit')
-        # fig.gca().set_ylabel(r'$\epsilon_\mathrm{B}$')
-        # ax.set_yscale('log')
-        # fig.savefig(workdir_pt+'plot_'+pt+'_eff_qcd.pdf')
-
         root_file = ROOT.TFile.Open(workdir_pt+'root_Pt'+pt+'.root', 'RECREATE')
         root_file.cd()
 
@@ -224,11 +270,18 @@ for pt in pt_intervals.keys():
         graph = ROOT.TGraph(len(eff_qcd_msd), eff_ttbar_msd, eff_qcd_msd)
         graph.Write("roc_msd")
 
-        graph = ROOT.TGraph(len(eff_qcd_msd_btag), tau32cuts_msd_btag, eff_qcd_msd_btag)
-        graph.Write("eff_qcd_msd_btag")
-        graph = ROOT.TGraph(len(eff_ttbar_msd_btag), tau32cuts_msd_btag, eff_ttbar_msd_btag)
-        graph.Write("eff_ttbar_msd_btag")
-        graph = ROOT.TGraph(len(eff_qcd_msd_btag), eff_ttbar_msd_btag, eff_qcd_msd_btag)
-        graph.Write("roc_msd_btag")
+        graph = ROOT.TGraph(len(eff_qcd_msd_deepcsv), tau32cuts_msd_deepcsv, eff_qcd_msd_deepcsv)
+        graph.Write("eff_qcd_msd_deepcsv")
+        graph = ROOT.TGraph(len(eff_ttbar_msd_deepcsv), tau32cuts_msd_deepcsv, eff_ttbar_msd_deepcsv)
+        graph.Write("eff_ttbar_msd_deepcsv")
+        graph = ROOT.TGraph(len(eff_qcd_msd_deepcsv), eff_ttbar_msd_deepcsv, eff_qcd_msd_deepcsv)
+        graph.Write("roc_msd_deepcsv")
+
+        graph = ROOT.TGraph(len(eff_qcd_msd_deepjet), tau32cuts_msd_deepjet, eff_qcd_msd_deepjet)
+        graph.Write("eff_qcd_msd_deepjet")
+        graph = ROOT.TGraph(len(eff_ttbar_msd_deepjet), tau32cuts_msd_deepjet, eff_ttbar_msd_deepjet)
+        graph.Write("eff_ttbar_msd_deepjet")
+        graph = ROOT.TGraph(len(eff_qcd_msd_deepjet), eff_ttbar_msd_deepjet, eff_qcd_msd_deepjet)
+        graph.Write("roc_msd_deepjet")
 
         root_file.Close()

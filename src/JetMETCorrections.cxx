@@ -4,6 +4,7 @@
 #include "UHH2/LegacyTopTagging/include/JetMETCorrections.h"
 #include "UHH2/LegacyTopTagging/include/METXYCorrection.h"
 #include "UHH2/LegacyTopTagging/include/Constants.h"
+#include "UHH2/LegacyTopTagging/include/Utils.h"
 
 using namespace std;
 using namespace uhh2;
@@ -13,11 +14,22 @@ using namespace ltt;
 namespace uhh2 { namespace ltt {
 
 //____________________________________________________________________________________________________
-// Type-I MET correction
+// Type-I MET correction and variation of unclustered energy
 // https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETRun2Corrections
-void propagate_JEC_to_MET(const Event & event, const Event::Handle<vector<Jet>> & h_jets) {
+void correct_the_MET(Event & event, const Event::Handle<vector<Jet>> & h_jets, const Event::Handle<MET> & h_met, const UnclEnergyVariation & unclEnergyVariation) {
   // we start from raw MET
-  LorentzVector metv4 = event.met->uncorr_v4();
+  // LorentzVector metv4 = event.met->uncorr_v4();
+  MET *met = &event.get(h_met);
+
+  const LorentzVectorXYZE metv4_typeI_from_miniaod = toXYZ(met->v4());
+  const float unclEnergy_px_shift_up = met->shiftedPx_UnclusteredEnUp() - metv4_typeI_from_miniaod.X();
+  const float unclEnergy_py_shift_up = met->shiftedPy_UnclusteredEnUp() - metv4_typeI_from_miniaod.Y();
+  const LorentzVectorXYZE unclEnergy_shift_up(unclEnergy_px_shift_up, unclEnergy_py_shift_up, 0, 0);
+  const float unclEnergy_px_shift_down = met->shiftedPx_UnclusteredEnDown() - metv4_typeI_from_miniaod.X();
+  const float unclEnergy_py_shift_down = met->shiftedPy_UnclusteredEnDown() - metv4_typeI_from_miniaod.Y();
+  const LorentzVectorXYZE unclEnergy_shift_down(unclEnergy_px_shift_down, unclEnergy_py_shift_down, 0, 0);
+
+  LorentzVector metv4 = met->uncorr_v4();
   for(const auto & jet : event.get(h_jets)) {
     const bool to_be_corrected = jet.v4().Pt() > 15. && (jet.neutralEmEnergyFraction() + jet.chargedEmEnergyFraction()) < 0.9;
     if(to_be_corrected) {
@@ -33,13 +45,28 @@ void propagate_JEC_to_MET(const Event & event, const Event::Handle<vector<Jet>> 
       metv4 += L1corr;
     }
   }
-  event.met->set_pt(metv4.Pt());
-  event.met->set_phi(metv4.Phi());
+
+  if(!event.isRealData) { // shifts should only be applied to MC!
+    if(unclEnergyVariation == UnclEnergyVariation::up) {
+      metv4 += uhh2::toPtEtaPhi(unclEnergy_shift_up);
+    }
+    else if(unclEnergyVariation == UnclEnergyVariation::down) {
+      metv4 += uhh2::toPtEtaPhi(unclEnergy_shift_down);
+    }
+  }
+
+  met->set_pt(metv4.Pt());
+  met->set_phi(metv4.Phi());
 }
 
 //____________________________________________________________________________________________________
-JetMETCorrections::JetMETCorrections(const string & coll_rec, const string & coll_gen) {
-
+JetMETCorrections::JetMETCorrections(
+  const boost::optional<std::string> & coll_rec,
+  const boost::optional<std::string> & coll_gen,
+  const boost::optional<std::string> & met_name
+):
+  fMETName(met_name ? *met_name : "met")
+{
   cout << "Hello World from JetMETCorrections!" << endl;
 
   jec_tag_2016 = k_jec_tag_2016;
@@ -70,18 +97,20 @@ JetMETCorrections::JetMETCorrections(const string & coll_rec, const string & col
   jec_ver_UL18 = k_jec_ver_UL18;
   jer_tag_UL18 = k_jer_tag_UL18;
 
-  if(!coll_rec.empty()) {
-    collection_rec = coll_rec;
+  if(coll_rec) {
+    collection_rec = *coll_rec;
     use_additional_branch_for_rec = true;
   }
 
-  if(!coll_gen.empty()) {
-    collection_gen = coll_gen;
+  if(coll_gen) {
+    collection_gen = *coll_gen;
     use_additional_branch_for_gen = true;
   }
 }
 
 void JetMETCorrections::init(Context & ctx) {
+
+  debug = string2bool(ctx.get("debug"));
 
   if(init_done) {
     throw runtime_error("JetMETCorrections::init() called twice!");
@@ -101,13 +130,27 @@ void JetMETCorrections::init(Context & ctx) {
     cout << "JetMETCorrections will correct MET XY" << endl;
   }
 
+  const string syst_direction_unclEnergy = ctx.get("SystDirection_UnclusteredEnergy", "nominal");
+  if(syst_direction_unclEnergy == "nominal") {
+    fUnclEnergyVariation = UnclEnergyVariation::nominal;
+  }
+  else if(syst_direction_unclEnergy == "up") {
+    fUnclEnergyVariation = UnclEnergyVariation::up;
+  }
+  else if(syst_direction_unclEnergy == "down") {
+    fUnclEnergyVariation = UnclEnergyVariation::down;
+  }
+  else throw invalid_argument("JetMETCorrections::init(): Invalid 'SystDirection_UnclusteredEnergy' configuration. Allowed values are 'up', 'down', 'nominal'");
+
   is_mc = ctx.get("dataset_type") == "MC";
   year = extract_year(ctx);
 
   h_jets = ctx.get_handle<vector<Jet>>(collection_rec);
   // h_genjets = ctx.get_handle<vector<GenJet>>(collection_gen);
+  h_met = ctx.get_handle<MET>(fMETName);
 
-  string userJetColl = string2lowercase(use_additional_branch_for_rec ? collection_rec : ctx.get("JetCollection"));
+  // string userJetColl = string2lowercase(use_additional_branch_for_rec ? collection_rec : ctx.get("JetCollection"));
+  string userJetColl = string2lowercase(collection_rec == "jets" ? ctx.get("JetCollection") : collection_rec);
 
   string algo = "";
   if(userJetColl.find("ak4") != string::npos) {
@@ -126,13 +169,15 @@ void JetMETCorrections::init(Context & ctx) {
   if(userJetColl.find("puppi") != string::npos) {
     pus = "PFPuppi";
     jetpfID_wp = JetPFID::WP_TIGHT_PUPPI;
+    is_chs = false;
   }
   else if(userJetColl.find("chs") == string::npos) {
-    cout << "JetMETCorrections::init(): Cannot determine pile-up subtraction (neither CHS nor PUPPI) - going to assume it is CHS for identifying JEC files and jet PF ID" << endl;
+    cout << "JetMETCorrections::init(): Cannot determine pile-up subtraction (neither CHS nor PUPPI) - going to assume it is CHS for identifying JEC files and jet PF+PU ID" << endl;
   }
   string jec_jet_coll = algo + pus;
 
   clnr_jetpfid.reset(new JetCleaner(ctx, JetPFID(jetpfID_wp), collection_rec));
+  clnr_jetpuid.reset(new JetCleaner(ctx, ltt::JetPUID(JetPUID::WP_LOOSE), collection_rec)); // WP_LOOSE: 99% (95%) efficiency for prompt (= non-PU) jets with |eta| < 2.5 (> 2.5); see twiki
 
   if(is_mc) {
     jlc_MC.reset(new YearSwitcher(ctx));
@@ -250,7 +295,7 @@ void JetMETCorrections::init(Context & ctx) {
     jet_corrector_data->setupUL18(jec_switcher_UL18);
   }
 
-  met_xy_correction.reset(new ltt::METXYCorrector(ctx));
+  met_xy_correction.reset(new ltt::METXYCorrector(ctx, fMETName, !is_chs));
 }
 
 bool JetMETCorrections::process(Event & event) {
@@ -259,19 +304,41 @@ bool JetMETCorrections::process(Event & event) {
     throw runtime_error("JetMETCorrections::init() not called!");
   }
 
-  clnr_jetpfid->process(event);
-  if(is_mc) {
-    if(do_jlc) jlc_MC->process(event);
-    if(do_jec) {
+  if(debug) cout << "Running JetMETCorrections for jet collection '"+collection_rec << "'" << endl;
+
+  clnr_jetpfid->process(event); // only eta-dependent, thus can be run before JEC
+
+  if(debug) {
+    cout << "Jets before JLC:" << endl;
+    for(const Jet & jet : event.get(h_jets)) print_jet_info(jet);
+  }
+
+  if(do_jlc) {
+    if(is_mc) jlc_MC->process(event);
+    else jlc_data->process(event);
+  }
+
+  if(debug) {
+    cout << "Jets after JLC & before JEC:" << endl;
+    for(const Jet & jet : event.get(h_jets)) print_jet_info(jet);
+  }
+
+  if(do_jec) {
+    if(is_mc) {
       jet_corrector_MC->process(event);
       jet_resolution_smearer->process(event);
     }
+    else jet_corrector_data->process(event);
   }
-  else {
-    if(do_jlc) jlc_data->process(event);
-    if(do_jec) jet_corrector_data->process(event);
+
+  if(debug) {
+    cout << "Jets after JEC:" << endl;
+    for(const Jet & jet : event.get(h_jets)) print_jet_info(jet);
   }
-  if(do_met_type1_correction) propagate_JEC_to_MET(event, h_jets); // needs to be done AFTER JLC and JLC needs to be done AFTER cleaning leptons
+
+  if(do_pu_jet_id && is_chs) clnr_jetpuid->process(event); // eta- and pt-dependent, thus needs to be run after JEC - only for CHS jets!
+
+  if(do_met_type1_correction) correct_the_MET(event, h_jets, h_met, fUnclEnergyVariation); // needs to be done AFTER JLC and JLC needs to be done AFTER cleaning leptons
   if(do_met_xy_correction) met_xy_correction->process(event);
 
   return true;

@@ -25,6 +25,8 @@ private:
   void rebuild_topjets_from_subjets(uhh2::Event & event);
   void fail_if_init_done() const { if(init_done) throw std::runtime_error("TopJetCorrections: Not allowed to call a configuration switch after TopJetCorrections::init() has already been called"); }
 
+  bool debug;
+
   std::unique_ptr<YearSwitcher> tjet_corrector_MC, tjet_corrector_data, subjet_corrector_MC, subjet_corrector_data;
   std::shared_ptr<RunSwitcher> jec_switcher_16_topjets, jec_switcher_16_subjets;
   std::shared_ptr<RunSwitcher> jec_switcher_17_topjets, jec_switcher_17_subjets;

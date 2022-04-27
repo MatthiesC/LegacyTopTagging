@@ -1,5 +1,6 @@
 #include "UHH2/LegacyTopTagging/include/TopJetCorrections.h"
 #include "UHH2/LegacyTopTagging/include/Constants.h"
+#include "UHH2/LegacyTopTagging/include/Utils.h"
 
 using namespace std;
 using namespace uhh2;
@@ -54,6 +55,8 @@ TopJetCorrections::TopJetCorrections(const string & coll_rec, const string & col
 
 void TopJetCorrections::init(Context & ctx) {
 
+  debug = string2bool(ctx.get("debug"));
+
   if(init_done) {
     throw runtime_error("TopJetCorrections::init() called twice!");
   }
@@ -88,7 +91,8 @@ void TopJetCorrections::init(Context & ctx) {
   string subjets_map_handle_name = (string)"TopJetCorrections_subjets_map_handle_for_" + collection_rec;
   h_subjets_map = ctx.get_handle<vector<pair<int, int>>>(subjets_map_handle_name);
 
-  string userTopJetColl = string2lowercase(use_additional_branch_for_rec ? collection_rec : ctx.get("TopJetCollection"));
+  // string userTopJetColl = string2lowercase(use_additional_branch_for_rec ? collection_rec : ctx.get("TopJetCollection"));
+  string userTopJetColl = string2lowercase(collection_rec == "topjets" ? ctx.get("TopJetCollection") : collection_rec);
 
   string algo = "";
   if(userTopJetColl.find("ak4") != string::npos) {
@@ -241,7 +245,7 @@ void TopJetCorrections::set_subjet_handles(Event & event) {
   }
 
   vector<GenJet> gensubjets;
-  vector<GenTopJet> *gentopjets = use_additional_branch_for_gen ? &event.get(h_gentopjets) : event.gentopjets;
+  vector<GenTopJet> *gentopjets = &event.get(h_gentopjets);
   for(const GenTopJet & genjet : *gentopjets) {
     for(const GenJet & gensubjet : genjet.subjets()) {
       gensubjets.push_back(gensubjet);
@@ -250,7 +254,7 @@ void TopJetCorrections::set_subjet_handles(Event & event) {
   event.set(h_gensubjets, gensubjets);
 
   vector<Jet> subjets;
-  vector<TopJet> *topjets = use_additional_branch_for_rec ? &event.get(h_topjets) : event.topjets;
+  vector<TopJet> *topjets = &event.get(h_topjets);
   int subjetItr = 0;
   vector<pair<int, int>> subjets_map;
   for(unsigned int topjetItr = 0; topjetItr < topjets->size(); ++topjetItr) {
@@ -269,7 +273,7 @@ void TopJetCorrections::reset_smeared_subjets(Event & event) {
   vector<Jet> subjets = event.get(h_subjets);
   vector<pair<int, int>> subjets_map = event.get(h_subjets_map);
   int topjetItr = 0;
-  vector<TopJet> *topjets = use_additional_branch_for_rec ? &event.get(h_topjets) : event.topjets;
+  vector<TopJet> *topjets = &event.get(h_topjets);
   for(auto & topjet : *topjets) {
     vector<Jet> new_subjets;
     for(auto & p : subjets_map) {
@@ -285,7 +289,7 @@ void TopJetCorrections::reset_smeared_subjets(Event & event) {
 
 void TopJetCorrections::rebuild_topjets_from_subjets(Event & event) {
 
-  vector<TopJet> *topjets = use_additional_branch_for_rec ? &event.get(h_topjets) : event.topjets;
+  vector<TopJet> *topjets = &event.get(h_topjets);
   for(auto & topjet : *topjets) {
     LorentzVector v4;
     for(const auto & subjet : topjet.subjets()) {
@@ -302,6 +306,15 @@ bool TopJetCorrections::process(Event & event) {
 
   if(!init_done) {
     throw runtime_error("TopJetCorrections::init() not called!");
+  }
+
+  if(debug) cout << "Running TopJetCorrections for jet collection '"+collection_rec << "'" << endl;
+
+  if(debug) cout << "No JLC implemented!" << endl;
+
+  if(debug) {
+    cout << "Jets before JEC:" << endl;
+    for(const TopJet & jet : event.get(h_topjets)) print_topjet_info(jet);
   }
 
   if(correct_topjets) {
@@ -328,6 +341,11 @@ bool TopJetCorrections::process(Event & event) {
 
   if(do_rebuild_topjets_from_subjets) {
     rebuild_topjets_from_subjets(event);
+  }
+
+  if(debug) {
+    cout << "Jets after JEC:" << endl;
+    for(const TopJet & jet : event.get(h_topjets)) print_topjet_info(jet);
   }
 
   return true;

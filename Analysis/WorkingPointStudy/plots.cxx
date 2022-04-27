@@ -95,9 +95,9 @@ vector<WorkingPoint> calculate_working_points(const string & year, const PtBin &
 
   TFile* infile = TFile::Open(infilePath.c_str(), "READ");
   const TGraph* graph_eff_qcd_msd = (TGraph*)infile->Get("eff_qcd_msd");
-  const TGraph* graph_eff_qcd_msd_btag = (TGraph*)infile->Get("eff_qcd_msd_btag");
+  const TGraph* graph_eff_qcd_msd_btag = (TGraph*)infile->Get("eff_qcd_msd_deepcsv");
   const TGraph* graph_eff_ttbar_msd = (TGraph*)infile->Get("eff_ttbar_msd");
-  const TGraph* graph_eff_ttbar_msd_btag = (TGraph*)infile->Get("eff_ttbar_msd_btag");
+  const TGraph* graph_eff_ttbar_msd_btag = (TGraph*)infile->Get("eff_ttbar_msd_deepcsv");
 
   vector<WorkingPoint> working_points;
   for(auto wp : target_effs_qcd) {
@@ -123,9 +123,9 @@ vector<WorkingPoint> get_reference_working_points(const string & year, const PtB
 
   TFile* infile = TFile::Open(infilePath.c_str(), "READ");
   const TGraph* graph_eff_qcd_msd = (TGraph*)infile->Get("eff_qcd_msd");
-  const TGraph* graph_eff_qcd_msd_btag = (TGraph*)infile->Get("eff_qcd_msd_btag");
+  const TGraph* graph_eff_qcd_msd_btag = (TGraph*)infile->Get("eff_qcd_msd_deepcsv");
   const TGraph* graph_eff_ttbar_msd = (TGraph*)infile->Get("eff_ttbar_msd");
-  const TGraph* graph_eff_ttbar_msd_btag = (TGraph*)infile->Get("eff_ttbar_msd_btag");
+  const TGraph* graph_eff_ttbar_msd_btag = (TGraph*)infile->Get("eff_ttbar_msd_deepcsv");
 
   vector<WorkingPoint> working_points;
   double x=0, y=0;
@@ -181,7 +181,7 @@ void do_plot(const string & year, const PtBin & pt_bin, const string & graph_bas
   vector<TGraph*> graphs;
   if(do_raw) graphs.push_back((TGraph*)infile->Get(graph_base_name.c_str()));
   if(do_msd) graphs.push_back((TGraph*)infile->Get((graph_base_name+"_msd").c_str()));
-  if(do_msd_btag) graphs.push_back((TGraph*)infile->Get((graph_base_name+"_msd_btag").c_str()));
+  if(do_msd_btag) graphs.push_back((TGraph*)infile->Get((graph_base_name+"_msd_deepcsv").c_str()));
 
   TCanvas *c = new TCanvas("canvas", "canvas title", 600, 600);
   c->cd();
@@ -343,7 +343,7 @@ void do_summary_plot(const string & year, const string & tag_type, const vector<
 
   bool is_raw = tag_type == "raw";
   bool is_msd = tag_type == "msd";
-  bool is_msd_btag = tag_type == "msd_btag";
+  bool is_msd_btag = tag_type == "msd_deepcsv";
 
   string infileBaseBasePath = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/"+year+"/workdir_npy/";
   vector<TGraph*> graphs;
@@ -575,7 +575,7 @@ void plots(const string & year) {
   pt_bins_summary_plots.push_back(pt_bins.at(2));
   pt_bins_summary_plots.push_back(pt_bins.at(3));
   pt_bins_summary_plots.push_back(pt_bins.at(4));
-  const vector<string> tag_types = {"raw", "msd", "msd_btag"};
+  const vector<string> tag_types = {"raw", "msd", "msd_deepcsv"};
   const vector<WorkingPoint> wps_ref_pt480to600 = get_reference_working_points(year, pt_bins.at(3), wps_reference);
   const vector<WorkingPoint> wps_dpnote_pt480to600 = init_DPnote_WPs();
   cout << "WPs for Pt480to600: this study (tau32cuts from reference bin) vs. CMS DP 2020-025" << endl;

@@ -175,7 +175,7 @@ class configContainer:
          self.systematics.append(systEntity('pileup', 'SystDirection_Pileup'))
          self.systematics.append(systEntity('prefiring', 'SystDirection_Prefiring'))
          self.systematics.append(systEntity('muontrigger', 'SystDirection_MuonTrigger'))
-         self.systematics.append(systEntity('muonid', 'SystDirection_MuonID'))
+         self.systematics.append(systEntity('muonid', 'SystDirection_MuonId'))
          # self.systematics.append(systEntity('muoniso', 'SystDirection_MuonIso'))
          self.systematics.append(systEntity('btagging', 'SystDirection_BTag', directions=['up_bc', 'down_bc', 'up_udsg', 'down_udsg']))
          self.systematics.append(systEntity('wp', 'SystDirection_WP'))

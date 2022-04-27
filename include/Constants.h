@@ -1,6 +1,40 @@
 #pragma once
 
+#include "UHH2/common/include/Utils.h"
+
 namespace uhh2 { namespace ltt {
+
+const std::map<Year, std::string> kYear_toString = {
+  {Year::isUL16preVFP, "2016 early"},
+  {Year::isUL16postVFP, "2016 late"},
+  {Year::isUL17, "2017"},
+  {Year::isUL18, "2018"},
+};
+
+const std::string kCollectionName_AK4CHS = "jetsAk4CHS";
+// const std::string kHandleName_AK4pairs = "AK4pairs";
+const std::string kHandleName_pairedPUPPIjets = "pairedPUPPIjets";
+const std::string kHandleName_pairedCHSjets = "pairedCHSjets";
+const double kDeltaRForPuppiCHSMatch = 0.2;
+const double kAbsEtaBTagThreshold = 2.5;
+const std::string kHandleName_forwardPUPPIjets = "forwardPUPPIjets";
+const std::string kHandleName_uncleanedPUPPIjets = "uncleanedPUPPIjets";
+const std::string kCollectionName_METCHS = "slimmedMETs";
+const std::string kCollectionName_METPUPPI = "slimmedMETsPuppi";
+
+const std::string kCollectionName_AK8_rec = "jetsAk8PuppiSubstructure_SoftDropPuppi";
+const std::string kCollectionName_AK8_gen = "genjetsAk8SubstructureSoftDrop";
+
+const std::string kHandleName_PrimaryLepton = "PrimaryLepton";
+const double kDeltaRLeptonicHemisphere = M_PI*2./3.;
+
+const std::string kHandleName_bJets = "bJets";
+const std::string kHandleName_bJets_loose = "bJets_loose";
+const std::string kHandleName_bJets_medium = "bJets_medium";
+const std::string kHandleName_bJets_tight = "bJets_tight";
+
+const std::string kHandleName_SingleTopGen_tWch = "SingleTopGen_tWch";
+
 
 const std::string k_jec_tag_2016 = "Summer16_07Aug2017";
 const std::string k_jec_ver_2016 = "11";

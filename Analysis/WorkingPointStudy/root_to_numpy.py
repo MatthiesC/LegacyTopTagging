@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 
-options_year = ['UL17', 'UL18']
+options_year = ['UL16preVFP', 'UL16postVFP', 'UL17', 'UL18']
 
 if not sys.argv[1:]: sys.exit('No arguments provided. Exit.')
 parser = argparse.ArgumentParser()
@@ -29,7 +29,7 @@ for proc in processes:
     filePath = outputDirPath+fileName_prefix+process+fileName_postfix
     file = ROOT.TFile.Open(filePath, 'READ')
     tree = file.Get('my_tree')
-    leafs = ['weight', 'pt', 'msd', 'subdeepcsv', 'tau32']
+    leafs = ['weight', 'pt', 'msd', 'subdeepcsv', 'subdeepjet', 'tau32']
     if 'TTbar' in process: leafs.append('dr')
     data = tree.AsMatrix(leafs)
     len_data_before = len(data)

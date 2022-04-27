@@ -1,5 +1,7 @@
 #pragma once
 
+#include <boost/optional.hpp>
+
 #include "UHH2/core/include/AnalysisModule.h"
 #include "UHH2/core/include/Selection.h"
 #include "UHH2/core/include/Event.h"
@@ -16,10 +18,28 @@
 namespace uhh2 { namespace ltt {
 
 //____________________________________________________________________________________________________
+template<typename T>
+const T * match(const Particle & p, const std::vector<T> & objects, const boost::optional<double> dr_max = boost::none) {
+  const T *closest = closestParticle(p, objects);
+  if(closest == nullptr) return nullptr;
+  else if(dr_max && uhh2::deltaR(p.v4(), closest->v4()) > *dr_max) return nullptr;
+  else return closest;
+}
+
+//____________________________________________________________________________________________________
 template<typename T, typename U>
 double deltaEta(const T & p1, const U & p2) {
     return fabs(p1.eta() - p2.eta());
 }
+
+//____________________________________________________________________________________________________
+Particle add_Particles(const Particle & p1, const Particle & p2);
+
+//____________________________________________________________________________________________________
+void print_jet_info(const Jet & jet, const std::string & prefix = "");
+
+//____________________________________________________________________________________________________
+void print_topjet_info(const TopJet & jet, const std::string & prefix = "");
 
 //____________________________________________________________________________________________________
 double tau32(const TopJet & topjet);
@@ -87,11 +107,12 @@ private:
 //____________________________________________________________________________________________________
 class METSelection: public uhh2::Selection {
 public:
-  METSelection(const double _met_min = 0., const double _met_max = std::numeric_limits<double>::infinity());
+  METSelection(uhh2::Context & ctx, const boost::optional<double> & _met_min = boost::none, const boost::optional<double> & _met_max = boost::none, const boost::optional<std::string> & _met_name = boost::none);
   virtual bool passes(const uhh2::Event & event) override;
 private:
-  const double met_min;
-  const double met_max;
+  const boost::optional<double> met_min;
+  const boost::optional<double> met_max;
+  const uhh2::Event::Handle<MET> h_met;
 };
 
 //____________________________________________________________________________________________________
@@ -102,7 +123,7 @@ public:
 private:
   const double ptw_min;
   const double ptw_max;
-  uhh2::Event::Handle<FlavorParticle> h_primlep;
+  const uhh2::Event::Handle<FlavorParticle> h_primlep;
 };
 
 //____________________________________________________________________________________________________
@@ -113,18 +134,18 @@ public:
 private:
   const double ptrel_min;
   const double dr_min;
-  uhh2::Event::Handle<FlavorParticle> h_primlep;
+  const uhh2::Event::Handle<FlavorParticle> h_primlep;
 };
 
 //____________________________________________________________________________________________________
 class BTagCloseToLeptonSelection: public uhh2::Selection {
 public:
-  BTagCloseToLeptonSelection(uhh2::Context & ctx, const double _dr_max, const JetId & _btagID);
+  BTagCloseToLeptonSelection(uhh2::Context & ctx, const double _dr_max);
   virtual bool passes(const uhh2::Event & event) override;
 private:
   const double dr_max;
-  const JetId btagID;
-  uhh2::Event::Handle<FlavorParticle> h_primlep;
+  const uhh2::Event::Handle<FlavorParticle> h_primlep;
+  const uhh2::Event::Handle<std::vector<Jet>> h_bJets;
 };
 
 //____________________________________________________________________________________________________
@@ -168,7 +189,7 @@ private:
   };
   bool warning_thrown = false;
   PSVariation applied_variation = PSVariation::None;
-  std::map<PSVariation, uhh2::Event::Handle<double>> weights_map;
+  std::map<PSVariation, uhh2::Event::Handle<float>> weights_map;
 };
 
 class MuonScaleFactors: public uhh2::AnalysisModule {
@@ -256,11 +277,12 @@ private:
 // https://hypernews.cern.ch/HyperNews/CMS/get/JetMET/2000.html
 class HEM2018Selection: public uhh2::Selection {
 public:
-  HEM2018Selection(uhh2::Context & ctx);
+  HEM2018Selection(uhh2::Context & ctx, const std::string & handle_name_jets = kHandleName_pairedPUPPIjets);
   virtual bool passes(const uhh2::Event & event) override;
   double GetAffectedLumiFraction() const { return fAffectedLumiFraction; };
 private:
   const Year fYear;
+  const uhh2::Event::Handle<std::vector<Jet>> fHandle_jets;
   const int fRunNumber = 319077;
   const std::pair<double, double> fEtaRange = {-3.2, -1.3};
   const std::pair<double, double> fPhiRange = {-1.57, -0.87};
@@ -276,11 +298,11 @@ public:
   virtual bool process(uhh2::Event & event) override;
 private:
   const Year fYear;
-  uhh2::Event::Handle<double> h_weight_nominal;
-  uhh2::Event::Handle<double> h_weight_up;
-  uhh2::Event::Handle<double> h_weight_down;
+  uhh2::Event::Handle<float> h_weight_nominal;
+  uhh2::Event::Handle<float> h_weight_up;
+  uhh2::Event::Handle<float> h_weight_down;
   void set_dummy_weights(uhh2::Event & event);
-  const double fDummyWeight = 1.;
+  const float fDummyWeight = 1.;
   const bool fApply;
   enum class PrefireVariation {
     nominal,
@@ -297,13 +319,14 @@ public:
   TopPtReweighting(uhh2::Context & ctx, const bool apply = true);
   virtual bool process(uhh2::Event & event) override;
 private:
-  uhh2::Event::Handle<double> h_weight_nominal;
-  uhh2::Event::Handle<double> h_weight_a_up;
-  uhh2::Event::Handle<double> h_weight_a_down;
-  uhh2::Event::Handle<double> h_weight_b_up;
-  uhh2::Event::Handle<double> h_weight_b_down;
+  uhh2::Event::Handle<float> h_weight_nominal;
+  uhh2::Event::Handle<float> h_weight_a_up;
+  uhh2::Event::Handle<float> h_weight_a_down;
+  uhh2::Event::Handle<float> h_weight_b_up;
+  uhh2::Event::Handle<float> h_weight_b_down;
+  uhh2::Event::Handle<float> h_weight_applied;
   void set_dummy_weights(uhh2::Event & event);
-  const double fDummyWeight = 1.;
+  const float fDummyWeight = 1.0f;
   const bool fApply;
   enum class TopPtVariation {
     nominal,
@@ -314,13 +337,13 @@ private:
   };
   TopPtVariation applied_variation;
   const bool fPtCutOff_b = false;
-  const double fPtCutOff = 500.;
-  const double fA = 0.0615;
-  const double fA_up = fA*1.5;
-  const double fA_down = fA*0.5;
-  const double fB = -0.0005;
-  const double fB_up = fB*1.5;
-  const double fB_down = fB*0.5;
+  const float fPtCutOff = 500.;
+  const float fA = 0.0615;
+  const float fA_up = fA*1.5;
+  const float fA_down = fA*0.5;
+  const float fB = -0.0005;
+  const float fB_up = fB*1.5;
+  const float fB_down = fB*0.5;
 };
 
 //____________________________________________________________________________________________________
@@ -353,8 +376,8 @@ class VJetsReweighting: public uhh2::AnalysisModule {
   std::unordered_map<std::string, std::unique_ptr<TH1F>> histos;
 
   void load_histo(TFile* file, const std::string& name, const std::string& histName);
-  double get_v_pt(uhh2::Event & event);
-  double evaluate(const std::string& name, double pt);
+  double get_v_pt(const uhh2::Event & event);
+  double evaluate(const std::string& name, const double pt);
 
   const bool is_2016_nonUL;
   const bool is_WJets;
@@ -364,10 +387,11 @@ class VJetsReweighting: public uhh2::AnalysisModule {
   const bool apply_QCD_NLO;
   const bool apply_QCD_NNLO;
 
-  uhh2::Event::Handle<double> h_weight_EWK;
-  uhh2::Event::Handle<double> h_weight_QCD_EWK;
-  uhh2::Event::Handle<double> h_weight_QCD_NLO;
-  uhh2::Event::Handle<double> h_weight_QCD_NNLO;
+  const uhh2::Event::Handle<float> h_weight_applied;
+  const uhh2::Event::Handle<float> h_weight_EWK;
+  const uhh2::Event::Handle<float> h_weight_QCD_EWK;
+  const uhh2::Event::Handle<float> h_weight_QCD_NLO;
+  const uhh2::Event::Handle<float> h_weight_QCD_NNLO;
 };
 
 //____________________________________________________________________________________________________
@@ -378,12 +402,17 @@ public:
 private:
   const bool fDoingPDFVariations;
   const bool fApply;
-  uhh2::Event::Handle<double> fHandle_weight;
-  std::unique_ptr<Selection> slct_Mtt0to700;
-  uhh2::Event::Handle<ltt::SingleTopGen_tWch> fHandle_GENtW;
+  const Year fYear;
+  const uhh2::Event::Handle<float> fHandle_weight;
+  const uhh2::Event::Handle<ltt::SingleTopGen_tWch> fHandle_GENtW;
+
+  std::unique_ptr<Selection> slct_Mtt700to1000;
+  std::unique_ptr<Selection> slct_Mtt1000toInf;
 
   bool is_TTbar;
   bool is_TTbar_Mtt;
+  bool is_TTbar_Mtt700to1000;
+  bool is_TTbar_Mtt1000toInf;
   bool is_TTbar_syst;
 
   bool is_tW;
@@ -403,6 +432,63 @@ public:
 private:
   const Year fYear;
   std::unique_ptr<uhh2::AndSelection> fAndSel;
+};
+
+//____________________________________________________________________________________________________
+// https://twiki.cern.ch/twiki/bin/view/CMS/PileupJetIDUL
+class JetPUID {
+public:
+  enum wp {WP_LOOSE, WP_MEDIUM, WP_TIGHT};
+  explicit JetPUID(const wp & working_point);
+  bool operator()(const Jet & jet, const uhh2::Event & event) const;
+private:
+  const wp fWP;
+};
+
+
+//____________________________________________________________________________________________________
+// typedef std::map<const Jet*, const Jet*> jet_pair_map;
+
+//____________________________________________________________________________________________________
+const Jet * getCHSmatch(const Jet & puppijet, const uhh2::Event & event, const uhh2::Event::Handle<std::vector<Jet>> & h_chsjets, const bool safe = true);
+
+//____________________________________________________________________________________________________
+// Sort jets by DeepJet discriminant from CHS matches
+inline void sort_by_deepjet_from_matches(std::vector<Jet> & jets, const uhh2::Event & event, const uhh2::Event::Handle<std::vector<Jet>> & handle_chs_jets) {
+  std::sort(jets.begin(), jets.end(), [&event, &handle_chs_jets](const Jet & j1, const Jet & j2){return getCHSmatch(j1, event, handle_chs_jets)->btag_DeepJet() > getCHSmatch(j2, event, handle_chs_jets)->btag_DeepJet();});
+}
+
+//____________________________________________________________________________________________________
+class MatchPuppiToCHSAndSetBTagHandles: public uhh2::AnalysisModule {
+public:
+  MatchPuppiToCHSAndSetBTagHandles(uhh2::Context & ctx, const BTag::algo & btag_algo, const BTag::wp & btag_wp);
+  virtual bool process(uhh2::Event & event) override;
+private:
+  const uhh2::Event::Handle<std::vector<Jet>> fHandle_PUPPIjets;
+  const uhh2::Event::Handle<std::vector<Jet>> fHandle_CHSjets;
+  const uhh2::Event::Handle<std::vector<Jet>> fHandle_pairedPUPPIjets;
+  const uhh2::Event::Handle<std::vector<Jet>> fHandle_pairedCHSjets;
+  const uhh2::Event::Handle<std::vector<Jet>> fHandle_forwardPUPPIjets;
+  const uhh2::Event::Handle<std::vector<Jet>> fHandle_uncleanedPUPPIjets;
+  const BTag::wp fBTagWP;
+  const JetId fBTagID_loose;
+  const JetId fBTagID_medium;
+  const JetId fBTagID_tight;
+  const uhh2::Event::Handle<std::vector<Jet>> fHandle_bJets;
+  const uhh2::Event::Handle<std::vector<Jet>> fHandle_bJets_loose;
+  const uhh2::Event::Handle<std::vector<Jet>> fHandle_bJets_medium;
+  const uhh2::Event::Handle<std::vector<Jet>> fHandle_bJets_tight;
+};
+
+//____________________________________________________________________________________________________
+class ObjectPtSorter: public uhh2::AnalysisModule {
+public:
+  ObjectPtSorter(uhh2::Context & ctx);
+  virtual bool process(uhh2::Event & event) override;
+private:
+  const uhh2::Event::Handle<std::vector<Jet>> fHandle_CHSjets;
+  const uhh2::Event::Handle<std::vector<TopJet>> fHandle_AK8Collection_rec;
+  const uhh2::Event::Handle<std::vector<GenTopJet>> fHandle_AK8Collection_gen;
 };
 
 }}

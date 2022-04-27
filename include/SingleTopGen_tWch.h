@@ -72,6 +72,9 @@ public:
   GenParticle WAss() const;
   GenParticle WAssDecay1() const;
   GenParticle WAssDecay2() const;
+  GenParticle LeptonicW() const;
+  GenParticle SingleLepton() const;
+  GenParticle SingleNeutrino() const;
   GenParticle LeptAss() const;
   GenParticle NuAss() const;
   GenParticle Initial1() const;
@@ -82,16 +85,18 @@ public:
   E_DecayChannel DecayChannel() const;
 
   bool IsTopHadronicDecay() const;
-  bool IsTopLeptonicDecay() const;
+  bool IsTopLeptonicDecay(const bool consider_taus = true) const;
   bool IsTopToElectronDecay() const;
   bool IsTopToMuonDecay() const;
   bool IsTopToTauonDecay() const;
 
   bool IsAssHadronicDecay() const;
-  bool IsAssLeptonicDecay() const;
+  bool IsAssLeptonicDecay(const bool consider_taus = true) const;
   bool IsAssToElectronDecay() const;
   bool IsAssToMuonDecay() const;
   bool IsAssToTauonDecay() const;
+
+  bool IsSemiLeptonic(const bool consider_taus = true) const;
 
   bool IsGluonGluonProcess() const;
   bool IsBottomGluonProcess() const;
