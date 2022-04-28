@@ -13,7 +13,10 @@ using namespace ltt;
 
 namespace uhh2 { namespace ltt {
 
-HOTVRHists::HOTVRHists(Context & ctx, const string & dirname, const string & coll_rec, const string & coll_gen, const string & handle_name_tag, const unsigned int default_nbins): Hists(ctx, dirname) {
+HOTVRHists::HOTVRHists(Context & ctx, const string & dirname, const string & coll_rec, const string & coll_gen, const string & handle_name_tag, const bool doResponseHists_, const unsigned int default_nbins):
+  Hists(ctx, dirname),
+  doResponseHists(doResponseHists_)
+{
 
   h_hotvrjets = ctx.get_handle<vector<TopJet>>(coll_rec.empty() ? "topjets" : coll_rec);
   h_hotvrgenjets = ctx.get_handle<vector<GenTopJet>>(coll_gen.empty() ? "gentopjets" : coll_gen);
@@ -57,14 +60,16 @@ HOTVRHists::HOTVRHists(Context & ctx, const string & dirname, const string & col
   // hist_hotvrjet2_tau32 = book<TH1F>("hotvrjet2_tau32", "Subleading HOTVR jet: #tau_{3}/#tau_{2}", default_nbins, 0, 1);
   // hist_hotvrjet2_fpt1 = book<TH1F>("hotvrjet2_fpt1", "Subleading HOTVR jet: #it{p}_{T} fraction of leading subjet", default_nbins, 0, 1);
 
-  for(unsigned int i = 0; i <= fDRbins; i++) {
-    const string dr_string = (string)"dr"+to_string(i/10)+"p"+to_string(i-(i/10)*10); // e.g. i=8 will be converted to "dr0p8" and i=12 will be converted to "dr1p2"
-    hist_response_gen.push_back(book<TH1F>(((string)"response_gen_"+dr_string).c_str(), "#it{p}_{T}^{gen} [GeV]", 2000, 0, 2000));
-    hist_response_corr.push_back(book<TH1F>(((string)"response_corr_"+dr_string).c_str(), "#it{p}_{T}^{gen} [GeV]", 2000, 0, 2000));
-    hist_response_raw.push_back(book<TH1F>(((string)"response_raw_"+dr_string).c_str(), "#it{p}_{T}^{gen} [GeV]", 2000, 0, 2000));
-    hist_response_eta2p5_gen.push_back(book<TH1F>(((string)"response_eta2p5_gen_"+dr_string).c_str(), "#it{p}_{T}^{gen} [GeV]", 2000, 0, 2000));
-    hist_response_eta2p5_corr.push_back(book<TH1F>(((string)"response_eta2p5_corr_"+dr_string).c_str(), "#it{p}_{T}^{gen} [GeV]", 2000, 0, 2000));
-    hist_response_eta2p5_raw.push_back(book<TH1F>(((string)"response_eta2p5_raw_"+dr_string).c_str(), "#it{p}_{T}^{gen} [GeV]", 2000, 0, 2000));
+  if(doResponseHists) {
+    for(unsigned int i = 0; i <= fDRbins; i++) {
+      const string dr_string = (string)"dr"+to_string(i/10)+"p"+to_string(i-(i/10)*10); // e.g. i=8 will be converted to "dr0p8" and i=12 will be converted to "dr1p2"
+      hist_response_gen.push_back(book<TH1F>(((string)"response_gen_"+dr_string).c_str(), "#it{p}_{T}^{gen} [GeV]", 2000, 0, 2000));
+      hist_response_corr.push_back(book<TH1F>(((string)"response_corr_"+dr_string).c_str(), "#it{p}_{T}^{gen} [GeV]", 2000, 0, 2000));
+      hist_response_raw.push_back(book<TH1F>(((string)"response_raw_"+dr_string).c_str(), "#it{p}_{T}^{gen} [GeV]", 2000, 0, 2000));
+      hist_response_eta2p5_gen.push_back(book<TH1F>(((string)"response_eta2p5_gen_"+dr_string).c_str(), "#it{p}_{T}^{gen} [GeV]", 2000, 0, 2000));
+      hist_response_eta2p5_corr.push_back(book<TH1F>(((string)"response_eta2p5_corr_"+dr_string).c_str(), "#it{p}_{T}^{gen} [GeV]", 2000, 0, 2000));
+      hist_response_eta2p5_raw.push_back(book<TH1F>(((string)"response_eta2p5_raw_"+dr_string).c_str(), "#it{p}_{T}^{gen} [GeV]", 2000, 0, 2000));
+    }
   }
 }
 
@@ -129,30 +134,32 @@ void HOTVRHists::fill(const Event & event) {
   //   hist_hotvrjet2_fpt1->Fill(HOTVR_fpt(hotvrjets.at(1)), w);
   // }
 
-  if(!event.isRealData) {
-    vector<GenTopJet> hotvrgenjets = event.get(h_hotvrgenjets);
-    sort_by_pt(hotvrgenjets);
+  if(doResponseHists) {
+    if(!event.isRealData) {
+      vector<GenTopJet> hotvrgenjets = event.get(h_hotvrgenjets);
+      sort_by_pt(hotvrgenjets);
 
-    for(const TopJet & recjet : hotvrjets) {
-      const GenTopJet *genjet = closestParticle(recjet, hotvrgenjets);
-      if(genjet == nullptr) continue;
+      for(const TopJet & recjet : hotvrjets) {
+        const GenTopJet *genjet = closestParticle(recjet, hotvrgenjets);
+        if(genjet == nullptr) continue;
 
-      const double pt_gen = genjet->v4().pt();
-      const double pt_rec_corr = recjet.v4().pt();
-      const double pt_rec_raw = recjet.v4().pt() * recjet.JEC_factor_raw();
-      const double eta_rec = recjet.v4().eta();
+        const double pt_gen = genjet->v4().pt();
+        const double pt_rec_corr = recjet.v4().pt();
+        const double pt_rec_raw = recjet.v4().pt() * recjet.JEC_factor_raw();
+        const double eta_rec = recjet.v4().eta();
 
-      for(unsigned int i = 0; i <= fDRbins; i++) { // iterate over different deltaR values; if i = 0, then use HOTVR_Reff
-        const double dR = deltaR(genjet->v4(), recjet.v4());
-        const double threshold = (i == 0) ? HOTVR_Reff(recjet) : 0.1*i;
-        if(dR > threshold) continue;
-        hist_response_gen.at(i)->Fill(pt_gen, w);
-        hist_response_corr.at(i)->Fill(pt_gen, w * pt_rec_corr / pt_gen);
-        hist_response_raw.at(i)->Fill(pt_gen, w * pt_rec_raw / pt_gen);
-        if(eta_rec > 2.5) continue;
-        hist_response_eta2p5_gen.at(i)->Fill(pt_gen, w);
-        hist_response_eta2p5_corr.at(i)->Fill(pt_gen, w * pt_rec_corr / pt_gen);
-        hist_response_eta2p5_raw.at(i)->Fill(pt_gen, w * pt_rec_raw / pt_gen);
+        for(unsigned int i = 0; i <= fDRbins; i++) { // iterate over different deltaR values; if i = 0, then use HOTVR_Reff
+          const double dR = deltaR(genjet->v4(), recjet.v4());
+          const double threshold = (i == 0) ? HOTVR_Reff(recjet) : 0.1*i;
+          if(dR > threshold) continue;
+          hist_response_gen.at(i)->Fill(pt_gen, w);
+          hist_response_corr.at(i)->Fill(pt_gen, w * pt_rec_corr / pt_gen);
+          hist_response_raw.at(i)->Fill(pt_gen, w * pt_rec_raw / pt_gen);
+          if(eta_rec > 2.5) continue;
+          hist_response_eta2p5_gen.at(i)->Fill(pt_gen, w);
+          hist_response_eta2p5_corr.at(i)->Fill(pt_gen, w * pt_rec_corr / pt_gen);
+          hist_response_eta2p5_raw.at(i)->Fill(pt_gen, w * pt_rec_raw / pt_gen);
+        }
       }
     }
   }

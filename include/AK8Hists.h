@@ -8,7 +8,7 @@ namespace uhh2 { namespace ltt {
 
 class AK8Hists: public uhh2::Hists {
 public:
-  AK8Hists(uhh2::Context & ctx, const std::string & dirname, const std::string & coll_rec = "", const std::string & coll_gen = "", const std::string & handle_name_tag = "AK8Hists_dummy_handle", const unsigned int default_nbins = 100);
+  AK8Hists(uhh2::Context & ctx, const std::string & dirname, const std::string & coll_rec = "", const std::string & coll_gen = "", const std::string & handle_name_tag = "AK8Hists_dummy_handle", const bool doResponseHists_ = false, const unsigned int default_nbins = 100);
 
   virtual void fill(const uhh2::Event & event) override;
 
@@ -78,6 +78,8 @@ protected:
   std::vector<TH1F*> hist_response_eta2p5_raw;
 
 private:
+  const bool doResponseHists;
+
   uhh2::Event::Handle<std::vector<TopJet>> h_ak8jets;
   uhh2::Event::Handle<std::vector<GenTopJet>> h_ak8genjets;
   uhh2::Event::Handle<FlavorParticle> h_primlep;

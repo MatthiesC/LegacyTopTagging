@@ -377,13 +377,13 @@ WorkingPointModule::WorkingPointModule(Context & ctx):
     hotvrjets_tau32 = ctx.declare_event_output<vector<float>>("hotvrjets_tau32");
   }
 
-  hists_ak8_before_corrections.reset(new AK8Hists(ctx, "AK8Hists_0_before_corrections", "", "", "", 1000));
-  hists_ak8_after_corrections.reset(new AK8Hists(ctx, "AK8Hists_1_after_corrections", "", "", "", 1000));
-  hists_ak8_after_cleaning.reset(new AK8Hists(ctx, "AK8Hists_2_after_cleaning", "", "", "", 1000));
+  hists_ak8_before_corrections.reset(new AK8Hists(ctx, "AK8Hists_0_before_corrections", "", "", "", true, 1000));
+  hists_ak8_after_corrections.reset(new AK8Hists(ctx, "AK8Hists_1_after_corrections", "", "", "", true, 1000));
+  hists_ak8_after_cleaning.reset(new AK8Hists(ctx, "AK8Hists_2_after_cleaning", "", "", "", true, 1000));
 
-  hists_hotvr_before_corrections.reset(new HOTVRHists(ctx, "HOTVRHists_0_before_corrections", ctx.get("hotvrCollection_rec"), ctx.get("hotvrCollection_gen"), "", 1000));
-  hists_hotvr_after_corrections.reset(new HOTVRHists(ctx, "HOTVRHists_1_after_corrections", ctx.get("hotvrCollection_rec"), ctx.get("hotvrCollection_gen"), "", 1000));
-  hists_hotvr_after_cleaning.reset(new HOTVRHists(ctx, "HOTVRHists_2_after_cleaning", ctx.get("hotvrCollection_rec"), ctx.get("hotvrCollection_gen"), "", 1000));
+  hists_hotvr_before_corrections.reset(new HOTVRHists(ctx, "HOTVRHists_0_before_corrections", ctx.get("hotvrCollection_rec"), ctx.get("hotvrCollection_gen"), "", true, 1000));
+  hists_hotvr_after_corrections.reset(new HOTVRHists(ctx, "HOTVRHists_1_after_corrections", ctx.get("hotvrCollection_rec"), ctx.get("hotvrCollection_gen"), "", true, 1000));
+  hists_hotvr_after_cleaning.reset(new HOTVRHists(ctx, "HOTVRHists_2_after_cleaning", ctx.get("hotvrCollection_rec"), ctx.get("hotvrCollection_gen"), "", true, 1000));
 }
 
 
