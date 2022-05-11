@@ -25,11 +25,16 @@ AK4Hists::AK4Hists(Context & ctx, const string & dirname, const unsigned int def
   fHandle_bJets_loose(ctx.get_handle<vector<Jet>>(kHandleName_bJets_loose)),
   fHandle_bJets_medium(ctx.get_handle<vector<Jet>>(kHandleName_bJets_medium)),
   fHandle_bJets_tight(ctx.get_handle<vector<Jet>>(kHandleName_bJets_tight)),
-  fHandle_PrimaryLepton(ctx.get_handle<FlavorParticle>(kHandleName_PrimaryLepton))
+  fHandle_PrimaryLepton(ctx.get_handle<FlavorParticle>(kHandleName_PrimaryLepton)),
+  fHandle_weight_btagdisc_central(ctx.get_handle<float>("weight_btagdisc__central")), // same handle name as defined in MCWeight.cxx --> MCBTagDiscriminantReweighting
+  fHandle_weight_btag_njet_sf(ctx.get_handle<float>(kHandleName_weight_btag_njet_sf))
 {
   hist_number_puppijets = book<TH1F>("number_puppijets", "Number of AK4 PUPPI jets", 11, -0.5, 10.5);
   hist_number_puppijets_uncleaned = book<TH1F>("number_puppijets_uncleaned", "Number of AK4 PUPPI jets before CHS-matching", 11, -0.5, 10.5);
   hist_number_puppijets_central = book<TH1F>("number_puppijets_central", "Number of central AK4 PUPPI jets", 11, -0.5, 10.5);
+  hist_number_puppijets_central_wo_btag_sf = book<TH1F>("number_puppijets_central_wo_btag_sf", "Number of central AK4 PUPPI jets (w/o b-tag SF)", 11, -0.5, 10.5);
+  hist_number_puppijets_central_wo_njet_sf = book<TH1F>("number_puppijets_central_wo_njet_sf", "Number of central AK4 PUPPI jets (w/o njet SF)", 11, -0.5, 10.5);
+  hist_number_puppijets_central_wo_btag_sf_wo_njet_sf = book<TH1F>("number_puppijets_central_wo_btag_sf_wo_njet_sf", "Number of central AK4 PUPPI jets (w/o b-tag SF, w/o njet SF)", 11, -0.5, 10.5);
   hist_number_puppijets_forward = book<TH1F>("number_puppijets_forward", "Number of forward AK4 PUPPI jets", 11, -0.5, 10.5);
 
   hist_puppichs_dr = book<TH1F>("puppichs_dr", "#Delta#it{R}(PUPPI jet, matched CHS jet)", default_nbins, 0, 0.5);
@@ -117,6 +122,13 @@ void AK4Hists::fill(const Event & event) {
   if(matching_done) {
     hist_number_puppijets_uncleaned->Fill(event.get(fHandle_uncleanedPUPPIjets).size(), w);
     hist_number_puppijets_central->Fill(event.get(fHandle_pairedPUPPIjets).size(), w);
+
+    const float divisor1 = event.is_valid(fHandle_weight_btagdisc_central) && event.get(fHandle_weight_btagdisc_central) != 0 ? event.get(fHandle_weight_btagdisc_central) : 1.f;
+    hist_number_puppijets_central_wo_btag_sf->Fill(event.get(fHandle_pairedPUPPIjets).size(), w / divisor1);
+    const float divisor2 = event.is_valid(fHandle_weight_btag_njet_sf) && event.get(fHandle_weight_btag_njet_sf) != 0 ? event.get(fHandle_weight_btag_njet_sf) : 1.f;
+    hist_number_puppijets_central_wo_njet_sf->Fill(event.get(fHandle_pairedPUPPIjets).size(), w / divisor2);
+    hist_number_puppijets_central_wo_btag_sf_wo_njet_sf->Fill(event.get(fHandle_pairedPUPPIjets).size(), w / (divisor1 * divisor2));
+
     hist_number_puppijets_forward->Fill(event.get(fHandle_forwardPUPPIjets).size(), w);
     for(const Jet & puppijet : paired_puppijets) {
       const Jet *chsjet = getCHSmatch(puppijet, event, fHandle_CHSjets);

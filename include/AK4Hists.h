@@ -16,6 +16,9 @@ protected:
   TH1F *hist_number_puppijets;
   TH1F *hist_number_puppijets_uncleaned;
   TH1F *hist_number_puppijets_central;
+  TH1F *hist_number_puppijets_central_wo_btag_sf;
+  TH1F *hist_number_puppijets_central_wo_njet_sf;
+  TH1F *hist_number_puppijets_central_wo_btag_sf_wo_njet_sf;
   TH1F *hist_number_puppijets_forward;
 
   TH1F *hist_puppichs_dr;
@@ -83,6 +86,8 @@ private:
   const uhh2::Event::Handle<std::vector<Jet>> fHandle_bJets_medium;
   const uhh2::Event::Handle<std::vector<Jet>> fHandle_bJets_tight;
   const uhh2::Event::Handle<FlavorParticle> fHandle_PrimaryLepton;
+  const uhh2::Event::Handle<float> fHandle_weight_btagdisc_central;
+  const uhh2::Event::Handle<float> fHandle_weight_btag_njet_sf;
 };
 
 }}
