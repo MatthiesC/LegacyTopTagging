@@ -4,11 +4,34 @@
 
 namespace uhh2 { namespace ltt {
 
-const std::map<Year, std::string> kYear_toString = {
-  {Year::isUL16preVFP, "2016 early"},
-  {Year::isUL16postVFP, "2016 late"},
-  {Year::isUL17, "2017"},
-  {Year::isUL18, "2018"},
+enum class Channel {
+  isEle,
+  isMuo,
+  notValid,
+};
+
+typedef struct {
+  int index;
+  std::string name;
+} ChannelInfo;
+
+const std::map<Channel, ChannelInfo> kChannels = {
+  { Channel::isEle,    ChannelInfo{1, "ele"} },
+  { Channel::isMuo,    ChannelInfo{2, "muo"} },
+  { Channel::notValid, ChannelInfo{0, "invalid"} },
+};
+
+typedef struct {
+  int index;
+  std::string name;
+  std::string nice_name;
+} YearInfo;
+
+const std::map<Year, YearInfo> kYears = {
+  {Year::isUL16preVFP, YearInfo{1, "UL16preVFP", "2016 early"} },
+  {Year::isUL16postVFP, YearInfo{2, "UL16postVFP", "2016 late"} },
+  {Year::isUL17, YearInfo{3, "UL17", "2017"} },
+  {Year::isUL18, YearInfo{4, "UL18", "2018"} },
 };
 
 const std::string kCollectionName_AK4CHS = "jetsAk4CHS";
@@ -21,6 +44,8 @@ const std::string kHandleName_forwardPUPPIjets = "forwardPUPPIjets";
 const std::string kHandleName_uncleanedPUPPIjets = "uncleanedPUPPIjets";
 const std::string kCollectionName_METCHS = "slimmedMETs";
 const std::string kCollectionName_METPUPPI = "slimmedMETsPuppi";
+
+const std::string kHandleName_weight_btag_njet_sf = "weight_btag_njet_sf";
 
 const std::string kCollectionName_AK8_rec = "jetsAk8PuppiSubstructure_SoftDropPuppi";
 const std::string kCollectionName_AK8_gen = "genjetsAk8SubstructureSoftDrop";
