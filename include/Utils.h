@@ -18,6 +18,9 @@
 namespace uhh2 { namespace ltt {
 
 //____________________________________________________________________________________________________
+Channel extract_channel(const uhh2::Context & ctx);
+
+//____________________________________________________________________________________________________
 template<typename T>
 const T * match(const Particle & p, const std::vector<T> & objects, const boost::optional<double> dr_max = boost::none) {
   const T *closest = closestParticle(p, objects);
@@ -30,6 +33,26 @@ const T * match(const Particle & p, const std::vector<T> & objects, const boost:
 template<typename T, typename U>
 double deltaEta(const T & p1, const U & p2) {
     return fabs(p1.eta() - p2.eta());
+}
+
+//____________________________________________________________________________________________________
+// p1 and p2 need to have phi() methods. Returns the phi of p1 rotated such that p2 is at phi = 0.
+// Returned phi \in [-pi, +pi]. Checks if input phi of p1 and p2 fulfill the convention phi \in [-pi, +pi].
+template<typename T, typename U>
+float signedDeltaPhi(const T & p1, const U & p2) {
+  const float pi = M_PI;
+  if(p1.phi() < -pi || p1.phi() > pi) { // float phis might not pass this condition at the pi edge if pi is given as double ... must be careful here
+    std::cout << "phi(p1) = " << p1.phi() << std::endl;
+    throw std::out_of_range("signedDeltaPhi(): phi of p1 does not fulfill convention of phi \\in [-pi, +pi]");
+  }
+  if(p2.phi() < -pi || p2.phi() > pi) {
+    std::cout << "phi(p2) = " << p2.phi() << std::endl;
+    throw std::out_of_range("signedDeltaPhi(): phi of p2 does not fulfill convention of phi \\in [-pi, +pi]");
+  }
+  const float dphi = p1.phi() - p2.phi();
+  if(dphi < -pi) return 2*pi + dphi;
+  else if(dphi < pi) return dphi;
+  else return dphi - 2*pi;
 }
 
 //____________________________________________________________________________________________________
@@ -478,6 +501,15 @@ private:
   const uhh2::Event::Handle<std::vector<Jet>> fHandle_bJets_loose;
   const uhh2::Event::Handle<std::vector<Jet>> fHandle_bJets_medium;
   const uhh2::Event::Handle<std::vector<Jet>> fHandle_bJets_tight;
+
+  const uhh2::Event::Handle<int> fHandle_PUPPIjets_n;
+  const uhh2::Event::Handle<int> fHandle_pairedPUPPIjets_n;
+  const uhh2::Event::Handle<int> fHandle_forwardPUPPIjets_n;
+
+  const uhh2::Event::Handle<int> fHandle_bJets_n;
+  const uhh2::Event::Handle<int> fHandle_bJets_loose_n;
+  const uhh2::Event::Handle<int> fHandle_bJets_medium_n;
+  const uhh2::Event::Handle<int> fHandle_bJets_tight_n;
 };
 
 //____________________________________________________________________________________________________
@@ -489,6 +521,46 @@ private:
   const uhh2::Event::Handle<std::vector<Jet>> fHandle_CHSjets;
   const uhh2::Event::Handle<std::vector<TopJet>> fHandle_AK8Collection_rec;
   const uhh2::Event::Handle<std::vector<GenTopJet>> fHandle_AK8Collection_gen;
+};
+
+//____________________________________________________________________________________________________
+class BTagNJetScaleFactor: public uhh2::AnalysisModule {
+public:
+  BTagNJetScaleFactor(uhh2::Context & ctx);
+  virtual bool process(uhh2::Event & event) override;
+private:
+  const Year fYear;
+  const Channel fChannel;
+  const uhh2::Event::Handle<float> fHandle_weight_btag_njet_sf;
+  const uhh2::Event::Handle<std::vector<Jet>> fHandle_pairedPUPPIjets;
+
+  enum class MCProcess {
+    other,
+    ST_tW_DR,
+    ST_tW_DS,
+    ST_tChannel,
+    ST_sChannel,
+    // ST,
+    TTbar,
+    WJets,
+    DYJets,
+    Diboson,
+  };
+
+  const std::map<MCProcess, std::string> kMCProcess_toString = {
+    { MCProcess::ST_tW_DR, "ST_tW_DR" },
+    { MCProcess::ST_tW_DS, "ST_tW_DS" },
+    { MCProcess::ST_tChannel, "ST_tChannel" },
+    { MCProcess::ST_sChannel, "ST_sChannel" },
+    // { MCProcess::ST, "ST" },
+    { MCProcess::TTbar, "TTbar" },
+    { MCProcess::WJets, "WJets" },
+    { MCProcess::DYJets, "DYJets" },
+    { MCProcess::Diboson, "Diboson" },
+  };
+
+  MCProcess fMCProcess = MCProcess::other;
+  std::map<Year, std::map<Channel, std::map<MCProcess, std::map<int, float>>>> fSFMap;
 };
 
 }}

@@ -6,12 +6,26 @@
 
 #include "UHH2/LegacyTopTagging/include/Utils.h"
 
+#include <TVectorF.h>
+
 using namespace std;
 using namespace uhh2;
 using namespace ltt;
 
 
 namespace uhh2 { namespace ltt {
+
+//____________________________________________________________________________________________________
+Channel extract_channel(const Context & ctx) {
+  Channel channel = Channel::notValid;
+  const TString config = string2lowercase(ctx.get("analysis_channel"));
+  if(config.Contains("ele")) channel = Channel::isEle;
+  if(config.Contains("muo")) channel = Channel::isMuo;
+  if(channel == Channel::notValid) {
+    std::runtime_error("extract_channel(): Invalid channel string in xml file. Please check.");
+  }
+  return channel;
+}
 
 //____________________________________________________________________________________________________
 Particle add_Particles(const Particle & p1, const Particle & p2) {
@@ -1234,7 +1248,15 @@ MatchPuppiToCHSAndSetBTagHandles::MatchPuppiToCHSAndSetBTagHandles(Context & ctx
   fHandle_bJets(ctx.get_handle<vector<Jet>>(kHandleName_bJets)),
   fHandle_bJets_loose(ctx.get_handle<vector<Jet>>(kHandleName_bJets_loose)),
   fHandle_bJets_medium(ctx.get_handle<vector<Jet>>(kHandleName_bJets_medium)),
-  fHandle_bJets_tight(ctx.get_handle<vector<Jet>>(kHandleName_bJets_tight))
+  fHandle_bJets_tight(ctx.get_handle<vector<Jet>>(kHandleName_bJets_tight)),
+  // Write number of jets to AnalysisTree:
+  fHandle_PUPPIjets_n(ctx.declare_event_output<int>("n_jets")),
+  fHandle_pairedPUPPIjets_n(ctx.declare_event_output<int>("n_jets_central")),
+  fHandle_forwardPUPPIjets_n(ctx.declare_event_output<int>("n_jets_forward")),
+  fHandle_bJets_n(ctx.declare_event_output<int>("n_bjets")),
+  fHandle_bJets_loose_n(ctx.declare_event_output<int>("n_bjets_loose")),
+  fHandle_bJets_medium_n(ctx.declare_event_output<int>("n_bjets_medium")),
+  fHandle_bJets_tight_n(ctx.declare_event_output<int>("n_bjets_tight"))
 {}
 
 bool MatchPuppiToCHSAndSetBTagHandles::process(Event & event) {
@@ -1267,6 +1289,10 @@ bool MatchPuppiToCHSAndSetBTagHandles::process(Event & event) {
   event.set(fHandle_pairedCHSjets, paired_chsjets);
   event.set(fHandle_forwardPUPPIjets, forward_puppijets);
 
+  event.set(fHandle_PUPPIjets_n, cleaned_puppijets.size());
+  event.set(fHandle_pairedPUPPIjets_n, paired_puppijets.size());
+  event.set(fHandle_forwardPUPPIjets_n, forward_puppijets.size());
+
   //__________________________________________________
   // Retrieve the b-tagging information from the matched CHS jets in order to find b-tagged PUPPI jets in central region
   // At this point, getCHSmatch will *always* find a CHS jet since the central PUPPI jet collection has already been cleaned accordingly (no PUPPI without CHS match, see above)
@@ -1279,19 +1305,25 @@ bool MatchPuppiToCHSAndSetBTagHandles::process(Event & event) {
     if(fBTagID_medium(*chsjetPtr, event)) bjets_medium.push_back(puppijet);
     if(fBTagID_tight(*chsjetPtr, event)) bjets_tight.push_back(puppijet);
   }
+  uint n_bjets;
   switch(fBTagWP) {
     case BTag::WP_LOOSE :
-    event.set(fHandle_bJets, bjets_loose); break;
+    event.set(fHandle_bJets, bjets_loose); n_bjets = bjets_loose.size(); break;
     case BTag::WP_MEDIUM :
-    event.set(fHandle_bJets, bjets_medium); break;
+    event.set(fHandle_bJets, bjets_medium); n_bjets = bjets_medium.size(); break;
     case BTag::WP_TIGHT :
-    event.set(fHandle_bJets, bjets_tight); break;
+    event.set(fHandle_bJets, bjets_tight); n_bjets = bjets_tight.size(); break;
     default :
     throw invalid_argument("MatchPuppiToCHSAndSetBTagHandles::process(): Invalid b-tagging WP!");
   }
-  event.set(fHandle_bJets_loose, move(bjets_loose));
-  event.set(fHandle_bJets_medium, move(bjets_medium));
-  event.set(fHandle_bJets_tight, move(bjets_tight));
+  event.set(fHandle_bJets_loose, bjets_loose);
+  event.set(fHandle_bJets_medium, bjets_medium);
+  event.set(fHandle_bJets_tight, bjets_tight);
+
+  event.set(fHandle_bJets_n, n_bjets);
+  event.set(fHandle_bJets_loose_n, bjets_loose.size());
+  event.set(fHandle_bJets_medium_n, bjets_medium.size());
+  event.set(fHandle_bJets_tight_n, bjets_tight.size());
 
   return true;
 }
@@ -1345,6 +1377,49 @@ bool ObjectPtSorter::process(Event & event) {
     //   j.set_subjets(move(subjets));
     // }
   }
+  return true;
+}
+
+//____________________________________________________________________________________________________
+BTagNJetScaleFactor::BTagNJetScaleFactor(Context & ctx):
+ fYear(extract_year(ctx)),
+ fChannel(extract_channel(ctx)),
+ fHandle_weight_btag_njet_sf(ctx.declare_event_output<float>(kHandleName_weight_btag_njet_sf)),
+ fHandle_pairedPUPPIjets(ctx.get_handle<vector<Jet>>(kHandleName_pairedPUPPIjets))
+{
+  for(const auto & proc : kMCProcess_toString) {
+    if(ctx.get("dataset_version").find(proc.second) == 0) {
+      fMCProcess = proc.first;
+    }
+  }
+  if(fMCProcess == MCProcess::other) return;
+
+  TFile *file = TFile::Open(ctx.get("BTagSFNJetReweightFile").c_str(), "READ");
+  for(int njets = 1; njets <= 8; njets++) {
+    string sf_name = "sf_";
+    if(fYear == Year::isUL16preVFP) sf_name += "UL16preVFP";
+    else if(fYear == Year::isUL16postVFP) sf_name += "UL16postVFP";
+    else if(fYear == Year::isUL17) sf_name += "UL17";
+    else if(fYear == Year::isUL18) sf_name += "UL18";
+    if(fChannel == Channel::isEle) sf_name += "_ele";
+    else if(fChannel == Channel::isMuo) sf_name += "_muo";
+    sf_name += "_"+kMCProcess_toString.at(fMCProcess);
+    sf_name += "_njets"+to_string(njets);
+    TVectorF *sf_vec = (TVectorF*)file->Get(sf_name.c_str());
+    fSFMap[fYear][fChannel][fMCProcess][njets] = (*sf_vec)[0];
+  }
+}
+
+bool BTagNJetScaleFactor::process(Event & event) {
+  float weight = 1.f;
+  if(fMCProcess == MCProcess::other || event.isRealData) {
+    event.set(fHandle_weight_btag_njet_sf, weight);
+    return true;
+  }
+  int njets = max(1, min(8, (int)event.get(fHandle_pairedPUPPIjets).size()));
+  weight = fSFMap.at(fYear).at(fChannel).at(fMCProcess).at(njets);
+  event.weight *= weight;
+  event.set(fHandle_weight_btag_njet_sf, weight);
   return true;
 }
 
