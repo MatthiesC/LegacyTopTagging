@@ -1250,13 +1250,18 @@ MatchPuppiToCHSAndSetBTagHandles::MatchPuppiToCHSAndSetBTagHandles(Context & ctx
   fHandle_bJets_medium(ctx.get_handle<vector<Jet>>(kHandleName_bJets_medium)),
   fHandle_bJets_tight(ctx.get_handle<vector<Jet>>(kHandleName_bJets_tight)),
   // Write number of jets to AnalysisTree:
-  fHandle_PUPPIjets_n(ctx.declare_event_output<int>("n_jets")),
-  fHandle_pairedPUPPIjets_n(ctx.declare_event_output<int>("n_jets_central")),
-  fHandle_forwardPUPPIjets_n(ctx.declare_event_output<int>("n_jets_forward")),
-  fHandle_bJets_n(ctx.declare_event_output<int>("n_bjets")),
-  fHandle_bJets_loose_n(ctx.declare_event_output<int>("n_bjets_loose")),
-  fHandle_bJets_medium_n(ctx.declare_event_output<int>("n_bjets_medium")),
-  fHandle_bJets_tight_n(ctx.declare_event_output<int>("n_bjets_tight"))
+  fHandle_n_jets(ctx.declare_event_output<int>(kHandleName_n_jets)),
+  fHandle_n_jets_central(ctx.declare_event_output<int>(kHandleName_n_jets_central)),
+  fHandle_n_jets_forward(ctx.declare_event_output<int>(kHandleName_n_jets_forward)),
+  fHandle_n_bJets(ctx.declare_event_output<int>(kHandleName_n_bJets)),
+  fHandle_n_bJets_loose(ctx.declare_event_output<int>(kHandleName_n_bJets_loose)),
+  fHandle_n_bJets_medium(ctx.declare_event_output<int>(kHandleName_n_bJets_medium)),
+  fHandle_n_bJets_tight(ctx.declare_event_output<int>(kHandleName_n_bJets_tight)),
+  fHandle_PrimaryLepton(ctx.get_handle<FlavorParticle>(kHandleName_PrimaryLepton)),
+  fHandle_n_bJets_hemi(ctx.declare_event_output<int>(kHandleName_n_bJets_hemi)),
+  fHandle_n_bJets_hemi_loose(ctx.declare_event_output<int>(kHandleName_n_bJets_hemi_loose)),
+  fHandle_n_bJets_hemi_medium(ctx.declare_event_output<int>(kHandleName_n_bJets_hemi_medium)),
+  fHandle_n_bJets_hemi_tight(ctx.declare_event_output<int>(kHandleName_n_bJets_hemi_tight))
 {}
 
 bool MatchPuppiToCHSAndSetBTagHandles::process(Event & event) {
@@ -1289,9 +1294,9 @@ bool MatchPuppiToCHSAndSetBTagHandles::process(Event & event) {
   event.set(fHandle_pairedCHSjets, paired_chsjets);
   event.set(fHandle_forwardPUPPIjets, forward_puppijets);
 
-  event.set(fHandle_PUPPIjets_n, cleaned_puppijets.size());
-  event.set(fHandle_pairedPUPPIjets_n, paired_puppijets.size());
-  event.set(fHandle_forwardPUPPIjets_n, forward_puppijets.size());
+  event.set(fHandle_n_jets, cleaned_puppijets.size());
+  event.set(fHandle_n_jets_central, paired_puppijets.size());
+  event.set(fHandle_n_jets_forward, forward_puppijets.size());
 
   //__________________________________________________
   // Retrieve the b-tagging information from the matched CHS jets in order to find b-tagged PUPPI jets in central region
@@ -1299,20 +1304,43 @@ bool MatchPuppiToCHSAndSetBTagHandles::process(Event & event) {
   vector<Jet> bjets_loose;
   vector<Jet> bjets_medium;
   vector<Jet> bjets_tight;
+  vector<Jet> bjets_hemi_loose;
+  vector<Jet> bjets_hemi_medium;
+  vector<Jet> bjets_hemi_tight;
+  FlavorParticle primlep;
+  const bool valid_primlep = event.is_valid(fHandle_PrimaryLepton);
+  if(valid_primlep) primlep = event.get(fHandle_PrimaryLepton);
   for(const Jet & puppijet : paired_puppijets) {
     const Jet *chsjetPtr = getCHSmatch(puppijet, event, fHandle_CHSjets);
-    if(fBTagID_loose(*chsjetPtr, event)) bjets_loose.push_back(puppijet);
-    if(fBTagID_medium(*chsjetPtr, event)) bjets_medium.push_back(puppijet);
-    if(fBTagID_tight(*chsjetPtr, event)) bjets_tight.push_back(puppijet);
+    if(fBTagID_loose(*chsjetPtr, event)) {
+      bjets_loose.push_back(puppijet);
+      if(valid_primlep && deltaR(primlep.v4(), puppijet.v4()) < kDeltaRLeptonicHemisphere) bjets_hemi_loose.push_back(puppijet);
+    }
+    if(fBTagID_medium(*chsjetPtr, event)) {
+      bjets_medium.push_back(puppijet);
+      if(valid_primlep && deltaR(primlep.v4(), puppijet.v4()) < kDeltaRLeptonicHemisphere) bjets_hemi_medium.push_back(puppijet);
+    }
+    if(fBTagID_tight(*chsjetPtr, event)) {
+      bjets_tight.push_back(puppijet);
+      if(valid_primlep && deltaR(primlep.v4(), puppijet.v4()) < kDeltaRLeptonicHemisphere) bjets_hemi_tight.push_back(puppijet);
+    }
   }
-  uint n_bjets;
   switch(fBTagWP) {
     case BTag::WP_LOOSE :
-    event.set(fHandle_bJets, bjets_loose); n_bjets = bjets_loose.size(); break;
+    event.set(fHandle_bJets, bjets_loose);
+    event.set(fHandle_n_bJets, bjets_loose.size());
+    event.set(fHandle_n_bJets_hemi, bjets_hemi_loose.size());
+    break;
     case BTag::WP_MEDIUM :
-    event.set(fHandle_bJets, bjets_medium); n_bjets = bjets_medium.size(); break;
+    event.set(fHandle_bJets, bjets_medium);
+    event.set(fHandle_n_bJets, bjets_medium.size());
+    event.set(fHandle_n_bJets_hemi, bjets_hemi_medium.size());
+    break;
     case BTag::WP_TIGHT :
-    event.set(fHandle_bJets, bjets_tight); n_bjets = bjets_tight.size(); break;
+    event.set(fHandle_bJets, bjets_tight);
+    event.set(fHandle_n_bJets, bjets_tight.size());
+    event.set(fHandle_n_bJets_hemi, bjets_hemi_tight.size());
+    break;
     default :
     throw invalid_argument("MatchPuppiToCHSAndSetBTagHandles::process(): Invalid b-tagging WP!");
   }
@@ -1320,10 +1348,13 @@ bool MatchPuppiToCHSAndSetBTagHandles::process(Event & event) {
   event.set(fHandle_bJets_medium, bjets_medium);
   event.set(fHandle_bJets_tight, bjets_tight);
 
-  event.set(fHandle_bJets_n, n_bjets);
-  event.set(fHandle_bJets_loose_n, bjets_loose.size());
-  event.set(fHandle_bJets_medium_n, bjets_medium.size());
-  event.set(fHandle_bJets_tight_n, bjets_tight.size());
+  event.set(fHandle_n_bJets_loose, bjets_loose.size());
+  event.set(fHandle_n_bJets_medium, bjets_medium.size());
+  event.set(fHandle_n_bJets_tight, bjets_tight.size());
+
+  event.set(fHandle_n_bJets_hemi_loose, bjets_hemi_loose.size());
+  event.set(fHandle_n_bJets_hemi_medium, bjets_hemi_medium.size());
+  event.set(fHandle_n_bJets_hemi_tight, bjets_hemi_tight.size());
 
   return true;
 }

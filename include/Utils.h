@@ -502,14 +502,21 @@ private:
   const uhh2::Event::Handle<std::vector<Jet>> fHandle_bJets_medium;
   const uhh2::Event::Handle<std::vector<Jet>> fHandle_bJets_tight;
 
-  const uhh2::Event::Handle<int> fHandle_PUPPIjets_n;
-  const uhh2::Event::Handle<int> fHandle_pairedPUPPIjets_n;
-  const uhh2::Event::Handle<int> fHandle_forwardPUPPIjets_n;
+  const uhh2::Event::Handle<int> fHandle_n_jets;
+  const uhh2::Event::Handle<int> fHandle_n_jets_central;
+  const uhh2::Event::Handle<int> fHandle_n_jets_forward;
 
-  const uhh2::Event::Handle<int> fHandle_bJets_n;
-  const uhh2::Event::Handle<int> fHandle_bJets_loose_n;
-  const uhh2::Event::Handle<int> fHandle_bJets_medium_n;
-  const uhh2::Event::Handle<int> fHandle_bJets_tight_n;
+  const uhh2::Event::Handle<int> fHandle_n_bJets;
+  const uhh2::Event::Handle<int> fHandle_n_bJets_loose;
+  const uhh2::Event::Handle<int> fHandle_n_bJets_medium;
+  const uhh2::Event::Handle<int> fHandle_n_bJets_tight;
+
+  const uhh2::Event::Handle<FlavorParticle> fHandle_PrimaryLepton;
+
+  const uhh2::Event::Handle<int> fHandle_n_bJets_hemi;
+  const uhh2::Event::Handle<int> fHandle_n_bJets_hemi_loose;
+  const uhh2::Event::Handle<int> fHandle_n_bJets_hemi_medium;
+  const uhh2::Event::Handle<int> fHandle_n_bJets_hemi_tight;
 };
 
 //____________________________________________________________________________________________________

@@ -58,6 +58,20 @@ const std::string kHandleName_bJets_loose = "bJets_loose";
 const std::string kHandleName_bJets_medium = "bJets_medium";
 const std::string kHandleName_bJets_tight = "bJets_tight";
 
+const std::string kHandleName_n_jets = "n_jets";
+const std::string kHandleName_n_jets_central = "n_jets_central";
+const std::string kHandleName_n_jets_forward = "n_jets_forward";
+
+const std::string kHandleName_n_bJets = "n_bJets";
+const std::string kHandleName_n_bJets_loose = "n_bJets_loose";
+const std::string kHandleName_n_bJets_medium = "n_bJets_medium";
+const std::string kHandleName_n_bJets_tight = "n_bJets_tight";
+
+const std::string kHandleName_n_bJets_hemi = "n_bJets_hemi";
+const std::string kHandleName_n_bJets_hemi_loose = "n_bJets_hemi_loose";
+const std::string kHandleName_n_bJets_hemi_medium = "n_bJets_hemi_medium";
+const std::string kHandleName_n_bJets_hemi_tight = "n_bJets_hemi_tight";
+
 const std::string kHandleName_SingleTopGen_tWch = "SingleTopGen_tWch";
 
 
