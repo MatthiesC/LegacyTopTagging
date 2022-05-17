@@ -111,7 +111,7 @@ void AK4Hists::fill(const Event & event) {
   if(event.is_valid(fHandle_pairedPUPPIjets)) {
     paired_puppijets = event.get(fHandle_pairedPUPPIjets);
     sort_by_pt<Jet>(paired_puppijets);
-    forward_puppijets = event.get(fHandle_pairedPUPPIjets);
+    forward_puppijets = event.get(fHandle_forwardPUPPIjets);
     sort_by_pt<Jet>(forward_puppijets);
     paired_puppijets_dj = paired_puppijets;
     sort_by_deepjet_from_matches(paired_puppijets_dj, event, fHandle_CHSjets);
@@ -121,15 +121,15 @@ void AK4Hists::fill(const Event & event) {
   hist_number_puppijets->Fill(puppijets.size(), w);
   if(matching_done) {
     hist_number_puppijets_uncleaned->Fill(event.get(fHandle_uncleanedPUPPIjets).size(), w);
-    hist_number_puppijets_central->Fill(event.get(fHandle_pairedPUPPIjets).size(), w);
+    hist_number_puppijets_central->Fill(paired_puppijets.size(), w);
 
     const float divisor1 = event.is_valid(fHandle_weight_btagdisc_central) && event.get(fHandle_weight_btagdisc_central) != 0 ? event.get(fHandle_weight_btagdisc_central) : 1.f;
-    hist_number_puppijets_central_wo_btag_sf->Fill(event.get(fHandle_pairedPUPPIjets).size(), w / divisor1);
+    hist_number_puppijets_central_wo_btag_sf->Fill(paired_puppijets.size(), w / divisor1);
     const float divisor2 = event.is_valid(fHandle_weight_btag_njet_sf) && event.get(fHandle_weight_btag_njet_sf) != 0 ? event.get(fHandle_weight_btag_njet_sf) : 1.f;
-    hist_number_puppijets_central_wo_njet_sf->Fill(event.get(fHandle_pairedPUPPIjets).size(), w / divisor2);
-    hist_number_puppijets_central_wo_btag_sf_wo_njet_sf->Fill(event.get(fHandle_pairedPUPPIjets).size(), w / (divisor1 * divisor2));
+    hist_number_puppijets_central_wo_njet_sf->Fill(paired_puppijets.size(), w / divisor2);
+    hist_number_puppijets_central_wo_btag_sf_wo_njet_sf->Fill(paired_puppijets.size(), w / (divisor1 * divisor2));
 
-    hist_number_puppijets_forward->Fill(event.get(fHandle_forwardPUPPIjets).size(), w);
+    hist_number_puppijets_forward->Fill(forward_puppijets.size(), w);
     for(const Jet & puppijet : paired_puppijets) {
       const Jet *chsjet = getCHSmatch(puppijet, event, fHandle_CHSjets);
       hist_puppichs_dr->Fill(deltaR(puppijet.v4(), chsjet->v4()), w);
