@@ -28,6 +28,11 @@ Channel extract_channel(const Context & ctx) {
 }
 
 //____________________________________________________________________________________________________
+float rapidity(const Particle & p) {
+  return p.v4().Rapidity();
+}
+
+//____________________________________________________________________________________________________
 Particle add_Particles(const Particle & p1, const Particle & p2) {
   Particle sum;
   sum.set_v4(p1.v4() + p2.v4());
