@@ -49,7 +49,7 @@ AK8Hists::AK8Hists(Context & ctx, const string & dirname, const string & coll_re
   hist_subjets_deepCSV = book<TH1F>("subjets_deepCSV", "AK8 subjets: #it{O}_{DeepCSV}^{prob(b)+prob(bb)}", default_nbins, 0, 1);
   hist_subjets_deepJet = book<TH1F>("subjets_deepJet", "AK8 subjets: #it{O}_{DeepJet}^{prob(b)+prob(bb)+prob(lepb)}", default_nbins, 0, 1);
 
-  const string label_prefix = handle_name_tag != "" ? "Tagged AK8 jet" : "Leading AK8 jet";
+  const string label_prefix = handle_name_tag != "dummy" ? "Tagged AK8 jet" : "Leading AK8 jet";
   hist_ak8jet1_pt = book<TH1F>("ak8jet1_pt", (label_prefix+": #it{p}_{T} [GeV]").c_str(), default_nbins, 0, 1000);
   hist_ak8jet1_drlepton = book<TH1F>("ak8jet1_drlepton", (label_prefix+": #Delta#it{R}(AK8 jet, lepton)").c_str(), default_nbins, 0, 5);
   hist_ak8jet1_eta = book<TH1F>("ak8jet1_eta", (label_prefix+": #eta").c_str(), default_nbins, -5.0, 5.0);

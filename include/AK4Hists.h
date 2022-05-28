@@ -29,6 +29,11 @@ protected:
   TH1F *hist_number_bjets_medium;
   TH1F *hist_number_bjets_tight;
 
+  TH1F *hist_number_bjets_hemi;
+  TH1F *hist_number_bjets_hemi_loose;
+  TH1F *hist_number_bjets_hemi_medium;
+  TH1F *hist_number_bjets_hemi_tight;
+
   TH2F *hist_number_bjets_loose_medium;
   TH2F *hist_number_bjets_loose_tight;
   TH2F *hist_number_bjets_medium_tight;
@@ -85,6 +90,10 @@ private:
   const uhh2::Event::Handle<std::vector<Jet>> fHandle_bJets_loose;
   const uhh2::Event::Handle<std::vector<Jet>> fHandle_bJets_medium;
   const uhh2::Event::Handle<std::vector<Jet>> fHandle_bJets_tight;
+  const uhh2::Event::Handle<std::vector<Jet>> fHandle_bJets_hemi;
+  const uhh2::Event::Handle<std::vector<Jet>> fHandle_bJets_hemi_loose;
+  const uhh2::Event::Handle<std::vector<Jet>> fHandle_bJets_hemi_medium;
+  const uhh2::Event::Handle<std::vector<Jet>> fHandle_bJets_hemi_tight;
   const uhh2::Event::Handle<FlavorParticle> fHandle_PrimaryLepton;
   const uhh2::Event::Handle<float> fHandle_weight_btagdisc_central;
   const uhh2::Event::Handle<float> fHandle_weight_btag_njet_sf;

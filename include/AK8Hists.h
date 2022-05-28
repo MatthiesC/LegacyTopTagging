@@ -8,7 +8,7 @@ namespace uhh2 { namespace ltt {
 
 class AK8Hists: public uhh2::Hists {
 public:
-  AK8Hists(uhh2::Context & ctx, const std::string & dirname, const std::string & coll_rec = "", const std::string & coll_gen = "", const std::string & handle_name_tag = "AK8Hists_dummy_handle", const bool doResponseHists_ = false, const unsigned int default_nbins = 100);
+  AK8Hists(uhh2::Context & ctx, const std::string & dirname, const std::string & coll_rec = "", const std::string & coll_gen = "", const std::string & handle_name_tag = "dummy", const bool doResponseHists_ = false, const unsigned int default_nbins = 100);
 
   virtual void fill(const uhh2::Event & event) override;
 

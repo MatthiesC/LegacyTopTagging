@@ -39,6 +39,7 @@ CommonHists::CommonHists(Context & ctx, const string & dirname, const unsigned i
 
   hist_primlep_pt = book<TH1F>("primlep_pt", "Lepton #it{p}_{T} [GeV]", default_nbins, 0, 1000);
   hist_ptw = book<TH1F>("ptw", "#it{p}_{T}^{W} [GeV]", default_nbins, 0, 1000);
+  hist_mtw = book<TH1F>("mtw", "#it{M}_{T}^{W} [GeV]", default_nbins, 0, 200);
   hist_primlep_eta = book<TH1F>("primlep_eta", "Lepton #eta", default_nbins, -5.0, 5.0);
   hist_primlep_phi = book<TH1F>("primlep_phi", "Lepton #phi [rad]", default_nbins, -M_PI, M_PI);
   hist_primlep_drjet = book<TH1F>("primlep_drjet", "#Delta#it{R}(lepton, closest AK4 jet)", default_nbins, 0, 5);
@@ -91,6 +92,7 @@ void CommonHists::fill(const Event & event) {
     const FlavorParticle & primlep = event.get(h_primlep);
     hist_primlep_pt->Fill(primlep.v4().Pt(), w);
     hist_ptw->Fill((event.met->v4() + primlep.v4()).Pt(), w);
+    hist_mtw->Fill(mTW(primlep, *event.met), w);
     hist_primlep_eta->Fill(primlep.v4().Eta(), w);
     hist_primlep_phi->Fill(primlep.v4().Phi(), w);
     if(event.jets->size() > 0) {

@@ -83,6 +83,9 @@ double tau21groomed(const TopJet & topjet);
 double mSD(const TopJet & topjet);
 
 //____________________________________________________________________________________________________
+double mTW(const FlavorParticle & lepton_, const MET & met_);
+
+//____________________________________________________________________________________________________
 double maxDeepCSVSubJetValue(const TopJet & topjet);
 
 //____________________________________________________________________________________________________
@@ -155,12 +158,14 @@ private:
 //____________________________________________________________________________________________________
 class TwoDSelection: public uhh2::Selection {
 public:
-  TwoDSelection(uhh2::Context & ctx, const double _ptrel_min = 0., const double _dr_min = 0.);
+  TwoDSelection(uhh2::Context & ctx, const double _ptrel_min, const double _dr_min, const bool _circular = false);
   virtual bool passes(const uhh2::Event & event) override;
 private:
   const double ptrel_min;
   const double dr_min;
+  const bool circular;
   const uhh2::Event::Handle<FlavorParticle> h_primlep;
+  const uhh2::Event::Handle<std::vector<Jet>> h_jets;
 };
 
 //____________________________________________________________________________________________________
@@ -269,7 +274,7 @@ public:
   DecayChannelAndHadronicTopHandleSetter(uhh2::Context & ctx);
   virtual bool process(uhh2::Event & event) override;
 private:
-  uhh2::Event::Handle<DecayChannel> output_decay_channel;
+  uhh2::Event::Handle<DecayChannel> h_decay_channel;
   uhh2::Event::Handle<GenParticle> h_hadronictop;
 };
 
@@ -283,7 +288,8 @@ private:
   uhh2::Event::Handle<TopJet> h_probejet;
   uhh2::Event::Handle<GenParticle> h_hadronictop;
   uhh2::Event::Handle<bool> output_has_probejet;
-  uhh2::Event::Handle<MergeScenario> output_merge_scenario;
+  uhh2::Event::Handle<int> output_merge_scenario;
+  uhh2::Event::Handle<MergeScenario> h_merge_scenario;
 };
 
 //____________________________________________________________________________________________________
@@ -293,8 +299,10 @@ public:
   MainOutputSetter(uhh2::Context & ctx);
   virtual bool process(uhh2::Event & event) override;
 private:
-  uhh2::Event::Handle<TopJet> h_probejet_hotvr;
-  uhh2::Event::Handle<TopJet> h_probejet_ak8;
+  const uhh2::Event::Handle<TopJet> h_probejet_hotvr;
+  const uhh2::Event::Handle<TopJet> h_probejet_ak8;
+  const uhh2::Event::Handle<FlavorParticle> h_primlep;
+  const uhh2::Event::Handle<std::vector<Jet>> h_jets;
   std::vector<uhh2::Event::Handle<float>> h_mainoutput;
   uhh2::Event::Handle<int> h_probejet_hotvr_nsub_integer;
 };
@@ -515,6 +523,14 @@ private:
   const uhh2::Event::Handle<int> fHandle_n_bJets_tight;
 
   const uhh2::Event::Handle<FlavorParticle> fHandle_PrimaryLepton;
+
+  const uhh2::Event::Handle<std::vector<Jet>> fHandle_pairedPUPPIjets_hemi;
+  const uhh2::Event::Handle<std::vector<Jet>> fHandle_pairedCHSjets_hemi;
+
+  const uhh2::Event::Handle<std::vector<Jet>> fHandle_bJets_hemi;
+  const uhh2::Event::Handle<std::vector<Jet>> fHandle_bJets_hemi_loose;
+  const uhh2::Event::Handle<std::vector<Jet>> fHandle_bJets_hemi_medium;
+  const uhh2::Event::Handle<std::vector<Jet>> fHandle_bJets_hemi_tight;
 
   const uhh2::Event::Handle<int> fHandle_n_bJets_hemi;
   const uhh2::Event::Handle<int> fHandle_n_bJets_hemi_loose;

@@ -117,16 +117,24 @@ class configContainer:
       #    'UL18': 'NUM_TightID_DEN_TrackerMuons_abseta_pt',
       # }
 
-      self.yearVars['deepjetMCEffFiles'] = {
-         'UL17': self.uhh2Dir+'LegacyTopTagging/Analysis/BTagMCEff/files/BTagMCEfficiencyHists_UL17.root',
-         'UL18': self.uhh2Dir+'LegacyTopTagging/Analysis/BTagMCEff/files/BTagMCEfficiencyHists_UL18.root',
+      self.yearVars['deepjetMCEffFiles_Main'] = {
+         'UL16preVFP': self.uhh2Dir+'LegacyTopTagging/Analysis/BTagMCEff/files/BTagMCEfficiencyHistsBTagMCEff_Main_UL16preVFP_muo.root',
+         'UL16postVFP': self.uhh2Dir+'LegacyTopTagging/Analysis/BTagMCEff/files/BTagMCEfficiencyHistsBTagMCEff_Main_UL16postVFP_muo.root',
+         'UL17': self.uhh2Dir+'LegacyTopTagging/Analysis/BTagMCEff/files/BTagMCEfficiencyHistsBTagMCEff_Main_UL17_muo.root',
+         'UL18': self.uhh2Dir+'LegacyTopTagging/Analysis/BTagMCEff/files/BTagMCEfficiencyHistsBTagMCEff_Main_UL18_muo.root',
+      }
+      self.yearVars['deepjetMCEffFiles_QCD'] = {
+         'UL16preVFP': self.uhh2Dir+'LegacyTopTagging/Analysis/BTagMCEff/files/BTagMCEfficiencyHistsBTagMCEff_QCD_UL16preVFP_muo.root',
+         'UL16postVFP': self.uhh2Dir+'LegacyTopTagging/Analysis/BTagMCEff/files/BTagMCEfficiencyHistsBTagMCEff_QCD_UL16postVFP_muo.root',
+         'UL17': self.uhh2Dir+'LegacyTopTagging/Analysis/BTagMCEff/files/BTagMCEfficiencyHistsBTagMCEff_QCD_UL17_muo.root',
+         'UL18': self.uhh2Dir+'LegacyTopTagging/Analysis/BTagMCEff/files/BTagMCEfficiencyHistsBTagMCEff_QCD_UL18_muo.root',
       }
 
-      self.yearVars['deepjetSFFiles'] = {
-         # 'UL17': self.uhh2Dir+'common/UHH2-data/UL17/DeepJet_106XUL17SF_WPonly.csv',
-         'UL17': self.uhh2Dir+'LegacyTopTagging/data/ScaleFactors/BTagging/DeepJet_106XUL17SF_WPonly_V2p1.csv',
-         'UL18': self.uhh2Dir+'common/UHH2-data/UL18/DeepJet_106XUL18SF_WPonly.csv',
-      }
+      # self.yearVars['deepjetSFFiles'] = {
+      #    # 'UL17': self.uhh2Dir+'common/UHH2-data/UL17/DeepJet_106XUL17SF_WPonly.csv',
+      #    'UL17': self.uhh2Dir+'LegacyTopTagging/data/ScaleFactors/BTagging/DeepJet_106XUL17SF_WPonly_V2p1.csv',
+      #    'UL18': self.uhh2Dir+'common/UHH2-data/UL18/DeepJet_106XUL18SF_WPonly.csv',
+      # }
 
       self.systematics = list()
 
@@ -177,9 +185,12 @@ class configContainer:
          self.systematics.append(systEntity('muontrigger', 'SystDirection_MuonTrigger'))
          self.systematics.append(systEntity('muonid', 'SystDirection_MuonId'))
          # self.systematics.append(systEntity('muoniso', 'SystDirection_MuonIso'))
-         self.systematics.append(systEntity('btagging', 'SystDirection_BTag', directions=['up_bc', 'down_bc', 'up_udsg', 'down_udsg']))
-         self.systematics.append(systEntity('wp', 'SystDirection_WP'))
-         self.systematics.append(systEntity('tau21', 'SystDirection_Tau21'))
+         self.systematics.append(systEntity('btagging', 'SystDirection_BTaggingFixedWP', directions=[
+            'bc_up_correlated', 'bc_down_correlated', 'bc_up_uncorrelated', 'bc_down_uncorrelated',
+            'light_up_correlated', 'light_down_correlated', 'light_up_uncorrelated', 'light_down_uncorrelated',
+            ]))
+         # self.systematics.append(systEntity('wp', 'SystDirection_WP'))
+         # self.systematics.append(systEntity('tau21', 'SystDirection_Tau21'))
          self.systematics.append(systEntity('toppt', 'SystDirection_TopPt', directions=['a_up', 'a_down', 'b_up', 'b_down']))
 
 
@@ -207,6 +218,7 @@ class sampleEntity:
       elif ver == '106X_v2':
          k, v, year = csvRow
          self.year = year
+         self.channel = v.get('channel', ['ele', 'muo'])
          self.is_data = k.startswith('DATA_')
          self.nickName = k
          self.n_das = None
@@ -228,6 +240,9 @@ class sampleEntity:
       elif self.nickName.startswith('TTbarToSemiLeptonic'):
          for m in merge_scenarios:
             if m=='Background': continue
+            self.mainsel_versions.append('__'.join([self.nickName, m]))
+      elif self.nickName.startswith('TTbarMtt'):
+         for m in merge_scenarios:
             self.mainsel_versions.append('__'.join([self.nickName, m]))
       # else:
       self.mainsel_versions.append('__'.join([self.nickName, 'AllMergeScenarios']))
@@ -264,8 +279,9 @@ class xmlCreator:
          sys.exit('Given value of argument "selection" not valid. Abort.')
       self.selection = selection
       self.is_mainsel = True if selection=='mainsel' else False
+      self.channel = 'muo'
 
-      if year not in ['UL17', 'UL18']:
+      if year not in ['UL16preVFP', 'UL16postVFP', 'UL17', 'UL18']:
          sys.exit('Given value of argument "year" not valid. Abort.')
       self.year = year
       self.yearVersion = self.yearVars['yearVersions'][year]
@@ -275,11 +291,11 @@ class xmlCreator:
          sys.exit('Warning: Make sure to create output directory via "ln -s". Abort.')
       self.outputDirBase += 'TagAndProbe/'
 
-      self.xmlFileName = '_'.join(['parsedConfigFile', self.selection, self.year])+'.xml'
-      self.xmlFilePathBase = self.uhh2Dir+'LegacyTopTagging/config/'+'_'.join(['config', self.selection, self.year])+'/'
+      self.xmlFileName = '_'.join(['parsedConfigFile', self.selection, self.year])+('_'+self.channel if self.channel else '')+'.xml'
+      self.xmlFilePathBase = self.uhh2Dir+'LegacyTopTagging/config/'+'_'.join(['config', self.selection, self.year])+('_'+self.channel if self.channel else '')+'/'
       os.makedirs(self.xmlFilePathBase, exist_ok=True)
       self.xmlFilePath = self.xmlFilePathBase+self.xmlFileName
-      self.workdirName = '_'.join(['workdir', self.selection, self.year])
+      self.workdirName = '_'.join(['workdir', self.selection, self.year])+('_'+self.channel if self.channel else '')
 
       self.write_xml_successful = False
       self.systXmlFilePaths = list()
@@ -295,9 +311,9 @@ class xmlCreator:
          file.write('''\n''')
          file.write('''<!ENTITY TargetLumi "'''+str(self.yearVars['targetLumis'][self.year])+'''">\n''')
          if self.is_mainsel:
-            file.write('''<!ENTITY PRESELdir "'''+(self.outputDirBase+'presel/'+self.year+'/nominal/')+'''">\n''')
+            file.write('''<!ENTITY PRESELdir "'''+os.path.join(self.outputDirBase, 'presel', self.year, 'nominal')+'''">\n''')
             file.write('''<!ENTITY PRESELfilename "uhh2.AnalysisModuleRunner">\n''')
-         file.write('''<!ENTITY OUTPUTdir "'''+(self.outputDirBase+self.selection+'/'+self.year+'/nominal/')+'''">\n''')
+         file.write('''<!ENTITY OUTPUTdir "'''+os.path.join(self.outputDirBase, self.selection, self.year, self.channel if self.channel else '', 'nominal')+'''">\n''')
          file.write('''<!ENTITY b_Cacheable "False">\n''')
          file.write('''<!ENTITY NEVT "-1">\n''')
          file.write('''<!ENTITY YEARsuffix "_'''+self.year+self.yearVersion+'''">\n''')
@@ -305,7 +321,8 @@ class xmlCreator:
          file.write('''\n''')
          for s in self.sample_list:
             if self.is_mainsel:
-               file.write('''<!ENTITY '''+s.nickName+''' "&PRESELdir;/&PRESELfilename;'''+('.DATA.' if s.is_data else '.MC.')+s.nickName+'''&YEARsuffix;.root">\n''')
+               if self.channel in s.channel:
+                  file.write('''<!ENTITY '''+s.nickName+''' "&PRESELdir;/&PRESELfilename;'''+('.DATA.' if s.is_data else '.MC.')+s.nickName+'''&YEARsuffix;.root">\n''')
             else:
                file.write('''<!ENTITY '''+s.nickName+''' SYSTEM "'''+s.xmlPath+'''">\n''')
          file.write('''\n''')
@@ -324,27 +341,29 @@ class xmlCreator:
          file.write('''\n''')
          for s in self.sample_list:
             if self.is_mainsel:
-               for v in s.mainsel_versions:
-                  file.write('''<InputData Lumi="'''+str(s.lumi)+'''" NEventsMax="&NEVT;" Type="'''+('DATA' if s.is_data else 'MC')+'''" Version="'''+v+'''&YEARsuffix;" Cacheable="&b_Cacheable;"> <In FileName="&'''+s.nickName+''';" Lumi="0.0"/> <InputTree Name="AnalysisTree"/> <OutputTree Name="AnalysisTree"/> </InputData>\n''')
+               if self.channel in s.channel:
+                  for v in s.mainsel_versions:
+                     if not "AllMergeScenarios" in v: continue # hack! FIXME!
+                     file.write('''<InputData Lumi="'''+str(s.lumi)+'''" NEventsMax="&NEVT;" Type="'''+('DATA' if s.is_data else 'MC')+'''" Version="'''+v+'''&YEARsuffix;" Cacheable="&b_Cacheable;"> <In FileName="&'''+s.nickName+''';" Lumi="0.0"/> <InputTree Name="AnalysisTree"/> <OutputTree Name="AnalysisTree"/> </InputData>\n''')
             else:
                file.write('''<InputData Lumi="'''+str(s.lumi)+'''" NEventsMax="&NEVT;" Type="'''+('DATA' if s.is_data else 'MC')+'''" Version="'''+s.nickName+'''&YEARsuffix;" Cacheable="&b_Cacheable;"> &'''+s.nickName+'''; <InputTree Name="AnalysisTree"/> <OutputTree Name="AnalysisTree"/> </InputData>\n''')
          file.write('''\n''')
          file.write('''<UserConfig>\n''')
          file.write('''\n''')
          file.write('''<Item Name="PrimaryVertexCollection" Value="offlineSlimmedPrimaryVertices"/>\n''')
-         file.write('''<Item Name="METName" Value="slimmedMETs"/>\n''')
+         file.write('''<Item Name="METName" Value="slimmedMETsPuppi"/>\n''')
          file.write('''<Item Name="ElectronCollection" Value="slimmedElectronsUSER"/>\n''')
          file.write('''<Item Name="MuonCollection" Value="slimmedMuonsUSER"/>\n''')
-         file.write('''<Item Name="JetCollection" Value="jetsAk4CHS"/>\n''')
+         file.write('''<Item Name="JetCollection" Value="jetsAk4Puppi"/>\n''')
          file.write('''<Item Name="GenJetCollection" Value="slimmedGenJets"/>\n''')
          file.write('''<Item Name="TopJetCollection" Value="hotvrPuppi"/>\n''')
          file.write('''<Item Name="GenTopJetCollection" Value="hotvrGen"/>\n''')
          file.write('''<Item Name="GenParticleCollection" Value="GenParticles"/>\n''')
          file.write('''<Item Name="GenInfoName" Value="genInfo"/>\n''')
-         file.write('''<Item Name="additionalBranches" Value="jetsAk8PuppiSubstructure_SoftDropPuppi genjetsAk8SubstructureSoftDrop"/>\n''')
-         if self.is_mainsel:
-            file.write('''<Item Name="AK8Collection_rec" Value="jetsAk8PuppiSubstructure_SoftDropPuppi"/>\n''')
-            file.write('''<Item Name="AK8Collection_gen" Value="genjetsAk8SubstructureSoftDrop"/>\n''')
+         file.write('''<Item Name="additionalBranches" Value="jetsAk4CHS jetsAk8PuppiSubstructure_SoftDropPuppi genjetsAk8SubstructureSoftDrop slimmedMETs"/>\n''')
+         # if self.is_mainsel:
+         #    file.write('''<Item Name="AK8Collection_rec" Value="jetsAk8PuppiSubstructure_SoftDropPuppi"/>\n''')
+         #    file.write('''<Item Name="AK8Collection_gen" Value="genjetsAk8SubstructureSoftDrop"/>\n''')
          file.write('''\n''')
          file.write('''<Item Name="lumi_file" Value="'''+self.yearVars['lumiFiles'][self.year]+'''"/>\n''')
          file.write('''<Item Name="lumihists_lumi_per_bin" Value="1000."/>\n''')
@@ -360,10 +379,10 @@ class xmlCreator:
             file.write('''<Item Name="pileup_directory_data_up" Value="'''+self.yearVars['pileupFiles']['dataUp'][self.year]+'''"/>\n''')
             file.write('''<Item Name="pileup_directory_data_down" Value="'''+self.yearVars['pileupFiles']['dataDown'][self.year]+'''"/>\n''')
             file.write('''\n''')
-            file.write('''<Item Name="BTagMCEffFile" Value="'''+self.yearVars['deepjetMCEffFiles'][self.year]+'''"/>\n''')
-            file.write('''<Item Name="BTagScaleFactorFile" Value="'''+self.yearVars['deepjetSFFiles'][self.year]+'''"/>\n''')
+            file.write('''<Item Name="BTagMCEffFile" Value="'''+self.yearVars['deepjetMCEffFiles_Main'][self.year]+'''"/>\n''')
+            file.write('''<Item Name="BTagMCEffFile_QCDSideband" Value="'''+self.yearVars['deepjetMCEffFiles_QCD'][self.year]+'''"/>\n''')
             file.write('''\n''')
-            file.write('''<Item Name="apply_TopPtReweighting" Value="false"/>\n''')
+            file.write('''<Item Name="apply_TopPtReweighting" Value="true"/>\n''')
             file.write('''\n''')
             file.write('''<Item Name="VJetsReweighting_do_EWK" Value="true"/>\n''')
             file.write('''<Item Name="VJetsReweighting_do_QCD_EWK" Value="false"/>\n''')
@@ -378,7 +397,9 @@ class xmlCreator:
          file.write('''<!-- Tell AnalysisModuleRunner NOT to use the MC event weight from SFrame; rather let MCLumiWeight (called via CommonModules) calculate the MC event weight. The MC event weight assigned by MCLumiWeight is InputData.Lumi / Cycle.TargetLumi. -->\n''')
          file.write('''<Item Name="use_sframe_weight" Value="false"/>\n''')
          file.write('''<Item Name="AnalysisModule" Value="'''+('TagAndProbeMainSelectionModule' if self.is_mainsel else 'TagAndProbePreSelectionModule')+'''"/>\n''')
-         file.write('''<Item Name="uhh2Dir" Value="'''+self.uhh2Dir+'''"/>\n''')
+         if self.is_mainsel:
+              file.write('''<Item Name="analysis_channel" Value="'''+self.channel+'''"/>\n''')
+         # file.write('''<Item Name="uhh2Dir" Value="'''+self.uhh2Dir+'''"/>\n''')
          file.write('''\n''')
          file.write('''<!-- Switch for debugging of the central AnalysisModule -->\n''')
          file.write('''<Item Name="debug" Value="false"/>\n''')
@@ -471,7 +492,7 @@ class xmlCreator:
 if __name__=='__main__':
 
    selections = ['presel', 'mainsel']
-   years = ['UL17', 'UL18']
+   years = ['UL16preVFP', 'UL16postVFP', 'UL17', 'UL18']
 
    if not sys.argv[1:]: sys.exit('No arguments provided. Exit.')
    parser = argparse.ArgumentParser()
@@ -512,4 +533,4 @@ if __name__=='__main__':
          x.write_xml()
          if args.syst:
             x.write_all_systematics_xmls()
-            x.write_bash_scripts()
+         x.write_bash_scripts()

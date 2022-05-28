@@ -41,7 +41,7 @@ HOTVRHists::HOTVRHists(Context & ctx, const string & dirname, const string & col
   hist_subjets_mass = book<TH1F>("subjets_mass", "HOTVR subjets: #it{m}_{jet} [GeV]", default_nbins, 0, 250);
   hist_subjets_fpt = book<TH1F>("subjets_fpt", "HOTVR subjets: #it{p}_{T} fraction", default_nbins, 0, 1);
 
-  const string label_prefix = handle_name_tag != "" ? "Tagged HOTVR jet" : "Leading HOTVR jet";
+  const string label_prefix = handle_name_tag != "dummy" ? "Tagged HOTVR jet" : "Leading HOTVR jet";
   hist_hotvrjet1_pt = book<TH1F>("hotvrjet1_pt", (label_prefix+": #it{p}_{T} [GeV]").c_str(), default_nbins, 0, 1000);
   hist_hotvrjet1_drlepton = book<TH1F>("hotvrjet1_drlepton", (label_prefix+": #Delta#it{R}(HOTVR jet, lepton)").c_str(), default_nbins, 0, 5);
   hist_hotvrjet1_eta = book<TH1F>("hotvrjet1_eta", (label_prefix+": #eta").c_str(), default_nbins, -5.0, 5.0);

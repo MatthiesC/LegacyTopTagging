@@ -31,6 +31,7 @@ protected:
 
   TH1F *hist_primlep_pt;
   TH1F *hist_ptw;
+  TH1F *hist_mtw;
   TH1F *hist_primlep_eta;
   TH1F *hist_primlep_phi;
   TH1F *hist_primlep_drjet;

@@ -11,7 +11,9 @@ with open(filename, 'r') as f:
             continue
         l = l.strip().split(',')
         # print(l)
-        systs.setdefault(l[2].replace('up_', '').replace('down_', ''), {}).setdefault(l[3], {})
+        if l[1] != "mujets": continue
+        # systs.setdefault(l[2].replace('up_', '').replace('down_', ''), {}).setdefault(l[3], {})
+        systs.setdefault(l[2], {}).setdefault(l[3], {})
 
 sorted_systs = {}
 for i in range(len(systs)):

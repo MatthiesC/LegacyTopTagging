@@ -14,9 +14,9 @@ namespace uhh2 { namespace ltt {
 
 AK8ProbeJetHists::AK8ProbeJetHists(Context & ctx, const string & dirname, const MergeScenario & _msc, const optional<double> _mSD_threshold): Hists(ctx, dirname), msc(_msc), mSD_threshold(_mSD_threshold) {
 
-  h_primlep = ctx.get_handle<FlavorParticle>("PrimaryLepton");
+  h_primlep = ctx.get_handle<FlavorParticle>(kHandleName_PrimaryLepton);
   h_probejet = ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgos.at(ProbeJetAlgo::isAK8).name);
-  h_merge_scenario = ctx.get_handle<MergeScenario>("output_merge_scenario_"+kProbeJetAlgos.at(ProbeJetAlgo::isAK8).name);
+  h_merge_scenario = ctx.get_handle<MergeScenario>("h_merge_scenario_"+kProbeJetAlgos.at(ProbeJetAlgo::isAK8).name);
 
   wp_variation = 0;
   const string wp_variation_direction = ctx.get("SystDirection_WP", "nominal");
@@ -131,9 +131,9 @@ void AK8ProbeJetHists::fill(const Event & event) {
 
 HOTVRProbeJetHists::HOTVRProbeJetHists(Context & ctx, const string & dirname, const MergeScenario & _msc): Hists(ctx, dirname), msc(_msc) {
 
-  h_primlep = ctx.get_handle<FlavorParticle>("PrimaryLepton");
+  h_primlep = ctx.get_handle<FlavorParticle>(kHandleName_PrimaryLepton);
   h_probejet = ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).name);
-  h_merge_scenario = ctx.get_handle<MergeScenario>("output_merge_scenario_"+kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).name);
+  h_merge_scenario = ctx.get_handle<MergeScenario>("h_merge_scenario_"+kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).name);
 
   wp_variation = 0;
   const string wp_variation_direction = ctx.get("SystDirection_WP", "nominal");
@@ -244,14 +244,14 @@ ProbeJetHistsRunner::ProbeJetHistsRunner(Context & ctx, const string & dirname):
 
   MergeScenario msc_sample = MergeScenario::isAll;
   unsigned int mscs_found(0);
-  for(const auto & msc : kMergeScenarioAsString) {
-    if(dv.find(msc.second) != string::npos) {
+  for(const auto & msc : kMergeScenarios) {
+    if(dv.find(msc.second.name) != string::npos) {
       msc_sample = msc.first;
       mscs_found++;
     }
   }
   if(mscs_found > 1) throw runtime_error("ProbeJetHistsRunner: Found more than one MergeScenario by checking the dataset version string. Abort.");
-  cout << "ProbeJetHistsRunner: According to dataset version, this sample is supposed to represent this merge scenario: " << kMergeScenarioAsString.at(msc_sample) << endl;
+  cout << "ProbeJetHistsRunner: According to dataset version, this sample is supposed to represent this merge scenario: " << kMergeScenarios.at(msc_sample).name << endl;
 
   hists_vector.push_back(new ltt::AK8ProbeJetHists(ctx, dirname+"_"+kProbeJetAlgos.at(ProbeJetAlgo::isAK8).name, msc_sample));
   hists_vector.push_back(new ltt::AK8ProbeJetHists(ctx, dirname+"_"+kProbeJetAlgos.at(ProbeJetAlgo::isAK8).name+"_mSD10", msc_sample, 10.));

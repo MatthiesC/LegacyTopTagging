@@ -1,5 +1,7 @@
 #pragma once
 
+#include <set>
+
 #include "UHH2/common/include/Utils.h"
 
 namespace uhh2 { namespace ltt {
@@ -34,10 +36,32 @@ const std::map<Year, YearInfo> kYears = {
   {Year::isUL18, YearInfo{4, "UL18", "2018"} },
 };
 
+enum class Band {
+  MAIN,
+  QCD,
+};
+
+typedef struct {
+  int index;
+  std::string name;
+} BandInfo;
+
+const std::map<Band, BandInfo> kBands = {
+  { Band::MAIN, { .index=0, .name="Main" } },
+  { Band::QCD,  { .index=1, .name="QCD" } },
+};
+
+const std::set<Band> kRelevantBands = {
+  Band::MAIN,
+  Band::QCD,
+};
+
 const std::string kCollectionName_AK4CHS = "jetsAk4CHS";
 // const std::string kHandleName_AK4pairs = "AK4pairs";
 const std::string kHandleName_pairedPUPPIjets = "pairedPUPPIjets";
+const std::string kHandleName_pairedPUPPIjets_hemi = "pairedPUPPIjets_hemi";
 const std::string kHandleName_pairedCHSjets = "pairedCHSjets";
+const std::string kHandleName_pairedCHSjets_hemi = "pairedCHSjets_hemi";
 const double kDeltaRForPuppiCHSMatch = 0.2;
 const double kAbsEtaBTagThreshold = 2.5;
 const std::string kHandleName_forwardPUPPIjets = "forwardPUPPIjets";
@@ -66,6 +90,11 @@ const std::string kHandleName_n_bJets = "n_bJets";
 const std::string kHandleName_n_bJets_loose = "n_bJets_loose";
 const std::string kHandleName_n_bJets_medium = "n_bJets_medium";
 const std::string kHandleName_n_bJets_tight = "n_bJets_tight";
+
+const std::string kHandleName_bJets_hemi = "bJets_hemi";
+const std::string kHandleName_bJets_hemi_loose = "bJets_hemi_loose";
+const std::string kHandleName_bJets_hemi_medium = "bJets_hemi_medium";
+const std::string kHandleName_bJets_hemi_tight = "bJets_hemi_tight";
 
 const std::string kHandleName_n_bJets_hemi = "n_bJets_hemi";
 const std::string kHandleName_n_bJets_hemi_loose = "n_bJets_hemi_loose";
@@ -135,13 +164,18 @@ enum class MergeScenario {
   isAll,
 };
 
-const std::map<MergeScenario, std::string> kMergeScenarioAsString = {
-  {MergeScenario::isFullyMerged, "FullyMerged"},
-  {MergeScenario::isWMerged, "WMerged"},
-  {MergeScenario::isQBMerged, "QBMerged"},
-  {MergeScenario::isNotMerged, "NotMerged"},
-  {MergeScenario::isBackground, "Background"},
-  {MergeScenario::isAll, "AllMergeScenarios"},
+typedef struct {
+  int index;
+  std::string name;
+} MergeScenarioInfo;
+
+const std::map<MergeScenario, MergeScenarioInfo> kMergeScenarios = {
+  {MergeScenario::isFullyMerged, { .index=1,  .name="FullyMerged"} },
+  {MergeScenario::isWMerged,     { .index=2,  .name="WMerged"} },
+  {MergeScenario::isQBMerged,    { .index=3,  .name="QBMerged"} },
+  {MergeScenario::isNotMerged,   { .index=4,  .name="NotMerged"} },
+  {MergeScenario::isBackground,  { .index=-1, .name="Background"} },
+  {MergeScenario::isAll,         { .index=0,  .name="AllMergeScenarios"} },
 };
 
 enum class DecayChannel {

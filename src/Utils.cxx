@@ -82,6 +82,17 @@ double mSD(const TopJet & topjet) {
 }
 
 //____________________________________________________________________________________________________
+double mTW(const FlavorParticle & lepton_, const MET & met_) {
+  LorentzVector lepton = lepton_.v4();
+  TVector3 lepton_pT = uhh2::toVector(lepton); // [PxPyPz]
+  lepton_pT.SetZ(0);
+  LorentzVector met(met_.pt(), 0., met_.phi(), met_.pt()); // [PtEtaPhiE4D] // LorentzVector met = met_.v4(); // does not work with const MET since MET.h is missing a const qualifier for v4() member function, causing compiler error
+  TVector3 met_pT = uhh2::toVector(met); // [PxPyPz]
+  met_pT.SetZ(0);
+  return sqrt(2.*(lepton_pT.Mag() * met_pT.Mag() - lepton_pT * met_pT));
+}
+
+//____________________________________________________________________________________________________
 double maxDeepCSVSubJetValue(const TopJet & topjet) {
   double result(-99999.);
   for(auto subjet : topjet.subjets()) {
@@ -207,15 +218,26 @@ bool PTWSelection::passes(const Event & event) {
 }
 
 //____________________________________________________________________________________________________
-TwoDSelection::TwoDSelection(Context & ctx, const double _ptrel_min, const double _dr_min): ptrel_min(_ptrel_min), dr_min(_dr_min), h_primlep(ctx.get_handle<FlavorParticle>(kHandleName_PrimaryLepton)) {}
+TwoDSelection::TwoDSelection(Context & ctx, const double _ptrel_min, const double _dr_min, const bool _circular):
+  ptrel_min(_ptrel_min),
+  dr_min(_dr_min),
+  circular(_circular),
+  h_primlep(ctx.get_handle<FlavorParticle>(kHandleName_PrimaryLepton)),
+  h_jets(ctx.get_handle<vector<Jet>>(kHandleName_pairedPUPPIjets))
+{}
 
 bool TwoDSelection::passes(const Event & event) {
   const FlavorParticle & primlep = event.get(h_primlep);
-  throw runtime_error("fix TwoDSelection with new PUPPI CHS matching setup");
-  const Jet *nextjet = nextJet(primlep, *event.jets);
-  const bool passed_ptrel_cut = pTrel(primlep, nextjet) > ptrel_min;
-  const bool passed_dr_cut = deltaR(primlep.v4(), nextjet->v4()) > dr_min;
-  return passed_ptrel_cut || passed_dr_cut;
+  // throw runtime_error("fix TwoDSelection with new PUPPI CHS matching setup"); // DONE
+  const vector<Jet> & jets = event.get(h_jets);
+  const Jet *nextjet = nextJet(primlep, jets);
+  const float ptrel = pTrel(primlep, nextjet);
+  const float dr = deltaR(primlep.v4(), nextjet->v4());
+  const bool passed_ptrel_cut = ptrel > ptrel_min;
+  const bool passed_dr_cut = dr > dr_min;
+  const bool passes_circular = dr*dr / (dr_min*dr_min) + ptrel*ptrel / (ptrel_min*ptrel_min) > 1.f;
+  if(circular) return passes_circular;
+  else return passed_ptrel_cut || passed_dr_cut;
 }
 
 //____________________________________________________________________________________________________
@@ -391,14 +413,14 @@ void get_Wb_daughters(GenParticle & w_from_top, GenParticle & b_from_top, const 
 
 //____________________________________________________________________________________________________
 DecayChannelAndHadronicTopHandleSetter::DecayChannelAndHadronicTopHandleSetter(Context & ctx):
-  output_decay_channel(ctx.declare_event_output<DecayChannel>("output_decay_channel")),
+  h_decay_channel(ctx.get_handle<DecayChannel>("decay_channel")),
   h_hadronictop(ctx.get_handle<GenParticle>("HadronicTopQuark")) // will be unset if process is neither ttbar->l+jets nor single t->hadronic
   {}
 
 bool DecayChannelAndHadronicTopHandleSetter::process(Event & event) {
   DecayChannel dc = DecayChannel::isNotTopQuarkMC;
   if(event.isRealData) {
-    event.set(output_decay_channel, dc);
+    event.set(h_decay_channel, dc);
     return true;
   }
 
@@ -455,7 +477,7 @@ bool DecayChannelAndHadronicTopHandleSetter::process(Event & event) {
     }
   }
 
-  event.set(output_decay_channel, dc);
+  event.set(h_decay_channel, dc);
   return true;
 }
 
@@ -465,7 +487,8 @@ MergeScenarioHandleSetter::MergeScenarioHandleSetter(Context & ctx, const ProbeJ
   h_hadronictop = ctx.get_handle<GenParticle>("HadronicTopQuark"); // will be unset if process is neither ttbar->l+jets nor single t->hadronic
 
   output_has_probejet = ctx.declare_event_output<bool>("output_has_probejet_"+kProbeJetAlgos.at(_algo).name);
-  output_merge_scenario = ctx.declare_event_output<MergeScenario>("output_merge_scenario_"+kProbeJetAlgos.at(_algo).name);
+  output_merge_scenario = ctx.declare_event_output<int>("output_merge_scenario_"+kProbeJetAlgos.at(_algo).name);
+  h_merge_scenario = ctx.get_handle<MergeScenario>("merge_scenario_"+kProbeJetAlgos.at(_algo).name);
 }
 
 bool MergeScenarioHandleSetter::process(Event & event) {
@@ -474,7 +497,8 @@ bool MergeScenarioHandleSetter::process(Event & event) {
 
   MergeScenario msc = MergeScenario::isBackground;
   if(event.isRealData || !event.is_valid(h_hadronictop) || !event.is_valid(h_probejet)) {
-    event.set(output_merge_scenario, msc);
+    event.set(output_merge_scenario, kMergeScenarios.at(msc).index);
+    event.set(h_merge_scenario, msc);
     return true;
   }
 
@@ -502,14 +526,18 @@ bool MergeScenarioHandleSetter::process(Event & event) {
   else if(merged_b && !merged_q1 && merged_q2) msc = MergeScenario::isQBMerged;
   else msc = MergeScenario::isNotMerged;
 
-  event.set(output_merge_scenario, msc);
+  event.set(output_merge_scenario, kMergeScenarios.at(msc).index);
+  event.set(h_merge_scenario, msc);
   return true;
 }
 
 //____________________________________________________________________________________________________
-MainOutputSetter::MainOutputSetter(Context & ctx) {
-  h_probejet_hotvr = ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).name);
-  h_probejet_ak8 = ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgos.at(ProbeJetAlgo::isAK8).name);
+MainOutputSetter::MainOutputSetter(Context & ctx):
+  h_probejet_hotvr(ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgos.at(ProbeJetAlgo::isHOTVR).name)),
+  h_probejet_ak8(ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgos.at(ProbeJetAlgo::isAK8).name)),
+  h_primlep(ctx.get_handle<FlavorParticle>(kHandleName_PrimaryLepton)),
+  h_jets(ctx.get_handle<vector<Jet>>(kHandleName_pairedPUPPIjets))
+{
 
   vector<string> output_names;
   const string preprefix = "output_probejet_"; string prefix = "";
@@ -532,7 +560,21 @@ MainOutputSetter::MainOutputSetter(Context & ctx) {
   output_names.push_back(prefix+"mass");
   output_names.push_back(prefix+"mSD");
   output_names.push_back(prefix+"tau32");
+  output_names.push_back(prefix+"tau21");
   output_names.push_back(prefix+"maxDeepCSV");
+  output_names.push_back(prefix+"maxDeepJet");
+  output_names.push_back(prefix+"DeepAK8_TvsQCD");
+  output_names.push_back(prefix+"DeepAK8_WvsQCD");
+  output_names.push_back(prefix+"ParticleNet_TvsQCD");
+  output_names.push_back(prefix+"ParticleNet_WvsQCD");
+
+  // Other outputs:
+  prefix = "output_";
+  output_names.push_back(prefix+"lepton_pt");
+  output_names.push_back(prefix+"mtw");
+  output_names.push_back(prefix+"ptmiss");
+  output_names.push_back(prefix+"2d_ptrel");
+  output_names.push_back(prefix+"2d_drjet");
 
   for(unsigned int i = 0; i < output_names.size(); i++) {
     h_mainoutput.push_back(ctx.declare_event_output<float>(output_names.at(i)));
@@ -552,9 +594,9 @@ bool MainOutputSetter::process(Event & event) {
   values.resize(h_mainoutput.size(), zero_padding);
   unsigned int i(0);
 
-  values.at(i++) = has_hotvr_jet ? probejet_hotvr.v4().pt() : zero_padding;
-  values.at(i++) = has_hotvr_jet ? probejet_hotvr.v4().eta() : zero_padding;
-  values.at(i++) = has_hotvr_jet ? probejet_hotvr.v4().phi() : zero_padding;
+  values.at(i++) = has_hotvr_jet ? probejet_hotvr.pt() : zero_padding;
+  values.at(i++) = has_hotvr_jet ? probejet_hotvr.eta() : zero_padding;
+  values.at(i++) = has_hotvr_jet ? probejet_hotvr.phi() : zero_padding;
   values.at(i++) = has_hotvr_jet ? probejet_hotvr.v4().mass() : zero_padding;
   values.at(i++) = has_hotvr_jet ? probejet_hotvr.subjets().size() : zero_padding;
   event.set(h_probejet_hotvr_nsub_integer, has_hotvr_jet ? probejet_hotvr.subjets().size() : zero_padding);
@@ -562,13 +604,27 @@ bool MainOutputSetter::process(Event & event) {
   values.at(i++) = has_hotvr_jet ? HOTVR_fpt(probejet_hotvr) : zero_padding;
   values.at(i++) = has_hotvr_jet ? tau32groomed(probejet_hotvr) : zero_padding;
 
-  values.at(i++) = has_ak8_jet ? probejet_ak8.v4().pt() : zero_padding;
-  values.at(i++) = has_ak8_jet ? probejet_ak8.v4().eta() : zero_padding;
-  values.at(i++) = has_ak8_jet ? probejet_ak8.v4().phi() : zero_padding;
+  values.at(i++) = has_ak8_jet ? probejet_ak8.pt() : zero_padding;
+  values.at(i++) = has_ak8_jet ? probejet_ak8.eta() : zero_padding;
+  values.at(i++) = has_ak8_jet ? probejet_ak8.phi() : zero_padding;
   values.at(i++) = has_ak8_jet ? probejet_ak8.v4().mass() : zero_padding;
   values.at(i++) = has_ak8_jet ? mSD(probejet_ak8) : zero_padding;
   values.at(i++) = has_ak8_jet ? tau32(probejet_ak8) : zero_padding;
+  values.at(i++) = has_ak8_jet ? tau21(probejet_ak8) : zero_padding;
   values.at(i++) = has_ak8_jet ? maxDeepCSVSubJetValue(probejet_ak8) : zero_padding;
+  values.at(i++) = has_ak8_jet ? maxDeepJetSubJetValue(probejet_ak8) : zero_padding;
+  values.at(i++) = has_ak8_jet ? probejet_ak8.btag_DeepBoosted_TvsQCD() : zero_padding;
+  values.at(i++) = has_ak8_jet ? probejet_ak8.btag_DeepBoosted_WvsQCD() : zero_padding;
+  values.at(i++) = has_ak8_jet ? probejet_ak8.btag_ParticleNetDiscriminatorsJetTags_TvsQCD() : zero_padding;
+  values.at(i++) = has_ak8_jet ? probejet_ak8.btag_ParticleNetDiscriminatorsJetTags_WvsQCD() : zero_padding;
+
+  // Other outputs:
+  const FlavorParticle & primlep = event.get(h_primlep);
+  values.at(i++) = primlep.pt();
+  values.at(i++) = mTW(primlep, *event.met);
+  values.at(i++) = event.met->pt();
+  values.at(i++) = pTrel(primlep, nextJet(primlep, event.get(h_jets)));
+  values.at(i++) = deltaR(primlep.v4(), nextJet(primlep, event.get(h_jets))->v4());
 
   for(unsigned int i = 0; i < values.size(); i++) {
     event.set(h_mainoutput.at(i), values.at(i));
@@ -1263,6 +1319,12 @@ MatchPuppiToCHSAndSetBTagHandles::MatchPuppiToCHSAndSetBTagHandles(Context & ctx
   fHandle_n_bJets_medium(ctx.declare_event_output<int>(kHandleName_n_bJets_medium)),
   fHandle_n_bJets_tight(ctx.declare_event_output<int>(kHandleName_n_bJets_tight)),
   fHandle_PrimaryLepton(ctx.get_handle<FlavorParticle>(kHandleName_PrimaryLepton)),
+  fHandle_pairedPUPPIjets_hemi(ctx.get_handle<vector<Jet>>(kHandleName_pairedPUPPIjets_hemi)),
+  fHandle_pairedCHSjets_hemi(ctx.get_handle<vector<Jet>>(kHandleName_pairedCHSjets_hemi)),
+  fHandle_bJets_hemi(ctx.get_handle<vector<Jet>>(kHandleName_bJets_hemi)),
+  fHandle_bJets_hemi_loose(ctx.get_handle<vector<Jet>>(kHandleName_bJets_hemi_loose)),
+  fHandle_bJets_hemi_medium(ctx.get_handle<vector<Jet>>(kHandleName_bJets_hemi_medium)),
+  fHandle_bJets_hemi_tight(ctx.get_handle<vector<Jet>>(kHandleName_bJets_hemi_tight)),
   fHandle_n_bJets_hemi(ctx.declare_event_output<int>(kHandleName_n_bJets_hemi)),
   fHandle_n_bJets_hemi_loose(ctx.declare_event_output<int>(kHandleName_n_bJets_hemi_loose)),
   fHandle_n_bJets_hemi_medium(ctx.declare_event_output<int>(kHandleName_n_bJets_hemi_medium)),
@@ -1270,13 +1332,19 @@ MatchPuppiToCHSAndSetBTagHandles::MatchPuppiToCHSAndSetBTagHandles(Context & ctx
 {}
 
 bool MatchPuppiToCHSAndSetBTagHandles::process(Event & event) {
+  FlavorParticle primlep;
+  const bool valid_primlep = event.is_valid(fHandle_PrimaryLepton);
+  if(valid_primlep) primlep = event.get(fHandle_PrimaryLepton);
+  //__________________________________________________
   const vector<Jet> uncleaned_puppijets = event.get(fHandle_PUPPIjets);
   event.set(fHandle_uncleanedPUPPIjets, uncleaned_puppijets);
   //__________________________________________________
   // Clean all central PUPPI jets which don't have a match to a CHS jet; keep all forward PUPPI jets no matter if matched or not
   vector<Jet> cleaned_puppijets;
   vector<Jet> paired_puppijets;
+  vector<Jet> paired_puppijets_hemi;
   vector<Jet> paired_chsjets;
+  vector<Jet> paired_chsjets_hemi;
   vector<Jet> forward_puppijets;
   for(const Jet & puppijet : uncleaned_puppijets) {
     if(fabs(puppijet.v4().eta()) >= kAbsEtaBTagThreshold) {
@@ -1291,12 +1359,18 @@ bool MatchPuppiToCHSAndSetBTagHandles::process(Event & event) {
         paired_puppijets.push_back(puppijet);
         paired_chsjets.push_back(chsjet);
         cleaned_puppijets.push_back(puppijet);
+        if(valid_primlep && deltaR(primlep.v4(), puppijet.v4()) < kDeltaRLeptonicHemisphere) {
+          paired_puppijets_hemi.push_back(puppijet);
+          paired_chsjets_hemi.push_back(chsjet);
+        }
       }
     }
   }
   event.set(fHandle_PUPPIjets, cleaned_puppijets);
   event.set(fHandle_pairedPUPPIjets, paired_puppijets);
+  event.set(fHandle_pairedPUPPIjets_hemi, paired_puppijets_hemi);
   event.set(fHandle_pairedCHSjets, paired_chsjets);
+  event.set(fHandle_pairedCHSjets_hemi, paired_chsjets_hemi);
   event.set(fHandle_forwardPUPPIjets, forward_puppijets);
 
   event.set(fHandle_n_jets, cleaned_puppijets.size());
@@ -1312,9 +1386,6 @@ bool MatchPuppiToCHSAndSetBTagHandles::process(Event & event) {
   vector<Jet> bjets_hemi_loose;
   vector<Jet> bjets_hemi_medium;
   vector<Jet> bjets_hemi_tight;
-  FlavorParticle primlep;
-  const bool valid_primlep = event.is_valid(fHandle_PrimaryLepton);
-  if(valid_primlep) primlep = event.get(fHandle_PrimaryLepton);
   for(const Jet & puppijet : paired_puppijets) {
     const Jet *chsjetPtr = getCHSmatch(puppijet, event, fHandle_CHSjets);
     if(fBTagID_loose(*chsjetPtr, event)) {
@@ -1334,16 +1405,19 @@ bool MatchPuppiToCHSAndSetBTagHandles::process(Event & event) {
     case BTag::WP_LOOSE :
     event.set(fHandle_bJets, bjets_loose);
     event.set(fHandle_n_bJets, bjets_loose.size());
+    event.set(fHandle_bJets_hemi, bjets_hemi_loose);
     event.set(fHandle_n_bJets_hemi, bjets_hemi_loose.size());
     break;
     case BTag::WP_MEDIUM :
     event.set(fHandle_bJets, bjets_medium);
     event.set(fHandle_n_bJets, bjets_medium.size());
+    event.set(fHandle_bJets_hemi, bjets_hemi_medium);
     event.set(fHandle_n_bJets_hemi, bjets_hemi_medium.size());
     break;
     case BTag::WP_TIGHT :
     event.set(fHandle_bJets, bjets_tight);
     event.set(fHandle_n_bJets, bjets_tight.size());
+    event.set(fHandle_bJets_hemi, bjets_hemi_tight);
     event.set(fHandle_n_bJets_hemi, bjets_hemi_tight.size());
     break;
     default :
@@ -1356,6 +1430,10 @@ bool MatchPuppiToCHSAndSetBTagHandles::process(Event & event) {
   event.set(fHandle_n_bJets_loose, bjets_loose.size());
   event.set(fHandle_n_bJets_medium, bjets_medium.size());
   event.set(fHandle_n_bJets_tight, bjets_tight.size());
+
+  event.set(fHandle_bJets_hemi_loose, bjets_hemi_loose);
+  event.set(fHandle_bJets_hemi_medium, bjets_hemi_medium);
+  event.set(fHandle_bJets_hemi_tight, bjets_hemi_tight);
 
   event.set(fHandle_n_bJets_hemi_loose, bjets_hemi_loose.size());
   event.set(fHandle_n_bJets_hemi_medium, bjets_hemi_medium.size());

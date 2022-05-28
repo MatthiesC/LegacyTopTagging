@@ -25,6 +25,10 @@ AK4Hists::AK4Hists(Context & ctx, const string & dirname, const unsigned int def
   fHandle_bJets_loose(ctx.get_handle<vector<Jet>>(kHandleName_bJets_loose)),
   fHandle_bJets_medium(ctx.get_handle<vector<Jet>>(kHandleName_bJets_medium)),
   fHandle_bJets_tight(ctx.get_handle<vector<Jet>>(kHandleName_bJets_tight)),
+  fHandle_bJets_hemi(ctx.get_handle<vector<Jet>>(kHandleName_bJets_hemi)),
+  fHandle_bJets_hemi_loose(ctx.get_handle<vector<Jet>>(kHandleName_bJets_hemi_loose)),
+  fHandle_bJets_hemi_medium(ctx.get_handle<vector<Jet>>(kHandleName_bJets_hemi_medium)),
+  fHandle_bJets_hemi_tight(ctx.get_handle<vector<Jet>>(kHandleName_bJets_hemi_tight)),
   fHandle_PrimaryLepton(ctx.get_handle<FlavorParticle>(kHandleName_PrimaryLepton)),
   fHandle_weight_btagdisc_central(ctx.get_handle<float>("weight_btagdisc__central")), // same handle name as defined in MCWeight.cxx --> MCBTagDiscriminantReweighting
   fHandle_weight_btag_njet_sf(ctx.get_handle<float>(kHandleName_weight_btag_njet_sf))
@@ -37,13 +41,18 @@ AK4Hists::AK4Hists(Context & ctx, const string & dirname, const unsigned int def
   hist_number_puppijets_central_wo_btag_sf_wo_njet_sf = book<TH1F>("number_puppijets_central_wo_btag_sf_wo_njet_sf", "Number of central AK4 PUPPI jets (w/o b-tag SF, w/o njet SF)", 11, -0.5, 10.5);
   hist_number_puppijets_forward = book<TH1F>("number_puppijets_forward", "Number of forward AK4 PUPPI jets", 11, -0.5, 10.5);
 
-  hist_puppichs_dr = book<TH1F>("puppichs_dr", "#Delta#it{R}(PUPPI jet, matched CHS jet)", default_nbins, 0, 0.5);
+  hist_puppichs_dr = book<TH1F>("puppichs_dr", "#Delta#it{R}(PUPPI jet, matched CHS jet)", default_nbins, 0, kDeltaRForPuppiCHSMatch);
   hist_puppichs_ptresponse = book<TH1F>("puppichs_ptresponse", "#it{p}_{T}^{PUPPI} / #it{p}_{T}^{CHS}", default_nbins, 0.5, 1.5);
 
   hist_number_bjets = book<TH1F>("number_bjets", "Number of b jets", 11, -0.5, 10.5);
   hist_number_bjets_loose = book<TH1F>("number_bjets_loose", "Number of b jets (loose)", 11, -0.5, 10.5);
   hist_number_bjets_medium = book<TH1F>("number_bjets_medium", "Number of b jets (medium)", 11, -0.5, 10.5);
   hist_number_bjets_tight = book<TH1F>("number_bjets_tight", "Number of b jets (tight)", 11, -0.5, 10.5);
+
+  hist_number_bjets_hemi = book<TH1F>("number_bjets_hemi", "Number of b jets (hemi)", 11, -0.5, 10.5);
+  hist_number_bjets_hemi_loose = book<TH1F>("number_bjets_hemi_loose", "Number of b jets (loose, hemi)", 11, -0.5, 10.5);
+  hist_number_bjets_hemi_medium = book<TH1F>("number_bjets_hemi_medium", "Number of b jets (medium, hemi)", 11, -0.5, 10.5);
+  hist_number_bjets_hemi_tight = book<TH1F>("number_bjets_hemi_tight", "Number of b jets (tight, hemi)", 11, -0.5, 10.5);
 
   hist_number_bjets_loose_medium = book<TH2F>("number_bjets_loose_medium", "Number of b jets (x = loose, y = medium)", 11, -0.5, 10.5, 11, -0.5, 10.5);
   hist_number_bjets_loose_tight = book<TH2F>("number_bjets_loose_tight", "Number of b jets (x = loose, y = tight)", 11, -0.5, 10.5, 11, -0.5, 10.5);
@@ -140,6 +149,11 @@ void AK4Hists::fill(const Event & event) {
     hist_number_bjets_loose->Fill(event.get(fHandle_bJets_loose).size(), w);
     hist_number_bjets_medium->Fill(event.get(fHandle_bJets_medium).size(), w);
     hist_number_bjets_tight->Fill(event.get(fHandle_bJets_tight).size(), w);
+
+    hist_number_bjets_hemi->Fill(event.get(fHandle_bJets_hemi).size(), w);
+    hist_number_bjets_hemi_loose->Fill(event.get(fHandle_bJets_hemi_loose).size(), w);
+    hist_number_bjets_hemi_medium->Fill(event.get(fHandle_bJets_hemi_medium).size(), w);
+    hist_number_bjets_hemi_tight->Fill(event.get(fHandle_bJets_hemi_tight).size(), w);
 
     hist_number_bjets_loose_medium->Fill(event.get(fHandle_bJets_loose).size(), event.get(fHandle_bJets_medium).size(), w);
     hist_number_bjets_loose_tight->Fill(event.get(fHandle_bJets_loose).size(), event.get(fHandle_bJets_tight).size(), w);

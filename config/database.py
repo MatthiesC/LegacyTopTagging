@@ -308,73 +308,73 @@ samplesDict = {
     #_________________________________________________
     'QCD_EM_Pt15to20': {
         'db_name': 'QCD_Pt-15to20_EMEnriched',
-        'analysis': ['tw'],
+        # 'analysis': ['tw'],
         'channel': ['ele'],
     },
     'QCD_EM_Pt20to30': {
         'db_name': 'QCD_Pt-20to30_EMEnriched',
-        'analysis': ['tw'],
+        # 'analysis': ['tw'],
         'channel': ['ele'],
     },
     'QCD_EM_Pt30to50': {
         'db_name': 'QCD_Pt-30to50_EMEnriched',
-        'analysis': ['tw'],
+        # 'analysis': ['tw'],
         'channel': ['ele'],
     },
     'QCD_EM_Pt50to80': {
         'db_name': 'QCD_Pt-50to80_EMEnriched',
-        'analysis': ['tw'],
+        # 'analysis': ['tw'],
         'channel': ['ele'],
     },
     'QCD_EM_Pt80to120': {
         'db_name': 'QCD_Pt-80to120_EMEnriched',
-        'analysis': ['tw'],
+        # 'analysis': ['tw'],
         'channel': ['ele'],
     },
     'QCD_EM_Pt120to170': {
         'db_name': 'QCD_Pt-120to170_EMEnriched',
-        'analysis': ['tw'],
+        # 'analysis': ['tw'],
         'channel': ['ele'],
     },
     'QCD_EM_Pt170to300': {
         'db_name': 'QCD_Pt-170to300_EMEnriched',
-        'analysis': ['tw'],
+        # 'analysis': ['tw'],
         'channel': ['ele'],
     },
     'QCD_EM_Pt300toInf': {
         'db_name': 'QCD_Pt-300toInf_EMEnriched',
-        'analysis': ['tw'],
+        # 'analysis': ['tw'],
         'channel': ['ele'],
     },
     #_________________________________________________
     'QCD_bcToE_Pt15to20': {
         'db_name': 'QCD_Pt_15to20_bcToE',
-        'analysis': ['tw'],
+        # 'analysis': ['tw'],
         'channel': ['ele'],
     },
     'QCD_bcToE_Pt20to30': {
         'db_name': 'QCD_Pt_20to30_bcToE',
-        'analysis': ['tw'],
+        # 'analysis': ['tw'],
         'channel': ['ele'],
     },
     'QCD_bcToE_Pt30to80': {
         'db_name': 'QCD_Pt_30to80_bcToE',
-        'analysis': ['tw'],
+        # 'analysis': ['tw'],
         'channel': ['ele'],
     },
     'QCD_bcToE_Pt80to170': {
         'db_name': 'QCD_Pt_80to170_bcToE',
-        'analysis': ['tw'],
+        # 'analysis': ['tw'],
         'channel': ['ele'],
     },
     'QCD_bcToE_Pt170to250': {
         'db_name': 'QCD_Pt_170to250_bcToE',
-        'analysis': ['tw'],
+        # 'analysis': ['tw'],
         'channel': ['ele'],
     },
     'QCD_bcToE_Pt250toInf': {
         'db_name': 'QCD_Pt_250toInf_bcToE',
-        'analysis': ['tw'],
+        # 'analysis': ['tw'],
         'channel': ['ele'],
     },
     #_________________________________________________
