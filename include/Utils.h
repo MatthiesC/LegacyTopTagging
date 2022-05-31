@@ -86,6 +86,9 @@ double mSD(const TopJet & topjet);
 double mTW(const FlavorParticle & lepton_, const MET & met_);
 
 //____________________________________________________________________________________________________
+double pTW(const FlavorParticle & lepton_, const MET & met_);
+
+//____________________________________________________________________________________________________
 double maxDeepCSVSubJetValue(const TopJet & topjet);
 
 //____________________________________________________________________________________________________

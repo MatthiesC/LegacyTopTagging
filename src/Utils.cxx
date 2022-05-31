@@ -93,6 +93,11 @@ double mTW(const FlavorParticle & lepton_, const MET & met_) {
 }
 
 //____________________________________________________________________________________________________
+double pTW(const FlavorParticle & lepton_, const MET & met_) {
+  return (lepton_.v4() + met_.v4()).Pt();
+}
+
+//____________________________________________________________________________________________________
 double maxDeepCSVSubJetValue(const TopJet & topjet) {
   double result(-99999.);
   for(auto subjet : topjet.subjets()) {
@@ -211,9 +216,9 @@ PTWSelection::PTWSelection(Context & ctx, const double _ptw_min, const double _p
 
 bool PTWSelection::passes(const Event & event) {
   const FlavorParticle & primlep = event.get(h_primlep);
-  const LorentzVector v4 = event.met->v4() + primlep.v4();
-  const bool passed_lower_limit = v4.Pt() > ptw_min;
-  const bool passed_upper_limit = v4.Pt() < ptw_max;
+  const float ptw = pTW(primlep, *event.met);
+  const bool passed_lower_limit = ptw > ptw_min;
+  const bool passed_upper_limit = ptw < ptw_max;
   return passed_lower_limit && passed_upper_limit;
 }
 
@@ -573,6 +578,7 @@ MainOutputSetter::MainOutputSetter(Context & ctx):
   output_names.push_back(prefix+"lepton_pt");
   output_names.push_back(prefix+"mtw");
   output_names.push_back(prefix+"ptmiss");
+  output_names.push_back(prefix+"ptw");
   output_names.push_back(prefix+"2d_ptrel");
   output_names.push_back(prefix+"2d_drjet");
 
@@ -623,6 +629,7 @@ bool MainOutputSetter::process(Event & event) {
   values.at(i++) = primlep.pt();
   values.at(i++) = mTW(primlep, *event.met);
   values.at(i++) = event.met->pt();
+  values.at(i++) = pTW(primlep, *event.met);
   values.at(i++) = pTrel(primlep, nextJet(primlep, event.get(h_jets)));
   values.at(i++) = deltaR(primlep.v4(), nextJet(primlep, event.get(h_jets))->v4());
 
