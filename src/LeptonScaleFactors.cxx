@@ -90,7 +90,7 @@ ElectronRecoScaleFactors::ElectronRecoScaleFactors(
 bool ElectronRecoScaleFactors::process(Event & event) {
   if(fDummy) {
     for(uint i = 0; i < fWeightHandles.size(); i++) {
-      event.set(fWeightHandles.at(i), -1.);
+      event.set(fWeightHandles.at(i), 1.);
     }
   }
   else {
@@ -243,7 +243,7 @@ ElectronIdScaleFactors::ElectronIdScaleFactors(
 bool ElectronIdScaleFactors::process(Event & event) {
   if(fDummy) {
     for(uint i = 0; i < fWeightHandles.size(); i++) {
-      event.set(fWeightHandles.at(i), -1.);
+      event.set(fWeightHandles.at(i), 1.);
     }
   }
   else {
@@ -370,7 +370,7 @@ MuonIdScaleFactors::MuonIdScaleFactors(
 bool MuonIdScaleFactors::process(Event & event) {
   if(fDummy) {
     for(uint i = 0; i < fWeightHandles.size(); i++) {
-      event.set(fWeightHandles.at(i), -1.);
+      event.set(fWeightHandles.at(i), 1.);
     }
   }
   else {
@@ -509,7 +509,7 @@ MuonIsoScaleFactors::MuonIsoScaleFactors(
 bool MuonIsoScaleFactors::process(Event & event) {
   if(fDummy) {
     for(uint i = 0; i < fWeightHandles.size(); i++) {
-      event.set(fWeightHandles.at(i), -1.);
+      event.set(fWeightHandles.at(i), 1.);
     }
   }
   else {
@@ -653,7 +653,7 @@ MuonTriggerScaleFactors::MuonTriggerScaleFactors(
 bool MuonTriggerScaleFactors::process(Event & event) {
   if(fDummy) {
     for(uint i = 0; i < fWeightHandles.size(); i++) {
-      event.set(fWeightHandles.at(i), -1.);
+      event.set(fWeightHandles.at(i), 1.);
     }
   }
   else {

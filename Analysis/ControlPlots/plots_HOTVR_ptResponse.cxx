@@ -1,31 +1,18 @@
-typedef struct {
-  string name;
-  string long_name;
-  // string lumi_fb;
-  Int_t color;
-} Year;
+#include "../constants.h"
+
+using namespace macros;
+
+// typedef struct {
+//   string name;
+//   string long_name;
+//   // string lumi_fb;
+//   Int_t color;
+// } Year;
 
 typedef struct {
   string name;
   string watermark;
 } Process;
-
-enum class ProbeJetAlgo {
-  isHOTVR,
-  isAK8,
-  notValid,
-};
-
-typedef struct {
-  std::string name = "";
-  double mass_min = 0.;
-  double mass_max = std::numeric_limits<double>::infinity();
-} ProbeJetAlgoInfo;
-
-const std::map<ProbeJetAlgo, ProbeJetAlgoInfo> kProbeJetAlgos = {
-  {ProbeJetAlgo::isHOTVR, ProbeJetAlgoInfo{"HOTVR", 140., 220.}},
-  {ProbeJetAlgo::isAK8, ProbeJetAlgoInfo{"AK8", 105., 210.}},
-};
 
 class CoordinateConverter {
 public:
@@ -98,8 +85,8 @@ void do_plot(const Year & year, const ProbeJetAlgo & probejetalgo, const string 
   map<EVariation, TH1F*> hists_corr;
   map<EVariation, TH1F*> hists_raw;
   for(const auto & var : kVariationToString) {
-    const string infileBasePath = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/"+year.name+"/"+var.second+"/";
-    const string infileName = (string)"uhh2.AnalysisModuleRunner.MC.TTbarToHadronic_"+year.name+".root";
+    const string infileBasePath = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/"+kYears.at(year).name+"/"+var.second+"/";
+    const string infileName = (string)"uhh2.AnalysisModuleRunner.MC.TTbarToHadronic_"+kYears.at(year).name+".root";
     const string infilePath = infileBasePath+infileName;
     TFile *infile = TFile::Open(infilePath.c_str(), "READ");
     const string hist_collection = kProbeJetAlgos.at(probejetalgo).name+"Hists_1_after_corrections";
@@ -190,8 +177,8 @@ void do_plot(const Year & year, const ProbeJetAlgo & probejetalgo, const string 
   TGraphAsymmErrors *graph_corr_line = new TGraphAsymmErrors(*graph_corr_tot);
 
 
-  Int_t color_raw = year.color;
-  Int_t color_corr = year.color;
+  Int_t color_raw = kYears.at(year).tcolor;
+  Int_t color_corr = kYears.at(year).tcolor;
   const double transparency1 = 1.0;
   const double transparency2 = 0.5;
 
@@ -296,7 +283,7 @@ void do_plot(const Year & year, const ProbeJetAlgo & probejetalgo, const string 
 
 
 
-  TLatex *text_top_left = new TLatex(margin_l, 1-(margin_t-0.01), year.long_name.c_str());
+  TLatex *text_top_left = new TLatex(margin_l, 1-(margin_t-0.01), (string("Ultra Legacy ")+kYears.at(year).nice_name).c_str());
   text_top_left->SetTextAlign(11); // left bottom aligned
   text_top_left->SetTextFont(42);
   text_top_left->SetTextSize(0.035);
@@ -311,14 +298,14 @@ void do_plot(const Year & year, const ProbeJetAlgo & probejetalgo, const string 
   algo_label->SetNDC();
   algo_label->Draw();
 
-  TLatex *eta_text = new TLatex(coord->ConvertGraphXToPadX(1-(0.05*c->GetWh()/c->GetWw())), coord->ConvertGraphYToPadY(0.87), "#left|#eta^{rec}#right| < 2.5");
+  TLatex *eta_text = new TLatex(coord->ConvertGraphXToPadX(1-(0.05*c->GetWh()/c->GetWw())), coord->ConvertGraphYToPadY(0.867), "#left|#eta^{rec}#right| < 2.5");
   eta_text->SetTextAlign(33); // right top
   eta_text->SetTextFont(42);
   eta_text->SetTextSize(0.035);
   eta_text->SetNDC();
   eta_text->Draw();
 
-  // string string_text_top_right = year.name + " (CMSSW 10.6.X)";
+  // string string_text_top_right = kYears.at(year).name + " (CMSSW 10.6.X)";
   // string string_text_top_right = "POWHEG #plus Pythia8, pp #rightarrow t#bar{t} #rightarrow all-jets @ #sqrt{#it{s}} = 13 TeV";
   string string_text_top_right = "t#bar{t} #rightarrow all-jets @ #sqrt{#it{s}} = 13 TeV";
   TLatex *text_top_right = new TLatex(1-margin_r, 1-(margin_t-0.01), string_text_top_right.c_str());
@@ -355,7 +342,7 @@ void do_plot(const Year & year, const ProbeJetAlgo & probejetalgo, const string 
   gPad->RedrawAxis();
 
   // Save to disk
-  string plotName = (string)"plot_"+kProbeJetAlgos.at(probejetalgo).name+"_ptResponse_"+dr_max+"_"+year.name;
+  string plotName = (string)"plot_"+kProbeJetAlgos.at(probejetalgo).name+"_ptResponse_"+dr_max+"_"+kYears.at(year).name;
   plotName += (log_y ? string("_log") : string("_lin"))+".pdf";
   string plotBasePath = "plots";
   gSystem->Exec(((string)"mkdir -p "+plotBasePath).c_str());
@@ -367,13 +354,14 @@ void do_plot(const Year & year, const ProbeJetAlgo & probejetalgo, const string 
 
 void plots_HOTVR_ptResponse() {
 
-  vector<Year> years;
-  years.push_back(Year{"UL16preVFP", "Ultra Legacy 2016 early", kPink+8});
-  years.push_back(Year{"UL16postVFP", "Ultra Legacy 2016 late", kAzure-6});
-  years.push_back(Year{"UL17", "Ultra Legacy 2017", kOrange-3});
-  years.push_back(Year{"UL18", "Ultra Legacy 2018", kSpring-8});
-  // years.push_back(Year{"UL17", "Ultra Legacy 2017", kOrange+9});
-  // years.push_back(Year{"UL18", "Ultra Legacy 2018", kSpring-7});
+  // vector<Year> years;
+  // years.push_back(Year{"UL16preVFP", "Ultra Legacy 2016 early", kPink+8});
+  // years.push_back(Year{"UL16postVFP", "Ultra Legacy 2016 late", kAzure-6});
+  // years.push_back(Year{"UL17", "Ultra Legacy 2017", kOrange-3});
+  // years.push_back(Year{"UL18", "Ultra Legacy 2018", kSpring-8});
+
+  const vector<Year> years = { Year::isUL16preVFP, Year::isUL16postVFP, Year::isUL17, Year::isUL18 };
+
   for(const Year & year : years) {
     for(unsigned int i = 0; i <= 0; i++) {
       const string dr_string = (string)"dr"+to_string(i/10)+"p"+to_string(i-(i/10)*10); // e.g. i=8 will be converted to "dr0p8" and i=12 will be converted to "dr1p2"

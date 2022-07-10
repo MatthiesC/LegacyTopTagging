@@ -1450,7 +1450,8 @@ bool MatchPuppiToCHSAndSetBTagHandles::process(Event & event) {
 }
 
 //____________________________________________________________________________________________________
-ObjectPtSorter::ObjectPtSorter(Context & ctx):
+ObjectPtSorter::ObjectPtSorter(Context & ctx, const bool do_fatjets):
+  bDoFatJets(do_fatjets),
   fHandle_CHSjets(ctx.get_handle<vector<Jet>>(kCollectionName_AK4CHS)),
   fHandle_AK8Collection_rec(ctx.get_handle<vector<TopJet>>(kCollectionName_AK8_rec)),
   fHandle_AK8Collection_gen(ctx.get_handle<vector<GenTopJet>>(kCollectionName_AK8_gen))
@@ -1464,39 +1465,42 @@ bool ObjectPtSorter::process(Event & event) {
   sort_by_pt<Jet>(ak4chsjets);
   // Sorts AK4 gen jets
   if(!event.isRealData) sort_by_pt<GenJet>(*event.genjets);
-  // Sorts HOTVR jets
-  sort_by_pt<TopJet>(*event.topjets);
-  for(auto & j : *event.topjets) {
-    vector<Jet> subjets = j.subjets();
-    sort_by_pt<Jet>(subjets);
-    j.set_subjets(move(subjets));
-  }
-  // Sorts HOTVR gen jets
-  if(!event.isRealData) {
-    sort_by_pt<GenTopJet>(*event.gentopjets);
-    // for(auto & j : *event.gentopjets) { // set_subjets not available for GenTopJet
-    //   vector<GenJet> subjets = j.subjets();
-    //   sort_by_pt<GenJet>(subjets);
-    //   j.set_subjets(move(subjets));
-    // }
-  }
-  // Sorts AK8 jets
-  vector<TopJet> &ak8jets = event.get(fHandle_AK8Collection_rec);
-  sort_by_pt<TopJet>(ak8jets);
-  for(auto & j : ak8jets) {
-    vector<Jet> subjets = j.subjets();
-    sort_by_pt<Jet>(subjets);
-    j.set_subjets(move(subjets));
-  }
-  // Sorts AK8 gen jets
-  if(!event.isRealData) {
-    vector<GenTopJet> &ak8genjets = event.get(fHandle_AK8Collection_gen);
-    sort_by_pt<GenTopJet>(ak8genjets);
-    // for(auto & j : ak8genjets) { // set_subjets not available for GenTopJet
-    //   vector<GenJet> subjets = j.subjets();
-    //   sort_by_pt<GenJet>(subjets);
-    //   j.set_subjets(move(subjets));
-    // }
+
+  if(bDoFatJets) {
+    // Sorts HOTVR jets
+    sort_by_pt<TopJet>(*event.topjets);
+    for(auto & j : *event.topjets) {
+      vector<Jet> subjets = j.subjets();
+      sort_by_pt<Jet>(subjets);
+      j.set_subjets(move(subjets));
+    }
+    // Sorts HOTVR gen jets
+    if(!event.isRealData) {
+      sort_by_pt<GenTopJet>(*event.gentopjets);
+      // for(auto & j : *event.gentopjets) { // set_subjets not available for GenTopJet
+      //   vector<GenJet> subjets = j.subjets();
+      //   sort_by_pt<GenJet>(subjets);
+      //   j.set_subjets(move(subjets));
+      // }
+    }
+    // Sorts AK8 jets
+    vector<TopJet> &ak8jets = event.get(fHandle_AK8Collection_rec);
+    sort_by_pt<TopJet>(ak8jets);
+    for(auto & j : ak8jets) {
+      vector<Jet> subjets = j.subjets();
+      sort_by_pt<Jet>(subjets);
+      j.set_subjets(move(subjets));
+    }
+    // Sorts AK8 gen jets
+    if(!event.isRealData) {
+      vector<GenTopJet> &ak8genjets = event.get(fHandle_AK8Collection_gen);
+      sort_by_pt<GenTopJet>(ak8genjets);
+      // for(auto & j : ak8genjets) { // set_subjets not available for GenTopJet
+      //   vector<GenJet> subjets = j.subjets();
+      //   sort_by_pt<GenJet>(subjets);
+      //   j.set_subjets(move(subjets));
+      // }
+    }
   }
   return true;
 }

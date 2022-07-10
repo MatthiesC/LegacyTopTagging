@@ -20,6 +20,7 @@ NB: This repo is not dependent on other UHH2 sub-frameworks like https://github.
   git clone https://github.com/cms-analysis/CombineHarvester.git CombineHarvester
   scramv1 b clean; scramv1 b
   ```
+- The CMSSW versions 10.6.X do not yet include the `uproot` package in their python3. Thus, you need to install Anaconda3 and `conda install -c conda-forge uproot`. (**FIXME**: Which python3 version should you install?) Declare a bash alias like `alias pyconda3=/path/to/your/ana3env/bin/python` and use this on python scripts that need `uproot`. **FIXME**: Right now, there seems to be a conflict between the CMSSW ROOT version and the ana3 ROOT version. Thus, you cannot do `import ROOT` with `pyconda3`
 
 ## Code conventions / tips
 

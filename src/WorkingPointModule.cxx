@@ -9,6 +9,7 @@
 #include "UHH2/common/include/MCWeight.h"
 #include "UHH2/common/include/NSelections.h"
 #include "UHH2/common/include/Utils.h"
+// #include "UHH2/common/include/PrintingModules.h"
 #include "UHH2/common/include/TTbarGen.h"
 
 #include "UHH2/LegacyTopTagging/include/TopJetCorrections.h"
@@ -30,10 +31,22 @@ public:
     virtual bool process(Event & event) override;
 
 private:
+  enum class JECVariation {
+    nominal,
+    jes_up,
+    jes_down,
+    jer_up,
+    jer_down,
+  };
+
+  map<JECVariation, string> kJECVariationToString;
+
   const bool debug;
   const bool empty_output_tree;
   string dataset_version;
   bool is_qcd, is_ttbar, is_wjets;
+
+  unique_ptr<Selection> slct_pv;
 
   unique_ptr<AnalysisModule> sf_lumi;
   unique_ptr<AnalysisModule> sf_pileup;
@@ -55,8 +68,12 @@ private:
 
   Event::Handle<float> event_weight;
   Event::Handle<vector<TopJet>> hotvrjets_handle;
+  Event::Handle<vector<GenTopJet>> hotvrgenjets_handle;
   Event::Handle<unsigned int> n_ak8jets;
   Event::Handle<unsigned int> n_hotvrjets;
+
+  map<JECVariation, Event::Handle<vector<TopJet>>> hotvrjets_varied;
+  map<JECVariation, unique_ptr<ltt::TopJetCorrections>> corrections_hotvr_varied;
 
   // for ttbar
 
@@ -144,6 +161,7 @@ private:
 
   Event::Handle<bool> the_two_w_ak8jets_are_the_same;
 
+  Event::Handle<float> tnearesthotvrjet_reff;
   Event::Handle<float> tnearesthotvrjet_pt;
   Event::Handle<float> tnearesthotvrjet_mass;
   Event::Handle<int> tnearesthotvrjet_nsubjets;
@@ -155,6 +173,7 @@ private:
   Event::Handle<float> tnearesthotvrjet_dr_genWplus_d1;
   Event::Handle<float> tnearesthotvrjet_dr_genWplus_d2;
 
+  Event::Handle<float> antitnearesthotvrjet_reff;
   Event::Handle<float> antitnearesthotvrjet_pt;
   Event::Handle<float> antitnearesthotvrjet_mass;
   Event::Handle<int> antitnearesthotvrjet_nsubjets;
@@ -194,12 +213,26 @@ private:
   Event::Handle<vector<float>> ak8jets_partnet_TvsQCD;
   Event::Handle<vector<float>> ak8jets_partnet_WvsQCD;
 
+  Event::Handle<vector<float>> hotvrjets_reff;
   Event::Handle<vector<float>> hotvrjets_pt;
   Event::Handle<vector<float>> hotvrjets_mass;
   Event::Handle<vector<int>> hotvrjets_nsubjets;
   Event::Handle<vector<float>> hotvrjets_mpair;
   Event::Handle<vector<float>> hotvrjets_fpt1;
   Event::Handle<vector<float>> hotvrjets_tau32;
+
+  Event::Handle<vector<bool>> hotvrjets_passes_jet_id;
+  Event::Handle<vector<float>> hotvrjets_dr_rec_to_gen;
+  Event::Handle<vector<float>> hotvrjets_pt_gen;
+  Event::Handle<vector<float>> hotvrjets_pt_rec_raw;
+  Event::Handle<vector<float>> hotvrjets_pt_rec_corr;
+  Event::Handle<vector<float>> hotvrjets_pt_rec_corr_jes_up;
+  Event::Handle<vector<float>> hotvrjets_pt_rec_corr_jes_down;
+  Event::Handle<vector<float>> hotvrjets_pt_rec_corr_jer_up;
+  Event::Handle<vector<float>> hotvrjets_pt_rec_corr_jer_down;
+  Event::Handle<vector<float>> hotvrjets_eta;
+
+  // unique_ptr<AnalysisModule> printer;
 };
 
 
@@ -207,6 +240,12 @@ WorkingPointModule::WorkingPointModule(Context & ctx):
   debug(string2bool(ctx.get("debug"))),
   empty_output_tree(string2bool(ctx.get("empty_output_tree")))
 {
+  kJECVariationToString[JECVariation::nominal] = "nominal";
+  kJECVariationToString[JECVariation::jes_up] = "jes_up";
+  kJECVariationToString[JECVariation::jes_down] = "jes_down";
+  kJECVariationToString[JECVariation::jer_up] = "jer_up";
+  kJECVariationToString[JECVariation::jer_down] = "jer_down";
+
   dataset_version = ctx.get("dataset_version");
   is_ttbar = (dataset_version.find("TTbar") != string::npos);
   is_wjets = (dataset_version.find("WJets") != string::npos);
@@ -214,22 +253,63 @@ WorkingPointModule::WorkingPointModule(Context & ctx):
 
   ctx.undeclare_all_event_output();
 
+  slct_pv.reset(new NPVSelection(1, -1));
+
   sf_lumi.reset(new MCLumiWeight(ctx));
   sf_pileup.reset(new MCPileupReweight(ctx));
 
   ak8_corrections.reset(new TopJetCorrections());
   ak8_corrections->init(ctx);
+  const TopJetId ak8_id = AndId<TopJet>(PtEtaCut(200., 2.5), JetPFID(JetPFID::WP_TIGHT_PUPPI));
+  ak8_cleaner.reset(new TopJetCleaner(ctx, ak8_id));
+  slct_1ak8.reset(new NTopJetSelection(1, -1));
+
+  hotvrjets_handle = ctx.get_handle<vector<TopJet>>(ctx.get("hotvrCollection_rec"));
+  hotvrgenjets_handle = ctx.get_handle<vector<GenTopJet>>(ctx.get("hotvrCollection_gen"));
+
+  string pipe_rec_name;
+  string pipe_gen_name;
+  for(const auto & jecvar : kJECVariationToString) {
+    switch(jecvar.first) {
+      case JECVariation::nominal :
+      ctx.set("jecsmear_direction", "nominal");
+      ctx.set("jersmear_direction", "nominal");
+      break;
+      case JECVariation::jes_up :
+      ctx.set("jecsmear_direction", "up");
+      ctx.set("jersmear_direction", "nominal");
+      break;
+      case JECVariation::jes_down :
+      ctx.set("jecsmear_direction", "down");
+      ctx.set("jersmear_direction", "nominal");
+      break;
+      case JECVariation::jer_up :
+      ctx.set("jecsmear_direction", "nominal");
+      ctx.set("jersmear_direction", "up");
+      break;
+      case JECVariation::jer_down :
+      ctx.set("jecsmear_direction", "nominal");
+      ctx.set("jersmear_direction", "down");
+      break;
+    }
+
+    pipe_rec_name = "hotvrpuppi_"+jecvar.second;
+    pipe_gen_name = ctx.get("hotvrCollection_gen");
+    hotvrjets_varied[jecvar.first] = ctx.get_handle<vector<TopJet>>(pipe_rec_name);
+    corrections_hotvr_varied[jecvar.first].reset(new ltt::TopJetCorrections(pipe_rec_name, pipe_gen_name));
+    corrections_hotvr_varied[jecvar.first]->switch_topjet_corrections(false);
+    corrections_hotvr_varied[jecvar.first]->switch_subjet_corrections(true);
+    corrections_hotvr_varied[jecvar.first]->switch_rebuilding_topjets_from_subjets(true);
+    corrections_hotvr_varied[jecvar.first]->init(ctx);
+  }
+
   hotvr_corrections.reset(new TopJetCorrections(ctx.get("hotvrCollection_rec"), ctx.get("hotvrCollection_gen")));
   hotvr_corrections->switch_topjet_corrections(false);
   hotvr_corrections->switch_subjet_corrections(true);
   hotvr_corrections->switch_rebuilding_topjets_from_subjets(true);
   hotvr_corrections->init(ctx);
-  hotvrjets_handle = ctx.get_handle<vector<TopJet>>(ctx.get("hotvrCollection_rec"));
-  const TopJetId ak8_id = AndId<TopJet>(PtEtaCut(200, 2.5), JetPFID(JetPFID::WP_TIGHT_PUPPI));
-  const TopJetId hotvr_id = AndId<TopJet>(PtEtaCut(200, 2.5), JetPFID(JetPFID::WP_TIGHT_PUPPI));
-  ak8_cleaner.reset(new TopJetCleaner(ctx, ak8_id));
+  const TopJetId hotvr_id = AndId<TopJet>(PtEtaCut(200., 2.5), JetPFID(JetPFID::WP_TIGHT_PUPPI));
   hotvr_cleaner.reset(new TopJetCleaner(ctx, hotvr_id, ctx.get("hotvrCollection_rec")));
-  slct_1ak8.reset(new NTopJetSelection(1, -1));
   slct_1hotvr.reset(new NTopJetSelection(1, -1, boost::none, hotvrjets_handle));
 
   event_weight = ctx.declare_event_output<float>("event_weight");
@@ -237,6 +317,21 @@ WorkingPointModule::WorkingPointModule(Context & ctx):
   n_hotvrjets = ctx.declare_event_output<unsigned int>("n_hotvrjets");
 
   if(is_ttbar) {
+    // For the HOTVR jet pT response study:
+    hotvrjets_passes_jet_id = ctx.declare_event_output<vector<bool>>("hotvrjets_passes_jet_id");
+    hotvrjets_dr_rec_to_gen = ctx.declare_event_output<vector<float>>("hotvrjets_dr_rec_to_gen");
+    hotvrjets_reff = ctx.declare_event_output<vector<float>>("hotvrjets_reff");
+    hotvrjets_pt_gen = ctx.declare_event_output<vector<float>>("hotvrjets_pt_gen");
+    hotvrjets_pt_rec_raw = ctx.declare_event_output<vector<float>>("hotvrjets_pt_rec_raw");
+    hotvrjets_pt_rec_corr = ctx.declare_event_output<vector<float>>("hotvrjets_pt_rec_corr");
+    hotvrjets_pt_rec_corr_jes_up = ctx.declare_event_output<vector<float>>("hotvrjets_pt_rec_corr_jes_up");
+    hotvrjets_pt_rec_corr_jes_down = ctx.declare_event_output<vector<float>>("hotvrjets_pt_rec_corr_jes_down");
+    hotvrjets_pt_rec_corr_jer_up = ctx.declare_event_output<vector<float>>("hotvrjets_pt_rec_corr_jer_up");
+    hotvrjets_pt_rec_corr_jer_down = ctx.declare_event_output<vector<float>>("hotvrjets_pt_rec_corr_jer_down");
+    hotvrjets_eta = ctx.declare_event_output<vector<float>>("hotvrjets_eta");
+
+    // For the WP stuff:
+
     ttbargen_producer.reset(new TTbarGenProducer(ctx));
     ttbargen_handle = ctx.get_handle<TTbarGen>("ttbargen");
 
@@ -321,6 +416,7 @@ WorkingPointModule::WorkingPointModule(Context & ctx):
 
     the_two_w_ak8jets_are_the_same = ctx.declare_event_output<bool>("the_two_w_ak8jets_are_the_same");
 
+    tnearesthotvrjet_reff = ctx.declare_event_output<float>("tnearesthotvrjet_reff");
     tnearesthotvrjet_pt = ctx.declare_event_output<float>("tnearesthotvrjet_pt");
     tnearesthotvrjet_mass = ctx.declare_event_output<float>("tnearesthotvrjet_mass");
     tnearesthotvrjet_nsubjets = ctx.declare_event_output<int>("tnearesthotvrjet_nsubjets");
@@ -332,6 +428,7 @@ WorkingPointModule::WorkingPointModule(Context & ctx):
     tnearesthotvrjet_dr_genWplus_d1 = ctx.declare_event_output<float>("tnearesthotvrjet_dr_genWplus_d1");
     tnearesthotvrjet_dr_genWplus_d2 = ctx.declare_event_output<float>("tnearesthotvrjet_dr_genWplus_d2");
 
+    antitnearesthotvrjet_reff = ctx.declare_event_output<float>("antitnearesthotvrjet_reff");
     antitnearesthotvrjet_pt = ctx.declare_event_output<float>("antitnearesthotvrjet_pt");
     antitnearesthotvrjet_mass = ctx.declare_event_output<float>("antitnearesthotvrjet_mass");
     antitnearesthotvrjet_nsubjets = ctx.declare_event_output<int>("antitnearesthotvrjet_nsubjets");
@@ -369,6 +466,7 @@ WorkingPointModule::WorkingPointModule(Context & ctx):
     ak8jets_partnet_TvsQCD = ctx.declare_event_output<vector<float>>("ak8jets_partnet_TvsQCD");
     ak8jets_partnet_WvsQCD = ctx.declare_event_output<vector<float>>("ak8jets_partnet_WvsQCD");
 
+    hotvrjets_reff = ctx.declare_event_output<vector<float>>("hotvrjets_reff");
     hotvrjets_pt = ctx.declare_event_output<vector<float>>("hotvrjets_pt");
     hotvrjets_mass = ctx.declare_event_output<vector<float>>("hotvrjets_mass");
     hotvrjets_nsubjets = ctx.declare_event_output<vector<int>>("hotvrjets_nsubjets");
@@ -384,6 +482,8 @@ WorkingPointModule::WorkingPointModule(Context & ctx):
   hists_hotvr_before_corrections.reset(new HOTVRHists(ctx, "HOTVRHists_0_before_corrections", ctx.get("hotvrCollection_rec"), ctx.get("hotvrCollection_gen"), "", true, 1000));
   hists_hotvr_after_corrections.reset(new HOTVRHists(ctx, "HOTVRHists_1_after_corrections", ctx.get("hotvrCollection_rec"), ctx.get("hotvrCollection_gen"), "", true, 1000));
   hists_hotvr_after_cleaning.reset(new HOTVRHists(ctx, "HOTVRHists_2_after_cleaning", ctx.get("hotvrCollection_rec"), ctx.get("hotvrCollection_gen"), "", true, 1000));
+
+  // printer.reset(new GenParticlesPrinter(ctx));
 }
 
 
@@ -396,8 +496,74 @@ bool WorkingPointModule::process(Event & event) {
     cout << "+-----------+" << endl;
   }
 
+  if(!slct_pv->passes(event)) return false;
+
   sf_lumi->process(event);
   sf_pileup->process(event);
+
+
+  // Stuff for HOTVR jet pT response study:
+
+  if(is_ttbar) {
+    for(const auto & jecvar : kJECVariationToString) {
+      event.set(hotvrjets_varied[jecvar.first], event.get(hotvrjets_handle));
+      corrections_hotvr_varied[jecvar.first]->process(event);
+    }
+    vector<GenTopJet> hotvrgenjets = event.get(hotvrgenjets_handle);
+    vector<bool> _hotvrjets_passes_jet_id;
+    vector<float> _hotvrjets_dr_rec_to_gen;
+    vector<float> _hotvrjets_reff;
+    vector<float> _hotvrjets_pt_gen;
+    vector<float> _hotvrjets_pt_rec_raw;
+    vector<float> _hotvrjets_pt_rec_corr;
+    vector<float> _hotvrjets_pt_rec_corr_jes_up;
+    vector<float> _hotvrjets_pt_rec_corr_jes_down;
+    vector<float> _hotvrjets_pt_rec_corr_jer_up;
+    vector<float> _hotvrjets_pt_rec_corr_jer_down;
+    vector<float> _hotvrjets_eta;
+    for(size_t i_hotvr = 0; i_hotvr < event.get(hotvrjets_varied[JECVariation::nominal]).size(); i_hotvr++) {
+      const TopJet & recjet = event.get(hotvrjets_varied[JECVariation::nominal]).at(i_hotvr);
+      const GenTopJet *genjet = closestParticle(recjet, hotvrgenjets);
+      if(genjet == nullptr) continue;
+      const JetId jet_id = JetPFID(JetPFID::WP_TIGHT_PUPPI); // independent of JEC
+      const bool passes_jet_id = jet_id(recjet, event); // independent of JEC
+      const double dR = deltaR(genjet->v4(), recjet.v4()); // independent of JEC
+      const double hotvr_Reff = HOTVR_Reff(recjet); // independent of JEC
+      const double pt_gen = genjet->v4().pt(); // independent of JEC
+      const double pt_rec_raw = recjet.v4().pt() * recjet.JEC_factor_raw(); // independent of JEC
+      const double pt_rec_corr = recjet.v4().pt();
+      const double pt_rec_corr_jes_up = event.get(hotvrjets_varied[JECVariation::jes_up]).at(i_hotvr).v4().pt();
+      const double pt_rec_corr_jes_down = event.get(hotvrjets_varied[JECVariation::jes_down]).at(i_hotvr).v4().pt();
+      const double pt_rec_corr_jer_up = event.get(hotvrjets_varied[JECVariation::jer_up]).at(i_hotvr).v4().pt();
+      const double pt_rec_corr_jer_down = event.get(hotvrjets_varied[JECVariation::jer_down]).at(i_hotvr).v4().pt();
+      const double eta = recjet.v4().eta(); // independent of JEC
+      _hotvrjets_passes_jet_id.push_back(passes_jet_id);
+      _hotvrjets_dr_rec_to_gen.push_back(dR);
+      _hotvrjets_reff.push_back(hotvr_Reff);
+      _hotvrjets_pt_gen.push_back(pt_gen);
+      _hotvrjets_pt_rec_raw.push_back(pt_rec_raw);
+      _hotvrjets_pt_rec_corr.push_back(pt_rec_corr);
+      _hotvrjets_pt_rec_corr_jes_up.push_back(pt_rec_corr_jes_up);
+      _hotvrjets_pt_rec_corr_jes_down.push_back(pt_rec_corr_jes_down);
+      _hotvrjets_pt_rec_corr_jer_up.push_back(pt_rec_corr_jer_up);
+      _hotvrjets_pt_rec_corr_jer_down.push_back(pt_rec_corr_jer_down);
+      _hotvrjets_eta.push_back(eta);
+    }
+    event.set(hotvrjets_passes_jet_id, _hotvrjets_passes_jet_id);
+    event.set(hotvrjets_dr_rec_to_gen, _hotvrjets_dr_rec_to_gen);
+    event.set(hotvrjets_reff, _hotvrjets_reff);
+    event.set(hotvrjets_pt_gen, _hotvrjets_pt_gen);
+    event.set(hotvrjets_pt_rec_raw, _hotvrjets_pt_rec_raw);
+    event.set(hotvrjets_pt_rec_corr, _hotvrjets_pt_rec_corr);
+    event.set(hotvrjets_pt_rec_corr_jes_up, _hotvrjets_pt_rec_corr_jes_up);
+    event.set(hotvrjets_pt_rec_corr_jes_down, _hotvrjets_pt_rec_corr_jes_down);
+    event.set(hotvrjets_pt_rec_corr_jer_up, _hotvrjets_pt_rec_corr_jer_up);
+    event.set(hotvrjets_pt_rec_corr_jer_down, _hotvrjets_pt_rec_corr_jer_down);
+    event.set(hotvrjets_eta, _hotvrjets_eta);
+  }
+
+
+  // Working point stuff:
 
   hists_ak8_before_corrections->fill(event);
   hists_hotvr_before_corrections->fill(event);
@@ -415,10 +581,17 @@ bool WorkingPointModule::process(Event & event) {
   sort_by_pt(event.get(hotvrjets_handle));
   const vector<TopJet> & hotvrjets = event.get(hotvrjets_handle);
 
+  if(debug) cout << "Throw away events without neither HOTVR nor AK8 jet" << endl;
+  const bool has_ak8 = slct_1ak8->passes(event);
+  const bool has_hotvr = slct_1hotvr->passes(event);
+  const bool passes_wp_study = has_ak8 || has_hotvr;
+  // if(!(has_ak8 || has_hotvr)) return false; // if we would return false here, low-pt events from HOTVT jet pT response study would be not written to tree!
+
   if(debug) cout << "Set event output" << endl;
   event.set(event_weight, event.weight);
   event.set(n_ak8jets, ak8jets.size());
   event.set(n_hotvrjets, hotvrjets.size());
+
 
   if(is_ttbar) {
     ttbargen_producer->process(event);
@@ -515,7 +688,7 @@ bool WorkingPointModule::process(Event & event) {
 
     bool _the_two_w_ak8jets_are_the_same = false;
 
-    if(ak8jets.size() > 0) {
+    if(has_ak8) {
       const TopJet *tnearestak8jet = nextTopJet(top, ak8jets);
       _tnearestak8jet_pt = tnearestak8jet->v4().Pt();
       _tnearestak8jet_msd = mSD(*tnearestak8jet);
@@ -629,6 +802,7 @@ bool WorkingPointModule::process(Event & event) {
 
     event.set(the_two_w_ak8jets_are_the_same, _the_two_w_ak8jets_are_the_same);
 
+    float _tnearesthotvrjet_reff = -1.;
     float _tnearesthotvrjet_pt = -1.;
     float _tnearesthotvrjet_mass = -1.;
     int _tnearesthotvrjet_nsubjets = -1;
@@ -640,6 +814,7 @@ bool WorkingPointModule::process(Event & event) {
     float _tnearesthotvrjet_dr_genWplus_d1 = -1.;
     float _tnearesthotvrjet_dr_genWplus_d2 = -1.;
 
+    float _antitnearesthotvrjet_reff = -1.;
     float _antitnearesthotvrjet_pt = -1.;
     float _antitnearesthotvrjet_mass = -1.;
     int _antitnearesthotvrjet_nsubjets = -1;
@@ -653,8 +828,9 @@ bool WorkingPointModule::process(Event & event) {
 
     bool _the_two_t_hotvrjets_are_the_same = false;
 
-    if(hotvrjets.size() > 0) {
+    if(has_hotvr) {
       const TopJet *tnearesthotvrjet = nextTopJet(top, hotvrjets);
+      _tnearesthotvrjet_reff = HOTVR_Reff(*tnearesthotvrjet);
       _tnearesthotvrjet_pt = tnearesthotvrjet->v4().Pt();
       _tnearesthotvrjet_mass = tnearesthotvrjet->v4().M();
       _tnearesthotvrjet_nsubjets = tnearesthotvrjet->subjets().size();
@@ -666,7 +842,8 @@ bool WorkingPointModule::process(Event & event) {
       _tnearesthotvrjet_dr_genWplus_d1 = deltaR(tnearesthotvrjet->v4(), genWplus_d1);
       _tnearesthotvrjet_dr_genWplus_d2 = deltaR(tnearesthotvrjet->v4(), genWplus_d2);
 
-      const TopJet *antitnearesthotvrjet = nextTopJet(top, hotvrjets);
+      const TopJet *antitnearesthotvrjet = nextTopJet(antitop, hotvrjets);
+      _antitnearesthotvrjet_reff = HOTVR_Reff(*antitnearesthotvrjet);
       _antitnearesthotvrjet_pt = antitnearesthotvrjet->v4().Pt();
       _antitnearesthotvrjet_mass = antitnearesthotvrjet->v4().M();
       _antitnearesthotvrjet_nsubjets = antitnearesthotvrjet->subjets().size();
@@ -681,6 +858,7 @@ bool WorkingPointModule::process(Event & event) {
       _the_two_t_hotvrjets_are_the_same = tnearesthotvrjet == antitnearesthotvrjet;
     }
 
+    event.set(tnearesthotvrjet_reff, _tnearesthotvrjet_reff);
     event.set(tnearesthotvrjet_pt, _tnearesthotvrjet_pt);
     event.set(tnearesthotvrjet_mass, _tnearesthotvrjet_mass);
     event.set(tnearesthotvrjet_nsubjets, _tnearesthotvrjet_nsubjets);
@@ -692,6 +870,7 @@ bool WorkingPointModule::process(Event & event) {
     event.set(tnearesthotvrjet_dr_genWplus_d1, _tnearesthotvrjet_dr_genWplus_d1);
     event.set(tnearesthotvrjet_dr_genWplus_d2, _tnearesthotvrjet_dr_genWplus_d2);
 
+    event.set(antitnearesthotvrjet_reff, _antitnearesthotvrjet_reff);
     event.set(antitnearesthotvrjet_pt, _antitnearesthotvrjet_pt);
     event.set(antitnearesthotvrjet_mass, _antitnearesthotvrjet_mass);
     event.set(antitnearesthotvrjet_nsubjets, _antitnearesthotvrjet_nsubjets);
@@ -706,14 +885,21 @@ bool WorkingPointModule::process(Event & event) {
     event.set(the_two_t_hotvrjets_are_the_same, _the_two_t_hotvrjets_are_the_same);
   }
   else if(is_wjets) {
-    GenParticle genW;
-    for(GenParticle gp : *event.genparticles) {
-      if(abs(gp.pdgId()) == 24) genW = gp;
-      break;
+    const GenParticle *genW = nullptr;
+    for(const GenParticle & gp : *event.genparticles) {
+      if(abs(gp.pdgId()) == 24) {
+        genW = &gp;
+        break;
+      }
     }
-    event.set(w_pt, genW.v4().Pt());
-    event.set(w_eta, genW.v4().Eta());
-    event.set(w_phi, genW.v4().Phi());
+    if(!genW) throw runtime_error("no gen W found");
+
+    // if(!genW) {
+    //   printer->process(event);
+    // }
+    event.set(w_pt, genW->pt());
+    event.set(w_eta, genW->eta());
+    event.set(w_phi, genW->phi());
 
     float _wnearestak8jet_pt = -1.;
     float _wnearestak8jet_msd = -1.;
@@ -722,14 +908,14 @@ bool WorkingPointModule::process(Event & event) {
     float _wnearestak8jet_partnet_WvsQCD = -1.;
     float _wnearestak8jet_dr = -1.;
 
-    if(ak8jets.size() > 0) {
-      const TopJet *wnearestak8jet = nextTopJet(genW, ak8jets);
+    if(has_ak8 && genW) {
+      const TopJet *wnearestak8jet = nextTopJet(*genW, ak8jets);
       _wnearestak8jet_pt = wnearestak8jet->v4().Pt();
       _wnearestak8jet_msd = mSD(*wnearestak8jet);
       _wnearestak8jet_tau21 = tau21(*wnearestak8jet);
       _wnearestak8jet_deepak8_WvsQCD = wnearestak8jet->btag_DeepBoosted_WvsQCD();
       _wnearestak8jet_partnet_WvsQCD = wnearestak8jet->btag_ParticleNetDiscriminatorsJetTags_WvsQCD();
-      _wnearestak8jet_dr = deltaR(wnearestak8jet->v4(), genW.v4());
+      _wnearestak8jet_dr = deltaR(wnearestak8jet->v4(), genW->v4());
     }
 
     event.set(wnearestak8jet_pt, _wnearestak8jet_pt);
@@ -750,7 +936,7 @@ bool WorkingPointModule::process(Event & event) {
     vector<float> _ak8jets_deepak8_WvsQCD;
     vector<float> _ak8jets_partnet_TvsQCD;
     vector<float> _ak8jets_partnet_WvsQCD;
-    for(auto j : ak8jets) {
+    for(const auto & j : ak8jets) {
       _ak8jets_pt.push_back(j.v4().Pt());
       _ak8jets_msd.push_back(mSD(j));
       _ak8jets_subjets_deepcsv_max.push_back(maxDeepCSVSubJetValue(j));
@@ -773,13 +959,15 @@ bool WorkingPointModule::process(Event & event) {
     event.set(ak8jets_partnet_TvsQCD, _ak8jets_partnet_TvsQCD);
     event.set(ak8jets_partnet_WvsQCD, _ak8jets_partnet_WvsQCD);
 
+    vector<float> _hotvrjets_reff;
     vector<float> _hotvrjets_pt;
     vector<float> _hotvrjets_mass;
     vector<int> _hotvrjets_nsubjets;
     vector<float> _hotvrjets_mpair;
     vector<float> _hotvrjets_fpt1;
     vector<float> _hotvrjets_tau32;
-    for(auto j : hotvrjets) {
+    for(const auto & j : hotvrjets) {
+      _hotvrjets_reff.push_back(HOTVR_Reff(j));
       _hotvrjets_pt.push_back(j.v4().Pt());
       _hotvrjets_mass.push_back(j.v4().M());
       _hotvrjets_nsubjets.push_back(j.subjets().size());
@@ -787,6 +975,7 @@ bool WorkingPointModule::process(Event & event) {
       _hotvrjets_fpt1.push_back(HOTVR_fpt(j));
       _hotvrjets_tau32.push_back(tau32groomed(j));
     }
+    event.set(hotvrjets_reff, _hotvrjets_reff);
     event.set(hotvrjets_pt, _hotvrjets_pt);
     event.set(hotvrjets_mass, _hotvrjets_mass);
     event.set(hotvrjets_nsubjets, _hotvrjets_nsubjets);

@@ -360,7 +360,10 @@ class xmlCreator:
          file.write('''<Item Name="GenTopJetCollection" Value="hotvrGen"/>\n''')
          file.write('''<Item Name="GenParticleCollection" Value="GenParticles"/>\n''')
          file.write('''<Item Name="GenInfoName" Value="genInfo"/>\n''')
-         file.write('''<Item Name="additionalBranches" Value="jetsAk4CHS jetsAk8PuppiSubstructure_SoftDropPuppi genjetsAk8SubstructureSoftDrop slimmedMETs"/>\n''')
+         if self.is_mainsel:
+            file.write('''<Item Name="additionalBranches" Value="jetsAk4CHS jetsAk8PuppiSubstructure_SoftDropPuppi genjetsAk8SubstructureSoftDrop slimmedMETs btw_bool_reco_sel"/>\n''')
+         else:
+            file.write('''<Item Name="additionalBranches" Value="jetsAk4CHS jetsAk8PuppiSubstructure_SoftDropPuppi genjetsAk8SubstructureSoftDrop slimmedMETs"/>\n''')
          # if self.is_mainsel:
          #    file.write('''<Item Name="AK8Collection_rec" Value="jetsAk8PuppiSubstructure_SoftDropPuppi"/>\n''')
          #    file.write('''<Item Name="AK8Collection_gen" Value="genjetsAk8SubstructureSoftDrop"/>\n''')

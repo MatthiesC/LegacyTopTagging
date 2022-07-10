@@ -544,9 +544,10 @@ private:
 //____________________________________________________________________________________________________
 class ObjectPtSorter: public uhh2::AnalysisModule {
 public:
-  ObjectPtSorter(uhh2::Context & ctx);
+  ObjectPtSorter(uhh2::Context & ctx, const bool do_fatjets = true);
   virtual bool process(uhh2::Event & event) override;
 private:
+  const bool bDoFatJets;
   const uhh2::Event::Handle<std::vector<Jet>> fHandle_CHSjets;
   const uhh2::Event::Handle<std::vector<TopJet>> fHandle_AK8Collection_rec;
   const uhh2::Event::Handle<std::vector<GenTopJet>> fHandle_AK8Collection_gen;

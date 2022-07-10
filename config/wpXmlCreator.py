@@ -22,9 +22,10 @@ from xmlCreator import systEntity
 
 class wpXmlCreator:
 
-    def __init__(self, years):
+    def __init__(self, years, create_jec_files=False):
 
         self.years = years
+        self.createJECFiles = create_jec_files
         self.workdirNames = OrderedDict()
         for year in self.years:
             self.workdirNames[year] = 'workdir_WorkingPointStudy_'+year
@@ -93,6 +94,7 @@ class wpXmlCreator:
             file.write('''\n''')
             file.write('''<UserConfig>\n''')
             file.write('''\n''')
+            file.write('''<Item Name="PrimaryVertexCollection" Value="offlineSlimmedPrimaryVertices"/>\n''')
             file.write('''<Item Name="GenInfoName" Value="genInfo"/>\n''')
             file.write('''<Item Name="GenParticleCollection" Value="GenParticles"/>\n''')
             file.write('''<Item Name="TopJetCollection" Value="jetsAk8PuppiSubstructure_SoftDropPuppi"/>\n''')
@@ -167,9 +169,10 @@ class wpXmlCreator:
             outfile.write('#!/bin/bash\n')
             newline_base = 'sframe_batch.py $1 '
             for year in self.years:
-                outfile.write(newline_base+self.xmlFilePaths[year]+'\n')
-                for systXmlFilePath in self.systXmlFilePaths[year]:
-                   outfile.write(newline_base+systXmlFilePath+'\n')
+                outfile.write(newline_base+os.path.basename(self.xmlFilePaths[year])+'\n')
+                if self.createJECFiles:
+                    for systXmlFilePath in self.systXmlFilePaths[year]:
+                        outfile.write(newline_base+os.path.basename(systXmlFilePath)+'\n')
         p = subprocess.Popen('chmod +x '+scriptFilePath_sframe_batch, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         p.wait()
         print('Created '+scriptFilePath_sframe_batch)
@@ -180,8 +183,9 @@ class wpXmlCreator:
             newline_base = 'python run_local.py $1 '
             for year in self.years:
                 outfile.write(newline_base+self.workdirNames[year]+'\n')
-                for systWorkdirName in self.systWorkdirNames[year]:
-                   outfile.write(newline_base+systWorkdirName+'\n')
+                if self.createJECFiles:
+                    for systWorkdirName in self.systWorkdirNames[year]:
+                        outfile.write(newline_base+systWorkdirName+'\n')
         p = subprocess.Popen('chmod +x '+scriptFilePath_run_local, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         p.wait()
         print('Created '+scriptFilePath_run_local)
@@ -189,11 +193,11 @@ class wpXmlCreator:
         p = subprocess.Popen(link_run_local_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         p.wait()
 
-    def run(self):
+    def run(self, create_jec_files=False):
 
         for year in self.years:
             self.write_xml(year)
-            self.write_all_systematics_xmls(year)
+            if self.createJECFiles: self.write_all_systematics_xmls(year)
         self.write_bash_scripts()
 
 if __name__=='__main__':
@@ -204,6 +208,7 @@ if __name__=='__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--all', action='store_true', help='Create XML files for all years.')
     parser.add_argument('-y', '--years', choices=years, nargs='*', default=[])
+    parser.add_argument('--jec', action='store_true', help='Create JES/JER variation XML files.')
     args = parser.parse_args(sys.argv[1:])
 
     if(args.all == True):
@@ -214,5 +219,5 @@ if __name__=='__main__':
     print('Going to create XML files for:')
     print('  Years: '+', '.join(str(x) for x in args.years))
 
-    x = wpXmlCreator(args.years)
+    x = wpXmlCreator(args.years, args.jec)
     x.run()

@@ -79,6 +79,7 @@ private:
   */
 
   bool is_tW;
+  Event::Handle<bool> fHandle_bool_reco_sel;
   unique_ptr<AnalysisModule> prod_SingleTopGen_tWch;
 
   const Muon::Selector muonIDselector_lowpt = Muon::Selector::CutBasedIdTight;
@@ -189,6 +190,7 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx):
   // unsigned int i_hist(0);
 
   const string dataset_version = ctx.get("dataset_version");
+  fHandle_bool_reco_sel = ctx.get_handle<bool>("btw_bool_reco_sel"); // kHandleName_bool_reco_sel // I really should have merged HighPtSingleTop and LegacyTopTagging into one repo...
   is_tW = dataset_version.find("ST_tW") == 0;
   prod_SingleTopGen_tWch.reset(new ltt::SingleTopGen_tWchProducer(ctx, kHandleName_SingleTopGen_tWch));
 
@@ -310,6 +312,7 @@ bool TagAndProbeMainSelectionModule::process(Event & event) {
   }
 
   if(debug) cout << "Initial stuff after preselection" << endl;
+  if(event.is_valid(fHandle_bool_reco_sel) && event.get(fHandle_bool_reco_sel) == false) return false; // reject (tW) events which only pass gen level selections during preselection from HighPtSingleTop
   if(fChannel == Channel::isMuo) {
     if(event.muons->size() != 1) return false;
   }

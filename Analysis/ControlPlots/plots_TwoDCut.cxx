@@ -1,53 +1,30 @@
-typedef struct {
-  string name;
-  string long_name;
-  string lumi_fb;
-} Year;
+#include "../constants.h"
+
+using namespace macros;
+
+// typedef struct {
+//   string name;
+//   string long_name;
+//   string lumi_fb;
+// } Year;
 
 typedef struct {
   string name;
   string watermark;
 } Process;
 
-class CoordinateConverter {
-public:
-  CoordinateConverter() {};
-  void init(const float l, const float r, const float b, const float t);
-  float ConvertGraphXToPadX(const float graph_x);
-  float ConvertGraphYToPadY(const float graph_y);
-private:
-  float pad_l, pad_r, pad_b, pad_t; // pad margins
-  float graph_width, graph_height;
-};
-
-void CoordinateConverter::init(const float l, const float r, const float b, const float t) {
-  pad_l = l;
-  pad_r = r;
-  pad_b = b;
-  pad_t = t;
-  graph_width = 1.-l-r;
-  graph_height = 1.-b-t;
-}
-
-float CoordinateConverter::ConvertGraphXToPadX(const float graph_x) {
-  return pad_l+graph_x*graph_width;
-}
-
-float CoordinateConverter::ConvertGraphYToPadY(const float graph_y) {
-  return pad_b+graph_y*graph_height;
-}
-
 
 void do_plot(const Year & year, const Process & process, const bool log_z) {
-  string infileBasePath = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel/"+year.name+"/nominal/";
-  TFile *infile = TFile::Open((infileBasePath+"hadded/uhh2.AnalysisModuleRunner.MC."+process.name+"__AllMergeScenarios_"+year.name+".root").c_str(), "READ");
-  TH2F *hist_raw = (TH2F*)infile->Get("4_BeforeTwoD_Common/twodselection");
+  string infileBasePath = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel/"+kYears.at(year).name+"/muo/nominal/";
+  TFile *infile = TFile::Open((infileBasePath+"hadded/uhh2.AnalysisModuleRunner.MC."+process.name+".root").c_str(), "READ");
+  TH2F *hist_raw = (TH2F*)infile->Get("Before2D_Common/twodselection");
 
   TCanvas *c = new TCanvas("canvas", "canvas title", 600, 600);
   c->cd();
-  float margin_l = 0.15;
-  float margin_r = 0.19; // 0.05
-  float margin_b = 0.12;
+  // these margin values make it possible to have nearly perfect circle for the circular cut:
+  float margin_l = 0.16; // 0.15
+  float margin_r = 0.20; // 0.05 // 0.19
+  float margin_b = 0.12; // 0.12
   float margin_t = 0.08;
   float tick_length = 0.015; // fraction of canvas width/height
   c->SetMargin(margin_l, margin_r, margin_b, margin_t); //lrbt
@@ -81,24 +58,32 @@ void do_plot(const Year & year, const Process & process, const bool log_z) {
     }
   }
 
-  TH2F *hist = new TH2F("hist", "", 80, 0, 2, 80, 0, 200);
+  // TH2F *hist = new TH2F("hist", "", 80, 0, 2, 80, 0, 200);
+  // for(unsigned int ix = 1; ix <= 80; ix++) {
+  //   for(unsigned int iy = 1; iy <= 80; iy++) {
+  //     hist->SetBinContent(ix, iy, hist_raw->GetBinContent(ix, iy));
+  //     hist->SetBinError(ix, iy, hist_raw->GetBinError(ix, iy));
+  //   }
+  // }
+  TH2F *hist = new TH2F("hist", "", 80, 0, 2, 72, 0, 180);
   for(unsigned int ix = 1; ix <= 80; ix++) {
-    for(unsigned int iy = 1; iy <= 80; iy++) {
+    for(unsigned int iy = 1; iy <= 72; iy++) {
       hist->SetBinContent(ix, iy, hist_raw->GetBinContent(ix, iy));
       hist->SetBinError(ix, iy, hist_raw->GetBinError(ix, iy));
     }
   }
 
-  hist->GetXaxis()->SetTitle("#Delta#it{R}(#mu, nearest AK4 jet)");
-  hist->GetXaxis()->SetTitleOffset(1.3);
+  hist->GetXaxis()->SetTitle("#Delta#it{R}(muon, #Delta#it{R}-nearest AK4 jet)");
+  hist->GetXaxis()->SetTitleOffset(1.4);
   // hist->GetXaxis()->SetRangeUser(0, 2);
   hist->GetXaxis()->SetNdivisions(805, false);
   hist->GetXaxis()->SetLabelOffset(0.02);
 
-  hist->GetYaxis()->SetTitle("#it{p}_{T}^{rel}(#mu, nearest AK4 jet) [GeV]");
+  hist->GetYaxis()->SetTitle("#it{p}_{T}^{rel}(muon, #Delta#it{R}-nearest AK4 jet) [GeV]");
   hist->GetYaxis()->SetTitleOffset(1.8);
   // hist->GetYaxis()->SetRangeUser(0, 200);
-  hist->GetYaxis()->SetNdivisions(410, false);
+  // hist->GetYaxis()->SetNdivisions(410, false);
+  hist->GetYaxis()->SetNdivisions(409, false);
   hist->GetYaxis()->SetLabelOffset(0.02);
 
   hist->GetZaxis()->SetTitle("d^{2}(Events) / (d(#Delta#it{R}) d#it{p}_{T}^{rel}) [GeV^{#minus1}]");
@@ -117,15 +102,15 @@ void do_plot(const Year & year, const Process & process, const bool log_z) {
   double ratio_hist_width_to_height = (1. - margin_l - margin_r) / (1. - margin_t - margin_b);
   double five_percent_x = 0.05 / ratio_hist_width_to_height;
 
-  // TText *text_top_left = new TText(margin_l, 1-(margin_t-0.01), ((string)"T&P selection ("+year.name+")").c_str());
-  TText *text_top_left = new TText(margin_l, 1-(margin_t-0.01), year.long_name.c_str());
+  // TText *text_top_left = new TText(margin_l, 1-(margin_t-0.01), ((string)"T&P selection ("+kYears.at(year).name+")").c_str());
+  TText *text_top_left = new TText(margin_l, 1-(margin_t-0.01), (string("Ultra Legacy ")+kYears.at(year).nice_name).c_str());
   text_top_left->SetTextAlign(11); // left bottom aligned
   text_top_left->SetTextFont(42);
   text_top_left->SetTextSize(0.035);
   text_top_left->SetNDC();
   text_top_left->Draw();
 
-  TLatex *text_top_right = new TLatex(1-margin_r, 1-(margin_t-0.01), (year.lumi_fb+(string)" fb^{#minus1} (13 TeV)").c_str());
+  TLatex *text_top_right = new TLatex(1-margin_r, 1-(margin_t-0.01), (kYears.at(year).lumi_fb_display+(string)" fb^{#minus1} (13 TeV)").c_str());
   text_top_right->SetTextAlign(31); // right bottom aligned
   text_top_right->SetTextFont(42);
   text_top_right->SetTextSize(0.035);
@@ -148,7 +133,7 @@ void do_plot(const Year & year, const Process & process, const bool log_z) {
   prelim->SetTextColor(kWhite);
   prelim->Draw();
 
-  TText *prelim2 = new TText(coord->ConvertGraphXToPadX(five_percent_x), coord->ConvertGraphYToPadY(0.807), "Work in Progress");
+  TText *prelim2 = new TText(coord->ConvertGraphXToPadX(five_percent_x), coord->ConvertGraphYToPadY(0.807), "Private Work");
   prelim2->SetTextAlign(13); // left top
   prelim2->SetTextFont(52);
   prelim2->SetTextSize(0.035);
@@ -198,27 +183,64 @@ void do_plot(const Year & year, const Process & process, const bool log_z) {
 
   // highlight the 2D window that is cut away:
   Int_t corner_color = kGreen;
-  TLine *corner_t = new TLine();
-  corner_t->SetLineColor(corner_color);
-  corner_t->SetLineWidth(2);
-  corner_t->DrawLine(0, 25, 0.4, 25);
-  TArrow *arrow_t = new TArrow(0.2, 25, 0.2, 25+0.03*200/(1.-margin_t-margin_b), 0.02, "|>");
-  arrow_t->SetLineColor(corner_color);
-  arrow_t->SetFillColor(corner_color);
-  arrow_t->SetLineWidth(2);
-  arrow_t->Draw();
-  TLine *corner_r = new TLine();
-  corner_r->SetLineColor(corner_color);
-  corner_r->SetLineWidth(2);
-  corner_r->DrawLine(0.4, 0, 0.4, 25);
-  TArrow *arrow_r = new TArrow(0.4, 12.5, 0.4+0.03*2/(1.-margin_l-margin_r), 12.5, 0.02, "|>");
-  arrow_r->SetLineColor(corner_color);
-  arrow_r->SetFillColor(corner_color);
-  arrow_r->SetLineWidth(2);
-  arrow_r->Draw();
+  // TLine *corner_t = new TLine();
+  // corner_t->SetLineColor(corner_color);
+  // corner_t->SetLineWidth(2);
+  // corner_t->DrawLine(0, 25, 0.4, 25);
+  // TArrow *arrow_t = new TArrow(0.2, 25, 0.2, 25+0.03*200/(1.-margin_t-margin_b), 0.02, "|>");
+  // arrow_t->SetLineColor(corner_color);
+  // arrow_t->SetFillColor(corner_color);
+  // arrow_t->SetLineWidth(2);
+  // arrow_t->Draw();
+  // TLine *corner_r = new TLine();
+  // corner_r->SetLineColor(corner_color);
+  // corner_r->SetLineWidth(2);
+  // corner_r->DrawLine(0.4, 0, 0.4, 25);
+  // TArrow *arrow_r = new TArrow(0.4, 12.5, 0.4+0.03*2/(1.-margin_l-margin_r), 12.5, 0.02, "|>");
+  // arrow_r->SetLineColor(corner_color);
+  // arrow_r->SetFillColor(corner_color);
+  // arrow_r->SetLineWidth(2);
+  // arrow_r->Draw();
+
+  // highlight the circular cut:
+  TEllipse *circle = new TEllipse(0, 0, 0.4, 30, 0, 90);
+  // circle->SetFillColor(5);
+  circle->SetFillStyle(0);
+  circle->SetLineColor(corner_color);
+  circle->SetLineWidth(2);
+  circle->SetNoEdges();
+  circle->Draw();
+
+  const float golden_ratio = (1.f + sqrt(5.f)) / 2.f;
+  const float inverse_golden_ratio_times_pi4 = (1.f - (golden_ratio - 1.f)) * TMath::Pi() * 0.25f;
+  const float cos_golden = cos(inverse_golden_ratio_times_pi4);
+  const float sin_golden = sin(inverse_golden_ratio_times_pi4);
+  const float cos_pi4 = 0.707107;
+  const float cos_pi8 = 0.923880;
+  const float sin_pi8 = 0.382683;
+
+  // TArrow *arrow1 = new TArrow(sin_pi8*0.4, cos_pi8*30, sin_pi8*0.6, cos_pi8*45, 0.02, "|>");
+  TArrow *arrow1 = new TArrow(sin_golden*0.4, cos_golden*30, sin_golden*0.4*golden_ratio, cos_golden*30*golden_ratio, 0.02, "|>");
+  arrow1->SetLineColor(corner_color);
+  arrow1->SetFillColor(corner_color);
+  arrow1->SetLineWidth(2);
+  arrow1->Draw();
+
+  TArrow *arrow2 = new TArrow(cos_pi4*0.4, cos_pi4*30, cos_pi4*0.4*golden_ratio, cos_pi4*30*golden_ratio, 0.02, "|>");
+  arrow2->SetLineColor(corner_color);
+  arrow2->SetFillColor(corner_color);
+  arrow2->SetLineWidth(2);
+  arrow2->Draw();
+
+  // TArrow *arrow3 = new TArrow(cos_pi8*0.4, sin_pi8*30, cos_pi8*0.6, sin_pi8*45, 0.02, "|>");
+  TArrow *arrow3 = new TArrow(cos_golden*0.4, sin_golden*30, cos_golden*0.4*golden_ratio, sin_golden*30*golden_ratio, 0.02, "|>");
+  arrow3->SetLineColor(corner_color);
+  arrow3->SetFillColor(corner_color);
+  arrow3->SetLineWidth(2);
+  arrow3->Draw();
 
   // Save to disk
-  string plotName = "plot_TwoDCut_"+process.name+"_"+year.name;
+  string plotName = "plot_TwoDCut_"+process.name+"_"+kYears.at(year).name;
   plotName += (log_z ? string("_log") : string("_lin"))+".pdf";
   string plotDir = infileBasePath+"plots/";
   gSystem->Exec(("mkdir -p "+plotDir).c_str());
@@ -231,14 +253,20 @@ void do_plot(const Year & year, const Process & process, const bool log_z) {
 void plots_TwoDCut() {
 
   cout << "Caveat: I assume that the TwoDSelection histograms are given in the form of 1000x1000 bins with x = DeltaR [0 to 5] and y = pTrel [0 to 500]" << endl;
-  cout << "NB: I will rebin and reduce the ranges to [0 to 2] and [0 to 200]" << endl;
+  cout << "NB: I will rebin and reduce the ranges to [0 to 2] and [0 to 180]" << endl;
 
-  vector<Year> years;
-  years.push_back(Year{"UL17", "Ultra Legacy 2017", "41.5"});
-  // years.push_back(Year{"UL18", "59.8"});
+  // vector<Year> years;
+  // years.push_back(Year{"UL16preVFP", "2016 (early)", "19.5"});
+  // years.push_back(Year{"UL16postVFP", "2016 (late)", "16.8"});
+  // years.push_back(Year{"UL17", "2017", "41.5"});
+  // years.push_back(Year{"UL18", "2018", "59.8"});
+
+  const vector<Year> years = { Year::isUL16preVFP, Year::isUL16postVFP, Year::isUL17, Year::isUL18 };
+
   vector<Process> processes;
   processes.push_back(Process{"TTbar", "t#bar{t}"});
   processes.push_back(Process{"QCD", "QCD multijet"});
+  // processes.push_back(Process{"WJetsToLNu", "W + jets"});
   for(const Year & year : years) {
     for(const Process & process : processes) {
       do_plot(year, process, true);

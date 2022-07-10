@@ -10,6 +10,7 @@ enum class Channel {
   isEle,
   isMuo,
   notValid,
+  isBoth,
 };
 
 typedef struct {
@@ -21,19 +22,24 @@ const std::map<Channel, ChannelInfo> kChannels = {
   { Channel::isEle,    ChannelInfo{1, "ele"} },
   { Channel::isMuo,    ChannelInfo{2, "muo"} },
   { Channel::notValid, ChannelInfo{0, "invalid"} },
+  { Channel::isBoth, ChannelInfo{3, "both"} },
 };
 
 typedef struct {
   int index;
   std::string name;
   std::string nice_name;
+  float lumi_fb;
+  float lumi_pb;
+  float lumi_unc;
+  std::string lumi_fb_display;
 } YearInfo;
 
 const std::map<Year, YearInfo> kYears = {
-  {Year::isUL16preVFP, YearInfo{1, "UL16preVFP", "2016 early"} },
-  {Year::isUL16postVFP, YearInfo{2, "UL16postVFP", "2016 late"} },
-  {Year::isUL17, YearInfo{3, "UL17", "2017"} },
-  {Year::isUL18, YearInfo{4, "UL18", "2018"} },
+  {Year::isUL16preVFP, YearInfo{1, "UL16preVFP", "2016 early", 19.536, 19536., 0.012, "19.5"} },
+  {Year::isUL16postVFP, YearInfo{2, "UL16postVFP", "2016 late", 16.797, 16797., 0.012, "16.8"} },
+  {Year::isUL17, YearInfo{3, "UL17", "2017", 41.480, 41480., 0.023, "41.5"} },
+  {Year::isUL18, YearInfo{4, "UL18", "2018", 59.832, 59832., 0.025, "59.8"} },
 };
 
 enum class Band {
