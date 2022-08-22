@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE JobConfiguration PUBLIC "" "JobConfig.dtd"[
+
+<!ENTITY TargetLumi "1">
+<!ENTITY b_Cacheable "False">
+<!ENTITY NEVT "-1">
+<!ENTITY PROOFdir "/nfs/dust/cms/user/matthies/.proof2">
+]>
+
+<!-- OutputLevel controls which messages are printed; set to VERBOSE or DEBUG for more verbosity, to WARNING or ERROR for less -->
+<JobConfiguration JobName="ExampleCycleJob" OutputLevel="INFO">
+	<Library Name="libSUHH2LegacyTopTagging"/>
+	<Package Name="libSUHH2LegacyTopTagging"/>
+	<Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="/nfs/dust/cms/user/matthies/uhh2-106X-v2/CMSSW_10_6_28/src/UHH2/LegacyTopTagging/output/NoopAnalysisModule/" PostFix="_0" TargetLumi="1">
+		<!-- <InputData Cacheable="False" Lumi="1" NEventsMax="-1" NEventsSkip="0" Type="MC" Version="TestNtuple"> -->
+		<InputData Cacheable="False" Lumi="1" NEventsMax="-1" NEventsSkip="0" Type="DATA" Version="TestNtuple">
+			<!-- <In FileName="/nfs/dust/cms/user/matthies/uhh2-106X-v2/CMSSW_10_6_28/src/UHH2/core/python/Ntuple_mc_UL18.root" Lumi="0.0"/> -->
+			<!-- <In FileName="/nfs/dust/cms/user/matthies/uhh2-106X-v2/CMSSW_10_6_28/src/UHH2/core/python/Ntuple_data_UL18.root" Lumi="0.0"/> -->
+			<!-- <In FileName="/nfs/dust/cms/user/matthies/uhh2-106X-v2/CMSSW_10_6_28/src/UHH2/core/python/Ntuple_mc_UL18_tags.root" Lumi="0.0"/> -->
+			<In FileName="/nfs/dust/cms/user/matthies/uhh2-106X-v2/CMSSW_10_6_28/src/UHH2/core/python/Ntuple_data_UL18_tags.root" Lumi="0.0"/>
+			<OutputTree Name="AnalysisTree"/>
+			<InputTree Name="AnalysisTree"/>
+		</InputData>
+		<UserConfig>
+			<Item Name="PrimaryVertexCollection" Value="offlineSlimmedPrimaryVertices"/>
+			<Item Name="METName" Value="slimmedMETsPuppi"/>
+			<Item Name="ElectronCollection" Value="slimmedElectronsUSER"/>
+			<Item Name="PhotonCollection" Value="slimmedPhotonsUSER"/>
+			<Item Name="MuonCollection" Value="slimmedMuonsUSER"/>
+			<Item Name="JetCollection" Value="jetsAk4Puppi"/>
+			<Item Name="GenJetCollection" Value="slimmedGenJets"/>
+			<Item Name="TopJetCollection" Value="hotvrPuppi"/>
+			<Item Name="GenTopJetCollection" Value="hotvrGen"/>
+			<Item Name="GenParticleCollection" Value="GenParticles"/>
+			<Item Name="GenInfoName" Value="genInfo"/>
+			<Item Name="use_sframe_weight" Value="false"/>
+			<Item Name="AnalysisModule" Value="DummyAnalysisModule"/>
+		</UserConfig>
+	</Cycle>
+</JobConfiguration>
