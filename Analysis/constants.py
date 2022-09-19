@@ -155,13 +155,56 @@ _PT_INTERVALS = [
 ]
 _PT_INTERVALS = {pt_interval.name: pt_interval for pt_interval in _PT_INTERVALS}
 
+_PT_INTERVALS_TANP_HOTVR = [
+    VarInterval('pt', 200),
+    VarInterval('pt', 200, 250),
+    VarInterval('pt', 250, 300),
+    VarInterval('pt', 300, 400),
+    VarInterval('pt', 400, 480),
+    VarInterval('pt', 480, 600),
+    VarInterval('pt', 600),
+]
+_PT_INTERVALS_TANP_HOTVR = {pt_interval.name: pt_interval for pt_interval in _PT_INTERVALS_TANP_HOTVR}
+
+_PT_INTERVALS_TANP_AK8_T = [
+    VarInterval('pt', 300),
+    VarInterval('pt', 300, 400),
+    VarInterval('pt', 400),
+    VarInterval('pt', 400, 480),
+    VarInterval('pt', 480, 600),
+    VarInterval('pt', 600),
+]
+_PT_INTERVALS_TANP_AK8_T = {pt_interval.name: pt_interval for pt_interval in _PT_INTERVALS_TANP_AK8_T}
+
+_PT_INTERVALS_TANP_AK8_W = [
+    VarInterval('pt', 200),
+    VarInterval('pt', 200, 250),
+    VarInterval('pt', 250, 300),
+    VarInterval('pt', 300, 400),
+    VarInterval('pt', 400),
+    VarInterval('pt', 400, 480),
+    VarInterval('pt', 480, 600),
+    VarInterval('pt', 600),
+]
+_PT_INTERVALS_TANP_AK8_W = {pt_interval.name: pt_interval for pt_interval in _PT_INTERVALS_TANP_AK8_W}
+
+
+class WorkingPoint:
+
+    def __init__(self, bkg_eff, cut_value):
+        self.bkg_eff = bkg_eff
+        self.cut_value = cut_value
+        self.name = 'BkgEff' + '{:.3f}'.format(bkg_eff).replace('.', 'p')
+
 class Tagger:
 
-    def __init__(self, name, scan_var, tag_rule = []):
+    def __init__(self, name, scan_var, tag_rule = [], wps = [], tandp_rule=''):
         self.name = name
         self.scan_var = scan_var
         self.tag_rule = tag_rule
         self.var_intervals = _PT_INTERVALS # just use all for now
+        self.wps = wps # cut values for scan_var; should be list of instances of class "WorkingPoint"
+        self.tandp_rule = tandp_rule
 
     def set_tag_rule(self, tag_rule):
         self.tag_rule = tag_rule
@@ -238,54 +281,69 @@ _TAGGERS = [
     Tagger('hotvr_t_incl__tau',
         'tau32',
         [],
+        tandp_rule='(output_probejet_HOTVR_tau32 < WP_VALUE)',
     ),
     Tagger('hotvr_t__tau',
         'tau32',
         ['mass > 140', 'mass < 220', 'fpt1 < 0.8', 'nsub > 2', 'mpair > 50'],
+        tandp_rule='(output_probejet_HOTVR_fpt1 < 0.8) & (output_probejet_HOTVR_nsub > 2) & (output_probejet_HOTVR_mpair > 50) & (output_probejet_HOTVR_tau32 < WP_VALUE)',
     ),
     Tagger('ak8_t_incl__tau',
         'tau32',
         [],
+        tandp_rule='(output_probejet_AK8_tau32 < WP_VALUE)',
     ),
     Tagger('ak8_t__tau',
         'tau32',
         ['msd > 105', 'msd < 210'],
+        tandp_rule='(output_probejet_AK8_tau32 < WP_VALUE)',
     ),
-    # Tagger('ak8_t_btagDJet__tau',
-    #     'tau32',
-    #     ['msd > 105', 'msd < 210', 'subdeepjet > '+str(_DEEPJET_WPS[year]['loose'])],
-    # ),
-    # Tagger('ak8_t_btagDCSV__tau',
-    #     'tau32',
-    #     ['msd > 105', 'msd < 210', 'subdeepcsv > '+str(_DEEPCSV_WPS[year]['loose'])],
-    # ),
+    Tagger('ak8_t_btagDJet__tau',
+        'tau32',
+        # ['msd > 105', 'msd < 210', 'subdeepjet > '+str(_DEEPJET_WPS[year]['loose'])],
+        ['msd > 105', 'msd < 210', 'subdeepjet > DEEPJET_SCORE'],
+        tandp_rule='(output_probejet_AK8_maxDeepJet > DEEPJET_SCORE) & (output_probejet_AK8_tau32 < WP_VALUE)',
+    ),
+    Tagger('ak8_t_btagDCSV__tau',
+        'tau32',
+        # ['msd > 105', 'msd < 210', 'subdeepcsv > '+str(_DEEPCSV_WPS[year]['loose'])],
+        ['msd > 105', 'msd < 210', 'subdeepcsv > DEEPCSV_SCORE'],
+        tandp_rule='(output_probejet_AK8_maxDeepCSV > DEEPCSV_SCORE) & (output_probejet_AK8_tau32 < WP_VALUE)',
+    ),
     Tagger('ak8_t__partnet',
         'partnet_TvsQCD',
         ['msd > 105', 'msd < 210'],
+        tandp_rule='(output_probejet_AK8_ParticleNet_TvsQCD > WP_VALUE)',
     ),
     Tagger('ak8_t__deepak8',
         'deepak8_TvsQCD',
         ['msd > 105', 'msd < 210'],
+        tandp_rule='(output_probejet_AK8_DeepAK8_TvsQCD > WP_VALUE)',
     ),
     Tagger('ak8_w_incl__tau',
         'tau21',
         [],
+        tandp_rule='(output_probejet_AK8_tau21 < WP_VALUE)',
     ),
     Tagger('ak8_w__tau',
         'tau21',
         ['msd > 65', 'msd < 105'],
+        tandp_rule='(output_probejet_AK8_tau21 < WP_VALUE)',
     ),
     Tagger('ak8_w_incl__partnet',
         'partnet_WvsQCD',
         [],
+        tandp_rule='(output_probejet_AK8_ParticleNet_WvsQCD > WP_VALUE)',
     ),
     Tagger('ak8_w__partnet',
         'partnet_WvsQCD',
         ['msd > 65', 'msd < 105'],
+        tandp_rule='(output_probejet_AK8_ParticleNet_WvsQCD > WP_VALUE)',
     ),
     Tagger('ak8_w__deepak8',
         'deepak8_WvsQCD',
         ['msd > 65', 'msd < 105'],
+        tandp_rule='(output_probejet_AK8_DeepAK8_WvsQCD > WP_VALUE)',
     ),
 ]
 _TAGGERS = {tagger.name: tagger for tagger in _TAGGERS}
@@ -312,3 +370,216 @@ _TCOLORS = {
     'pyplot_green': 416 + 2,
     'pyplot_red': 632 + 1,
 }
+
+
+class Systematic:
+
+    def __init__(self, name, weight_alias=None):
+        self.name = name
+        self.weight_alias = weight_alias or 'weight'
+        self.weight_based = True if weight_alias else False
+
+_SYSTEMATICS = [
+    Systematic('nominal',
+        None,
+    ),
+
+    Systematic('btag_bc_down',
+        'weight / weight_btag_central * weight_btag_bc_down',
+    ),
+    Systematic('btag_bc_down_correlated',
+        'weight / weight_btag_central * weight_btag_bc_down_correlated',
+    ),
+    Systematic('btag_bc_down_jes',
+        'weight / weight_btag_central * weight_btag_bc_down_jes',
+    ),
+    Systematic('btag_bc_down_pileup',
+        'weight / weight_btag_central * weight_btag_bc_down_pileup',
+    ),
+    Systematic('btag_bc_down_statistic',
+        'weight / weight_btag_central * weight_btag_bc_down_statistic',
+    ),
+    Systematic('btag_bc_down_type3',
+        'weight / weight_btag_central * weight_btag_bc_down_type3',
+    ),
+    Systematic('btag_bc_down_uncorrelated',
+        'weight / weight_btag_central * weight_btag_bc_down_uncorrelated',
+    ),
+
+    Systematic('btag_bc_up',
+        'weight / weight_btag_central * weight_btag_bc_up',
+    ),
+    Systematic('btag_bc_up_correlated',
+        'weight / weight_btag_central * weight_btag_bc_up_correlated',
+    ),
+    Systematic('btag_bc_up_jes',
+        'weight / weight_btag_central * weight_btag_bc_up_jes',
+    ),
+    Systematic('btag_bc_up_pileup',
+        'weight / weight_btag_central * weight_btag_bc_up_pileup',
+    ),
+    Systematic('btag_bc_up_statistic',
+        'weight / weight_btag_central * weight_btag_bc_up_statistic',
+    ),
+    Systematic('btag_bc_up_type3',
+        'weight / weight_btag_central * weight_btag_bc_up_type3',
+    ),
+    Systematic('btag_bc_up_uncorrelated',
+        'weight / weight_btag_central * weight_btag_bc_up_uncorrelated',
+    ),
+
+    Systematic('btag_light_down',
+        'weight / weight_btag_central * weight_btag_light_down',
+    ),
+    Systematic('btag_light_down_correlated',
+        'weight / weight_btag_central * weight_btag_light_down_correlated',
+    ),
+    Systematic('btag_light_down_uncorrelated',
+        'weight / weight_btag_central * weight_btag_light_down_uncorrelated',
+    ),
+
+    Systematic('btag_light_up',
+        'weight / weight_btag_central * weight_btag_light_up',
+    ),
+    Systematic('btag_light_up_correlated',
+        'weight / weight_btag_central * weight_btag_light_up_correlated',
+    ),
+    Systematic('btag_light_up_uncorrelated',
+        'weight / weight_btag_central * weight_btag_light_up_uncorrelated',
+    ),
+
+    Systematic('murmuf_downdown',
+        'weight * weight_murmuf_downdown',
+    ),
+    Systematic('murmuf_downnone',
+        'weight * weight_murmuf_downnone',
+    ),
+    Systematic('murmuf_nonedown',
+        'weight * weight_murmuf_nonedown',
+    ),
+    Systematic('murmuf_noneup',
+        'weight * weight_murmuf_noneup',
+    ),
+    Systematic('murmuf_upnone',
+        'weight * weight_murmuf_upnone',
+    ),
+    Systematic('murmuf_upup',
+        'weight * weight_murmuf_upup',
+    ),
+
+    Systematic('fsr_down',
+        'weight * weight_partonshower_FSRdown_2',
+    ),
+    Systematic('fsr_up',
+        'weight * weight_partonshower_FSRup_2',
+    ),
+
+    Systematic('isr_down',
+        'weight * weight_partonshower_ISRdown_2',
+    ),
+    Systematic('isr_up',
+        'weight * weight_partonshower_ISRup_2',
+    ),
+
+    Systematic('prefire_down',
+        'weight / weight_prefire * weight_prefire_down',
+    ),
+    Systematic('prefire_up',
+        'weight / weight_prefire * weight_prefire_up',
+    ),
+
+    Systematic('pu_down',
+        'weight / weight_pu * weight_pu_down',
+    ),
+    Systematic('pu_up',
+        'weight / weight_pu * weight_pu_up',
+    ),
+
+    Systematic('sfelec_id_down',
+        'weight / weight_sfelec_id * weight_sfelec_id_down',
+    ),
+    Systematic('sfelec_id_up',
+        'weight / weight_sfelec_id * weight_sfelec_id_up',
+    ),
+
+    Systematic('sfelec_reco_down',
+        'weight / weight_sfelec_reco * weight_sfelec_reco_down',
+    ),
+    Systematic('sfelec_reco_up',
+        'weight / weight_sfelec_reco * weight_sfelec_reco_up',
+    ),
+
+    Systematic('sfmu_id_down',
+        'weight / weight_sfmu_id * weight_sfmu_id_down',
+    ),
+    Systematic('sfmu_id_up',
+        'weight / weight_sfmu_id * weight_sfmu_id_up',
+    ),
+
+    Systematic('sfmu_trigger_down',
+        'weight / weight_sfmu_trigger * weight_sfmu_trigger_down',
+    ),
+    Systematic('sfmu_trigger_up',
+        'weight / weight_sfmu_trigger * weight_sfmu_trigger_up',
+    ),
+
+    Systematic('toppt_a_down',
+        'weight / weight_toppt_applied * weight_toppt_a_down',
+    ),
+    Systematic('toppt_a_up',
+        'weight / weight_toppt_applied * weight_toppt_a_up',
+    ),
+
+    Systematic('toppt_b_down',
+        'weight / weight_toppt_applied * weight_toppt_b_down',
+    ),
+    Systematic('toppt_b_up',
+        'weight / weight_toppt_applied * weight_toppt_b_up',
+    ),
+
+    Systematic('jes_down',
+        None,
+    ),
+    Systematic('jes_up',
+        None,
+    ),
+
+    Systematic('jer_down',
+        None,
+    ),
+    Systematic('jer_up',
+        None,
+    ),
+
+    Systematic('mtop171p5',
+        None,
+    ),
+    Systematic('mtop173p5',
+        None,
+    ),
+
+    Systematic('tune_down',
+        None,
+    ),
+    Systematic('tune_up',
+        None,
+    ),
+
+    Systematic('hdamp_down',
+        None,
+    ),
+    Systematic('hdamp_up',
+        None,
+    ),
+
+    Systematic('cr1',
+        None,
+    ),
+    Systematic('cr2',
+        None,
+    ),
+    Systematic('erdon',
+        None,
+    ),
+]
+_SYSTEMATICS = {syst.name: syst for syst in _SYSTEMATICS}
