@@ -11,7 +11,8 @@ with open(filename, 'r') as f:
             continue
         l = l.strip().split(',')
         # print(l)
-        if l[1] != "mujets": continue
+        # if l[1] != "mujets": continue
+        if l[1] != "iterativefit": continue
         # systs.setdefault(l[2].replace('up_', '').replace('down_', ''), {}).setdefault(l[3], {})
         systs.setdefault(l[2], {}).setdefault(l[3], {})
 
