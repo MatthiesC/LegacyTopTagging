@@ -7,6 +7,9 @@ import ROOT as root
 import subprocess
 import multiprocessing
 
+sys.path.append(os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/Analysis'))
+from constants import _JECSMEAR_SOURCES
+
 years = [
 'UL16preVFP',
 'UL16postVFP',
@@ -20,39 +23,61 @@ channels = [
 
 possible_systs = [
 'nominal',
-'btagging_down_bc',
-'btagging_down_udsg',
-'btagging_up_bc',
-'btagging_up_udsg',
-'jec_down',
-'jec_up',
-'jer_down',
+
+# 'jes_up',
+# 'jes_down',
+'jesTotal_up',
+'jesTotal_down',
 'jer_up',
-'muf_down',
-'muf_up',
-'muonid_down',
-'muonid_up',
-'muontrigger_down',
-'muontrigger_up',
-'mur_down',
-'mur_up',
-'murmuf_down',
-'murmuf_up',
-'pileup_down',
-'pileup_up',
-'ps_FSRdown_2',
-'ps_FSRup_2',
-'ps_ISRdown_2',
-'ps_ISRup_2',
-'wp_down',
-'wp_up',
-'tau21_down',
-'tau21_up',
-'toppt_a_up',
-'toppt_a_down',
-'toppt_b_up',
-'toppt_b_down',
+'jer_down',
+'hdamp_up',
+'hdamp_down',
+'tune_up',
+'tune_down',
+'mtop_mtop171p5',
+'mtop_mtop173p5',
+'cr_cr1',
+'cr_cr2',
+'cr_erdon',
+
+# 'btagging_down_bc',
+# 'btagging_down_udsg',
+# 'btagging_up_bc',
+# 'btagging_up_udsg',
+# 'jec_down',
+# 'jec_up',
+# 'jer_down',
+# 'jer_up',
+# 'muf_down',
+# 'muf_up',
+# 'muonid_down',
+# 'muonid_up',
+# 'muontrigger_down',
+# 'muontrigger_up',
+# 'mur_down',
+# 'mur_up',
+# 'murmuf_down',
+# 'murmuf_up',
+# 'pileup_down',
+# 'pileup_up',
+# 'ps_FSRdown_2',
+# 'ps_FSRup_2',
+# 'ps_ISRdown_2',
+# 'ps_ISRup_2',
+# 'wp_down',
+# 'wp_up',
+# 'tau21_down',
+# 'tau21_up',
+# 'toppt_a_up',
+# 'toppt_a_down',
+# 'toppt_b_up',
+# 'toppt_b_down',
 ]
+
+for k in _JECSMEAR_SOURCES.keys():
+    for x in ['up', 'down']:
+        possible_systs.append('jes'+k+'_'+x)
+
 
 dict_sourceFiles = {
     ### TTbar
@@ -220,6 +245,8 @@ for year in args.years:
                     data=True
                 else:
                     data=False
+                if key=='nonQCD' and not nominal:
+                    continue
                 if not nominal and data: continue
                 fileNamePrefix_ = fileNamePrefix+('DATA.' if data else 'MC.')
                 targetFilePath = os.path.join(haddDir, fileNamePrefix_+key+'.root')
@@ -228,6 +255,9 @@ for year in args.years:
                 for pattern in dict_sourceFiles[key]:
                     sourceFilePaths = np.append(sourceFilePaths, glob.glob(os.path.join(outputDir, fileNamePrefix_+pattern+'_'+year+'.root')))
                 sourceFilePaths.flatten()
+                # print str(len(sourceFilePaths))
+                if len(sourceFilePaths) == 0:
+                    continue
 
                 # In the following few lines, we sort the root files which are to be hadded by the number of events stored in their analysis trees
                 # (there is a bug in hadd that would lead to not correctly added trees if the first file in the list has no events; in case that all trees are empty, we have nothing to fear)

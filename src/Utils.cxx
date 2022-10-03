@@ -520,7 +520,19 @@ bool MergeScenarioHandleSetter::process(Event & event) {
   GenParticle gen_b;
   get_Wb_daughters(gen_w, gen_b, hadronic_top, *event.genparticles);
   GenParticle gen_q1 = *(gen_w.daughter(event.genparticles, 1));
-  GenParticle gen_q2 = *(gen_w.daughter(event.genparticles, 2));
+  // GenParticle gen_q2 = *(gen_w.daughter(event.genparticles, 2));
+  //___________________
+  // There is a very weird bug in a CR2 TTbarToSemiLeptonic UL17 sample for some events where the index of the daughter2 of the W- boson is 65535 and the pythia status code is 0; catch this bug by manually setting v4 of daughter2:
+  GenParticle gen_q2;
+  if (gen_w.daughter(event.genparticles, 2) != nullptr) gen_q2 = *(gen_w.daughter(event.genparticles, 2));
+  else {
+    cout << "event.event: " << event.event << endl;
+    cout << "Weird GenParticle daughter2. Reconstruct it from daughter1 and mother:" << endl;
+    gen_q2.set_v4(gen_w.v4() - gen_q1.v4());
+    cout << "pt = " << gen_q2.pt() << endl;
+    cout << "eta = " << gen_q2.eta() << endl;
+  }
+  //___________________
   bool merged_b = deltaR(gen_b.v4(), probejet.v4()) < dRmatch;
   bool merged_q1 = deltaR(gen_q1.v4(), probejet.v4()) < dRmatch;
   bool merged_q2 = deltaR(gen_q2.v4(), probejet.v4()) < dRmatch;
@@ -980,18 +992,22 @@ WeightTrickery::WeightTrickery(Context & ctx, const string & handle_name_GENtW, 
 
   const string dataset_version = ctx.get("dataset_version");
 
+  const bool is_extra_syst = string2bool(ctx.get("extra_syst"));
+
   is_TTbar = dataset_version.find("TTbar") == 0;
   is_TTbar_Mtt = is_TTbar && dataset_version.find("Mtt") != string::npos;
   is_TTbar_Mtt700to1000 = is_TTbar_Mtt && dataset_version.find("700to1000") != string::npos;
   is_TTbar_Mtt1000toInf = is_TTbar_Mtt && dataset_version.find("1000toInf") != string::npos;
-  is_TTbar_syst = is_TTbar && dataset_version.find("syst") != string::npos;
+  // is_TTbar_syst = is_TTbar && dataset_version.find("syst") != string::npos;
+  is_TTbar_syst = is_TTbar && is_extra_syst;
 
   is_tW = dataset_version.find("ST_tW") == 0;
   is_tW_incl = is_tW && dataset_version.find("inclusiveDecays") != string::npos;
   is_tW_nfhd = is_tW && dataset_version.find("NoFullyHadronic") != string::npos;
-  is_tW_nfhd_syst = is_tW_nfhd && dataset_version.find("syst") != string::npos;
   is_tW_nfhd_DS = is_tW_nfhd && dataset_version.find("_DS_") != string::npos;
   is_tW_nfhd_PDF = is_tW_nfhd && dataset_version.find("PDF") != string::npos;
+  // is_tW_nfhd_syst = is_tW_nfhd && dataset_version.find("syst") != string::npos;
+  is_tW_nfhd_syst = is_tW_nfhd && is_extra_syst;
 }
 
 bool WeightTrickery::process(Event & event) {

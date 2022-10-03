@@ -14,6 +14,7 @@
 #include "UHH2/common/include/NSelections.h"
 #include "UHH2/common/include/Utils.h"
 #include "UHH2/common/include/CleaningModules.h"
+#include "UHH2/common/include/PSWeights.h"
 
 #include "UHH2/LegacyTopTagging/include/AK8Hists.h"
 #include "UHH2/LegacyTopTagging/include/AndHists.h"
@@ -81,6 +82,8 @@ private:
   bool is_tW;
   Event::Handle<bool> fHandle_bool_reco_sel;
   unique_ptr<AnalysisModule> prod_SingleTopGen_tWch;
+
+  bool is_syst = false;
 
   const Muon::Selector muonIDselector_lowpt = Muon::Selector::CutBasedIdTight;
   const MuonId muonID_lowpt = AndId<Muon>(MuonID(muonIDselector_lowpt), PtEtaCut(muon_lowpt_pt_min, muon_eta_max));
@@ -194,6 +197,10 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx):
   is_tW = dataset_version.find("ST_tW") == 0;
   prod_SingleTopGen_tWch.reset(new ltt::SingleTopGen_tWchProducer(ctx, kHandleName_SingleTopGen_tWch));
 
+  if(string2bool(ctx.get("extra_syst"))) is_syst = true;
+  if(ctx.get("jecsmear_direction") != "nominal") is_syst = true;
+  if(ctx.get("jersmear_direction") != "nominal") is_syst = true;
+
   slct_muon_lowpt.reset(new NMuonSelection(1, 1, muonID_lowpt));
   slct_muon_highpt.reset(new NMuonSelection(1, 1, muonID_highpt));
   slct_elec_lowpt.reset(new NElectronSelection(1, 1, electronID_lowpt));
@@ -210,7 +217,10 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx):
 
   primlep.reset(new PrimaryLepton(ctx));
   scale_variation.reset(new MCScaleVariation(ctx));
-  ps_variation.reset(new ltt::PartonShowerVariation(ctx));
+  // ps_variation.reset(new ltt::PartonShowerVariation(ctx));
+  bool has_ps_weights = true;
+  if(dataset_version.find("QCD") == 0) has_ps_weights = false;
+  ps_variation.reset(new PSWeights(ctx, true, !has_ps_weights));
   sf_lumi.reset(new MCLumiWeight(ctx));
   sf_pileup.reset(new MCPileupReweight(ctx, ctx.get("SystDirection_Pileup", "nominal")));
   sf_prefire.reset(new ltt::PrefiringWeights(ctx));
@@ -423,7 +433,10 @@ bool TagAndProbeMainSelectionModule::process(Event & event) {
   const bool passes_twod = slct_twod->passes(event);
   Band band;
   if(passes_twod) band = Band::MAIN;
-  else band = Band::QCD;
+  else {
+    if(is_syst) return false;
+    band = Band::QCD;
+  }
 
   hist_btag_eff[band]->fill(event);
 
@@ -451,6 +464,7 @@ bool TagAndProbeMainSelectionModule::process(Event & event) {
   if(debug) cout << "End of MainSelectionModule. Event passed" << endl;
   event.set(fHandle_weight, event.weight);
   event.set(fHandle_band, kBands.at(band).index);
+
   return true;
 }
 

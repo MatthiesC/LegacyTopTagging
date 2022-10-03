@@ -183,6 +183,7 @@ private:
 };
 
 //____________________________________________________________________________________________________
+// Don't use this class. It uses wrong gen indices. Use common/include/PSWeights.h instead
 class PartonShowerVariation: public uhh2::AnalysisModule {
 public:
   PartonShowerVariation(uhh2::Context & ctx);

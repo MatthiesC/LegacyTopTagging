@@ -139,13 +139,46 @@ samplesDict = {
     #_________________________________________________
     'TTbarTo2L2Nu': {
         'db_name': 'TTTo2L2Nu',
+        'extra_systs': {
+            'hdamp_down': 'TTTo2L2Nu_hdampDOWN',
+            'hdamp_up': 'TTTo2L2Nu_hdampUP',
+            'tune_down': 'TTTo2L2Nu_TuneCP5down',
+            'tune_up': 'TTTo2L2Nu_TuneCP5up',
+            'mtop_mtop171p5': 'TTTo2L2Nu_mtop171p5',
+            'mtop_mtop173p5': 'TTTo2L2Nu_mtop173p5',
+            'cr_cr1': 'TTTo2L2Nu_CR1',
+            'cr_cr2': 'TTTo2L2Nu_CR2',
+            'cr_erdon': 'TTTo2L2Nu_erdON',
+        },
     },
     'TTbarToSemiLeptonic': {
         'db_name': 'TTToSemiLeptonic',
+        'extra_systs': {
+            'hdamp_down': 'TTToSemiLeptonic_hdampDOWN',
+            'hdamp_up': 'TTToSemiLeptonic_hdampUP',
+            'tune_down': 'TTToSemiLeptonic_TuneCP5down',
+            'tune_up': 'TTToSemiLeptonic_TuneCP5up',
+            'mtop_mtop171p5': 'TTToSemiLeptonic_mtop171p5',
+            'mtop_mtop173p5': 'TTToSemiLeptonic_mtop173p5',
+            'cr_cr1': 'TTToSemiLeptonic_CR1',
+            'cr_cr2': 'TTToSemiLeptonic_CR2',
+            'cr_erdon': 'TTToSemiLeptonic_erdON',
+        },
     },
     'TTbarToHadronic': {
         'db_name': 'TTToHadronic',
         'analysis': ['wp', 'sf', 'tw'],
+        'extra_systs': {
+            'hdamp_down': 'TTToHadronic_hdampDOWN',
+            'hdamp_up': 'TTToHadronic_hdampUP',
+            'tune_down': 'TTToHadronic_TuneCP5down',
+            'tune_up': 'TTToHadronic_TuneCP5up',
+            'mtop_mtop171p5': 'TTToHadronic_mtop171p5',
+            'mtop_mtop173p5': 'TTToHadronic_mtop173p5',
+            'cr_cr1': 'TTToHadronic_CR1',
+            'cr_cr2': 'TTToHadronic_CR2',
+            'cr_erdon': 'TTToHadronic_erdON',
+        },
     },
     #_________________________________________________
     'TTbarMtt700to1000': {
