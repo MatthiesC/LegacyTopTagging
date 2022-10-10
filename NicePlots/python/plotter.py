@@ -1,3 +1,5 @@
+#!/usr/bin/env python2
+
 from __future__ import print_function
 
 import os
@@ -23,7 +25,7 @@ class Process():
 
 def transform_TH1_to_TGraphAsymmErrors(th1, poisson_errors=False, n_sigma=1., bin_width=False):
     '''
-    poisson_errors: Only makes sense if bin contents are raw integer counts (not (!) divided by bin width for example)
+    poisson_errors: Only makes sense if bin contents are raw integer counts (not (!) divided by bin width for example (dividing by bin width can be done in a subsequent step, though))
     n_sigma: The sigma used to calculate the Poisson confidence interval, default: 1 sigma (= ca. 68% CL)
     '''
     graph = root.TGraphAsymmErrors(th1)
@@ -48,7 +50,7 @@ def human_format(num):
     while abs(num) >= 1000:
         magnitude += 1
         num /= 1000.0
-    return '{}{}'.format('{:f}'.format(num).rstrip('0').rstrip('.'), ['', 'k', 'M', 'G', 'T'][magnitude])
+    return '{}{}'.format('{:f}'.format(num).rstrip('0').rstrip('.'), ['', 'k', 'M', 'G', 'T', 'P', 'E'][magnitude])
 
 
 class CoordinateConverter():
@@ -292,19 +294,19 @@ class NiceStackWithRatio():
                 err_up_positive = err_up >= 0.
                 if direction == 'plus':
                     if err_up_positive and not err_down_positive:
-                        err2 += err_up_positive**2
+                        err2 += err_up**2
                     elif err_down_positive and not err_up_positive:
-                        err2 += err_down_positive**2
+                        err2 += err_down**2
                     elif err_up_positive and err_down_positive:
-                        err2 += max(err_up_positive, err_down_positive)**2
+                        err2 += max(err_up, err_down)**2
                     else: pass # nothing added to plus error
                 elif direction == 'minus':
                     if err_up_positive and not err_down_positive:
-                        err2 += err_down_positive**2
+                        err2 += err_down**2
                     elif err_down_positive and not err_up_positive:
-                        err2 += err_up_positive**2
+                        err2 += err_up**2
                     elif not err_up_positive and not err_down_positive:
-                        err2 += min(err_up_positive, err_down_positive)**2
+                        err2 += min(err_up, err_down)**2
                     else: pass # nothing added to minus error
                 else:
                     sys.exit('invalid direction: {0}'.format(direction))
@@ -503,9 +505,14 @@ class NiceStackWithRatio():
             i_bin = i_point + 1
             point_x, point_y = self.data.GetX()[i_point], self.data.GetY()[i_point]
             prediction = last.GetBinContent(i_bin)
-            if prediction <= 0. or point_y <= 0.: continue
-            self.ratio_data.SetPoint(i_point, point_x, point_y / prediction)
-            self.ratio_data.SetPointError(i_point, self.data.GetErrorXlow(i_point), self.data.GetErrorXhigh(i_point), self.data.GetErrorYlow(i_point) / prediction, self.data.GetErrorYhigh(i_point) / prediction)
+            # if prediction <= 0. or point_y <= 0.: continue
+            if prediction <= 0.:
+                # Force data points to ratio=-1 with error=0 if no prediction in this bin. Outlier markers for ratio=-1 will be skipped
+                self.ratio_data.SetPoint(i_point, point_x, -1.)
+                self.ratio_data.SetPointError(i_point, self.data.GetErrorXlow(i_point), self.data.GetErrorXhigh(i_point), 0., 0.)
+            else:
+                self.ratio_data.SetPoint(i_point, point_x, point_y / prediction)
+                self.ratio_data.SetPointError(i_point, self.data.GetErrorXlow(i_point), self.data.GetErrorXhigh(i_point), self.data.GetErrorYlow(i_point) / prediction, self.data.GetErrorYhigh(i_point) / prediction)
         return self.ratio_data
 
     def cosmetics_ratio(self):
@@ -545,7 +552,7 @@ class NiceStackWithRatio():
         n_points = self.ratio_data.GetN()
         for i_point in range(0, n_points):
             point_y = self.ratio_data.GetY()[i_point]
-            if point_y <= 0.: continue
+            if point_y <= 0.: continue # ignore data points which are zero for this algorithm
             if point_y < self.ratio_null_hist.GetMinimum() or point_y > self.ratio_null_hist.GetMaximum():
                 n_ratio_data_outliers += 1
         if n_ratio_data_outliers > self.max_ratio_data_outliers:
@@ -555,7 +562,7 @@ class NiceStackWithRatio():
         n_ratio_data_outliers = 0
         for i_point in range(0, n_points):
             point_y = self.ratio_data.GetY()[i_point]
-            if point_y <= 0.: continue
+            if point_y <= 0.: continue # ignore data points which are zero for this algorithm
             if point_y < self.ratio_null_hist.GetMinimum() or point_y > self.ratio_null_hist.GetMaximum():
                 n_ratio_data_outliers += 1
         if n_ratio_data_outliers > self.max_ratio_data_outliers:
@@ -566,13 +573,12 @@ class NiceStackWithRatio():
         # Now set "arrow" markers for all remaining outliers at the upper/lower edge of ratio plot:
         for i_point in range(0, n_points):
             point_x, point_y = self.ratio_data.GetX()[i_point], self.ratio_data.GetY()[i_point]
-            if point_y <= 0: continue
             if point_y > self.ratio_null_hist.GetMaximum():
                 marker = root.TMarker()
                 marker.SetMarkerStyle(22)
                 marker.SetMarkerSize(self.ratio_data.GetMarkerSize())
                 marker.DrawMarker(point_x, self.ratio_null_hist.GetMaximum())
-            elif point_y < self.ratio_null_hist.GetMinimum():
+            elif point_y < self.ratio_null_hist.GetMinimum() and point_y > -1: # Outlier markes where ratio=-1 will be skipped; ratio=-1 means that there is no prediction in this bin
                 marker = root.TMarker()
                 marker.SetMarkerStyle(23)
                 marker.SetMarkerSize(self.ratio_data.GetMarkerSize())
@@ -643,14 +649,14 @@ class NiceStackWithRatio():
             self.create_stack().Draw('hist')
         self.create_stack_unc().Draw('2')
         # self.create_data().Draw('same e x0') # if self.data would be a TH1
-        self.create_data().Draw('pz')
+        self.create_data().Draw('pz0')
         self.pad_ratio.cd()
         self.create_ratio_null_hist().Draw()
         if self.draw_ratio_mc_stat:
             self.create_ratio_mc_stat().Draw('same e2')
         self.create_ratio_unc().Draw('same 2')
         # self.create_ratio_data().Draw('same e x0') # if ratio data would be a TH1
-        self.create_ratio_data().Draw('pz')
+        self.create_ratio_data().Draw('pz0')
         self.cosmetics_main()
         self.cosmetics_ratio()
         self.draw_texts()
