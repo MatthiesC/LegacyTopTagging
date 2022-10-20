@@ -123,13 +123,14 @@ _DEEPJET_WPS = {
 
 class VarInterval:
 
-    def __init__(self, var, var_min=None, var_max=None, inversed=False):
+    def __init__(self, var, var_min=None, var_max=None, inversed=False, fit=False):
         self.var = var
         self.var_min = var_min or 0
         self.var_max = var_max or 999999
         self.max_set = True if var_max else False
         self.name = '_'.join([var, str(var_min)+'to'+str(var_max or 'Inf')])
         self.inversed = inversed # defines in which direction to scan; e.g. either 1 to 0 or 0 to 1
+        self.fit = fit
 
 _PT_INTERVALS = [
     VarInterval('pt', 200),
@@ -157,35 +158,101 @@ _PT_INTERVALS = [
 _PT_INTERVALS = {pt_interval.name: pt_interval for pt_interval in _PT_INTERVALS}
 
 _PT_INTERVALS_TANDP_HOTVR = [
-    VarInterval('pt', 200),
-    VarInterval('pt', 200, 250),
-    VarInterval('pt', 250, 300),
-    VarInterval('pt', 300, 400),
-    VarInterval('pt', 400, 480),
-    VarInterval('pt', 480, 600),
-    VarInterval('pt', 600),
+    VarInterval('pt', 200,
+        # fit=True,
+    ),
+    VarInterval('pt', 200, 250,
+        fit=True,
+    ),
+    VarInterval('pt', 250, 300,
+        fit=True,
+    ),
+    VarInterval('pt', 300, 350,
+        fit=True,
+    ),
+    VarInterval('pt', 350, 400,
+        fit=True,
+    ),
+    VarInterval('pt', 300, 400,
+        # fit=True,
+    ),
+    VarInterval('pt', 400,
+        # fit=True,
+    ),
+    VarInterval('pt', 400, 480,
+        fit=True,
+    ),
+    VarInterval('pt', 480, 600,
+        fit=True,
+    ),
+    VarInterval('pt', 600,
+        fit=True,
+    ),
 ]
 _PT_INTERVALS_TANDP_HOTVR = {pt_interval.name: pt_interval for pt_interval in _PT_INTERVALS_TANDP_HOTVR}
 
 _PT_INTERVALS_TANDP_AK8_T = [
-    VarInterval('pt', 300),
-    VarInterval('pt', 300, 400),
-    VarInterval('pt', 400),
-    VarInterval('pt', 400, 480),
-    VarInterval('pt', 480, 600),
-    VarInterval('pt', 600),
+    VarInterval('pt', 300,
+        # fit=True,
+    ),
+    VarInterval('pt', 300, 350,
+        fit=True,
+    ),
+    VarInterval('pt', 350, 400,
+        fit=True,
+    ),
+    VarInterval('pt', 300, 400,
+        # fit=True,
+    ),
+    VarInterval('pt', 400,
+        # fit=True,
+    ),
+    VarInterval('pt', 400, 480,
+        fit=True,
+    ),
+    VarInterval('pt', 480, 600,
+        fit=True,
+    ),
+    VarInterval('pt', 600,
+        fit=True,
+    ),
 ]
 _PT_INTERVALS_TANDP_AK8_T = {pt_interval.name: pt_interval for pt_interval in _PT_INTERVALS_TANDP_AK8_T}
 
 _PT_INTERVALS_TANDP_AK8_W = [
-    VarInterval('pt', 200),
-    VarInterval('pt', 200, 250),
-    VarInterval('pt', 250, 300),
-    VarInterval('pt', 300, 400),
-    VarInterval('pt', 400),
-    VarInterval('pt', 400, 480),
-    VarInterval('pt', 480, 600),
-    VarInterval('pt', 600),
+    VarInterval('pt', 200,
+        # fit=True,
+    ),
+    VarInterval('pt', 200, 250,
+        fit=True,
+    ),
+    VarInterval('pt', 250, 300,
+        fit=True,
+    ),
+    VarInterval('pt', 300,
+        # fit=True,
+    ),
+    VarInterval('pt', 300, 350,
+        fit=True,
+    ),
+    VarInterval('pt', 350, 400,
+        fit=True,
+    ),
+    VarInterval('pt', 300, 400,
+        # fit=True,
+    ),
+    VarInterval('pt', 400,
+        fit=True,
+    ),
+    VarInterval('pt', 400, 480,
+        # fit=True,
+    ),
+    VarInterval('pt', 480, 600,
+        # fit=True,
+    ),
+    VarInterval('pt', 600,
+        # fit=True,
+    ),
 ]
 _PT_INTERVALS_TANDP_AK8_W = {pt_interval.name: pt_interval for pt_interval in _PT_INTERVALS_TANDP_AK8_W}
 

@@ -13,7 +13,9 @@ import sys
 sys.path.append(os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/Analysis'))
 from constants import Systematics, _BANDS, _TAGGERS, _PT_INTERVALS_TANDP_AK8_T, _PT_INTERVALS_TANDP_AK8_W, _PT_INTERVALS_TANDP_HOTVR, _YEARS
 
-systematics = Systematics(blacklist=['sfelec', 'sfmu_iso'])
+# systematics = Systematics(blacklist=['sfelec', 'sfmu_iso'])
+# systematics = Systematics(blacklist=['sfmu_iso'])
+systematics = Systematics(blacklist=['sfelec_trigger', 'sfmu_iso'])
 systs = systematics.base
 
 sys.path.append(os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/NicePlots/python'))
@@ -33,7 +35,7 @@ all_years = [
 taggers = [
 'ak8_t__tau',
 'ak8_t_btagDJet__tau',
-'hotvr_t__tau',
+# 'hotvr_t__tau',
 # 'ak8_w__partnet',
 ]
 taggers = {k: _TAGGERS[k] for k in taggers}
@@ -119,6 +121,7 @@ regions = [
 
 channels = [
 'muo',
+'ele',
 ]
 
 bands = _BANDS
@@ -261,6 +264,15 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
 
         for outFolderName in outFolderNames:
 
+            region = ''
+            channel = ''
+            for r in regions:
+                if r in outFolderName.split('_'):
+                    region = r
+                    for c in channels:
+                        if c in outFolderName.split('_'):
+                            channel = c
+
             if variable.endswith('_mSD'):
                 x_axis_title = 'Probe jet #it{m}_{SD}'
                 x_axis_unit = 'GeV'
@@ -280,7 +292,8 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
                 # divide_by_bin_width = False,
                 data_name = 'data_obs',
                 text_prelim = 'Private Work',
-                text_top_left = _YEARS.get(year).get('long_name'),
+                # text_top_left = _YEARS.get(year).get('long_name'),
+                text_top_left = 'T&P '+('e' if channel == 'ele' else '#mu')+'+jets, UL '+_YEARS.get(year).get('year'),
                 text_top_right = _YEARS.get(year).get('lumi_fb_display')+' fb^{#minus1} (13 TeV)',
                 # nostack = True,
             )
@@ -301,14 +314,13 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
                 probejetalgo = 'HOTVR PUPPI'
 
             # print(tagger.label)
-            pt_text_string = tagger.label.replace('{WP_VALUE}', '{}'.format(wp.cut_value))
-            for region in regions:
-                if region in outFolderName.split('_'):
-                    pt_text_string += ' [#bf{'+region+'}]'
+            pt_text_string = tagger.label.replace('{WP_VALUE}', '{}'.format(wp.cut_value))+' [#bf{'+region+'}]'
+            # pt_text_string2 = 'T&P '+('e' if channel == 'ele' else '#mu')+'+jets, '
+            pt_text_string2 = ''
             if pt_bin.max_set:
-                pt_text_string2 = '#it{p}_{T} #in ({pt_min}, {pt_max}] GeV, |#eta| < 2.5'.replace('{pt_min}', '{}'.format(pt_bin.var_min)).replace('{pt_max}', '{}'.format(pt_bin.var_max))
+                pt_text_string2 += '#it{p}_{T} #in ({pt_min}, {pt_max}] GeV, |#eta| < 2.5'.replace('{pt_min}', '{}'.format(pt_bin.var_min)).replace('{pt_max}', '{}'.format(pt_bin.var_max))
             else:
-                pt_text_string2 = '#it{p}_{T} > {pt_min} GeV, |#eta| < 2.5'.replace('{pt_min}', '{}'.format(pt_bin.var_min))
+                pt_text_string2 += '#it{p}_{T} > {pt_min} GeV, |#eta| < 2.5'.replace('{pt_min}', '{}'.format(pt_bin.var_min))
 
             tlatex_pt = root.TLatex(nice.coord.graph_to_pad_x(0.95), nice.coord.graph_to_pad_y(0.84), pt_text_string)
             tlatex_pt.SetTextAlign(31) # left top
@@ -366,7 +378,13 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
             legend3.Draw()
 
 
-
+            pt_text_string3 = '#minus prefit #minus'
+            tlatex_pt3 = root.TLatex(nice.coord.graph_to_pad_x(0.95), nice.coord.graph_to_pad_y(0.4), pt_text_string3)
+            tlatex_pt3.SetTextAlign(31) # left top
+            tlatex_pt3.SetTextFont(72)
+            tlatex_pt3.SetTextSize(nice.text_size)
+            tlatex_pt3.SetNDC()
+            tlatex_pt3.Draw()
 
 
 
@@ -384,7 +402,7 @@ if __name__=='__main__':
     # # the_tagger.var_intervals = _PT_INTERVALS_TANDP_HOTVR
     # for bin in the_tagger.var_intervals.values():
     #     pt_bin = bin
-    #     create_rearranged_hists(the_tagger.fit_variable, the_tagger, year, the_tagger.get_wp(4, year), pt_bin, do_plot=True)
+    # create_rearranged_hists(the_tagger.fit_variable, the_tagger, year, the_tagger.get_wp(4, year), pt_bin, do_plot=True)
 
 
 
@@ -399,6 +417,11 @@ if __name__=='__main__':
                 for pt_bin in the_tagger.var_intervals.values():
                     print('Working on', pt_bin.name)
                     create_rearranged_hists(the_tagger.fit_variable, the_tagger, year, wp, pt_bin, do_plot=True)
+
+
+
+
+
 
     # sets_of_args = []
     # for the_tagger in taggers.values():

@@ -19,6 +19,7 @@ years = [
 
 channels = [
 'muo',
+'ele',
 ]
 
 possible_systs = [
@@ -81,9 +82,9 @@ for k in _JECSMEAR_SOURCES.keys():
 
 dict_sourceFiles = {
     ### TTbar
-    'TTbar': [
-        'TTbar*__AllMergeScenarios',
-    ],
+    # 'TTbar': [
+    #     'TTbar*__AllMergeScenarios',
+    # ],
     # 'TTbar__FullyMerged': [
     #     'TTbar*__FullyMerged',
     # ],
@@ -127,9 +128,9 @@ dict_sourceFiles = {
     #     'TTbarToHadronic*',
     # ],
     ### Single Top
-    'ST': [
-        'ST*__AllMergeScenarios',
-    ],
+    # 'ST': [
+    #     'ST*__AllMergeScenarios',
+    # ],
     # 'ST__FullyMerged': [
     #     'ST*__FullyMerged',
     # ],
@@ -169,37 +170,40 @@ dict_sourceFiles = {
     #     'ST_sChannel_leptonDecays*',
     # ],
     ### Other
-    'WJetsToLNu': [
-        'WJetsToLNu_HT*',
+    # 'WJetsToLNu': [
+    #     'WJetsToLNu_HT*',
+    # ],
+    # 'DYJetsToLL': [
+    #     'DYJetsToLL_HT*',
+    # ],
+    # 'Diboson': [
+    #     'Diboson*',
+    # ],
+    # 'DYJetsToLLAndDiboson': [
+    #     'DYJetsToLL_HT*',
+    #     'Diboson*',
+    # ],
+    # 'VJetsAndVV': [
+    #     'WJetsToLNu_HT*',
+    #     'DYJetsToLL_HT*',
+    #     'Diboson*',
+    # ],
+    'QCD_Pt': [
+        'QCD*Pt*',
     ],
-    'DYJetsToLL': [
-        'DYJetsToLL_HT*',
+    'QCD_HT': [
+        'QCD*HT*',
     ],
-    'Diboson': [
-        'Diboson*',
-    ],
-    'DYJetsToLLAndDiboson': [
-        'DYJetsToLL_HT*',
-        'Diboson*',
-    ],
-    'VJetsAndVV': [
-        'WJetsToLNu_HT*',
-        'DYJetsToLL_HT*',
-        'Diboson*',
-    ],
-    'QCD': [
-        'QCD*',
-    ],
-    'nonQCD': [
-        'TTbar*__AllMergeScenarios',
-        'ST*__AllMergeScenarios',
-        'WJetsToLNu_HT*',
-        'DYJetsToLL_HT*',
-        'Diboson*',
-    ],
-    'DATA': [
-        'DATA*',
-    ]
+    # 'nonQCD': [
+    #     'TTbar*__AllMergeScenarios',
+    #     'ST*__AllMergeScenarios',
+    #     'WJetsToLNu_HT*',
+    #     'DYJetsToLL_HT*',
+    #     'Diboson*',
+    # ],
+    # 'DATA': [
+    #     'DATA*',
+    # ]
 }
 
 fileNamePrefix = 'uhh2.AnalysisModuleRunner.'
@@ -264,6 +268,7 @@ for year in args.years:
                 numbersOfEntries = np.array([])
                 for rootFileName in sourceFilePaths:
                     rootFile = root.TFile.Open(rootFileName, 'READ')
+                    # print rootFileName
                     numbersOfEntries = np.append(numbersOfEntries, rootFile.Get('AnalysisTree').GetEntries())
                 numbersOfEntries.flatten()
                 # print numbersOfEntries

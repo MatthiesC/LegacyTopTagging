@@ -5,7 +5,9 @@ import sys
 sys.path.append(os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/Analysis'))
 from constants import Systematics
 
-systematics = Systematics(blacklist=['sfelec', 'sfmu_iso'])
+# systematics = Systematics(blacklist=['sfelec', 'sfmu_iso'])
+# systematics = Systematics(blacklist=['sfmu_iso'])
+systematics = Systematics(blacklist=['sfelec_trigger', 'sfmu_iso'])
 _SYSTEMATICS = systematics.get_all_variations()
 
 class JobSubmitter():
@@ -68,25 +70,25 @@ if __name__=='__main__':
     ## ADJUST HERE WHICH TAGGER/WP YOU WANT TO SUBMIT
     ## Then just do `python submit_uproot_jobs.py`
     # key = tagger_name, value = number of wps
-    # don't submit all at once! Will go over 5,000 jobs limit! (With all systs incl. all JES splits, FSR/ISR splits, one WP creates 142 jobs/year)
+    # don't submit all at once! Will go over 5,000 jobs limit! (With all systs incl. all JES splits, FSR/ISR splits, one WP creates 146 jobs/year)
     taggers = {
         # 'ak8_t__tau': 5,
-        # 'ak8_t_btagDJet__tau': 5,
+        'ak8_t_btagDJet__tau': 5,
         # 'hotvr_t__tau': 1,
-        'ak8_w__partnet': 1,
+        # 'ak8_w__partnet': 1,
     }
 
-    # for tagger_name, n_wps in taggers.items():
-    #     for wp_index in range(n_wps):
-    #         for year in years:
-    #             js = JobSubmitter(tagger_name, wp_index, year)
-    #             js.write_submit_file()
-    #             # js.submit(dryrun=True)
-    #             js.submit()
+    for tagger_name, n_wps in taggers.items():
+        for wp_index in range(n_wps):
+            for year in years:
+                js = JobSubmitter(tagger_name, wp_index, year)
+                js.write_submit_file()
+                # js.submit(dryrun=True)
+                js.submit()
 
-    #____________
-    ## For submitting individual job batches:
-    js = JobSubmitter('ak8_t_btagDJet__tau', 1, 'UL16postVFP')
-    js.write_submit_file()
-    # js.submit(dryrun=True)
-    js.submit()
+    # #____________
+    # ## For submitting individual job batches:
+    # js = JobSubmitter('ak8_t_btagDJet__tau', 1, 'UL16postVFP')
+    # js.write_submit_file()
+    # # js.submit(dryrun=True)
+    # js.submit()

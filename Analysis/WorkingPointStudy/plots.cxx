@@ -37,33 +37,33 @@ typedef struct {
   string scan_var_tlatex_axis;
 } Tagger;
 
-class CoordinateConverter {
-public:
-  CoordinateConverter() {};
-  void init(const float l, const float r, const float b, const float t);
-  float ConvertGraphXToPadX(const float graph_x);
-  float ConvertGraphYToPadY(const float graph_y);
-private:
-  float pad_l, pad_r, pad_b, pad_t; // pad margins
-  float graph_width, graph_height;
-};
-
-void CoordinateConverter::init(const float l, const float r, const float b, const float t) {
-  pad_l = l;
-  pad_r = r;
-  pad_b = b;
-  pad_t = t;
-  graph_width = 1.-l-r;
-  graph_height = 1.-b-t;
-}
-
-float CoordinateConverter::ConvertGraphXToPadX(const float graph_x) {
-  return pad_l+graph_x*graph_width;
-}
-
-float CoordinateConverter::ConvertGraphYToPadY(const float graph_y) {
-  return pad_b+graph_y*graph_height;
-}
+// class CoordinateConverter {
+// public:
+//   CoordinateConverter() {};
+//   void init(const float l, const float r, const float b, const float t);
+//   float ConvertGraphXToPadX(const float graph_x);
+//   float ConvertGraphYToPadY(const float graph_y);
+// private:
+//   float pad_l, pad_r, pad_b, pad_t; // pad margins
+//   float graph_width, graph_height;
+// };
+//
+// void CoordinateConverter::init(const float l, const float r, const float b, const float t) {
+//   pad_l = l;
+//   pad_r = r;
+//   pad_b = b;
+//   pad_t = t;
+//   graph_width = 1.-l-r;
+//   graph_height = 1.-b-t;
+// }
+//
+// float CoordinateConverter::ConvertGraphXToPadX(const float graph_x) {
+//   return pad_l+graph_x*graph_width;
+// }
+//
+// float CoordinateConverter::ConvertGraphYToPadY(const float graph_y) {
+//   return pad_b+graph_y*graph_height;
+// }
 
 // void min0max1(TGraph * graph) {
 //   double x, y;

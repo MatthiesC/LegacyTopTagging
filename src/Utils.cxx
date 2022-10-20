@@ -487,7 +487,10 @@ bool DecayChannelAndHadronicTopHandleSetter::process(Event & event) {
 }
 
 //____________________________________________________________________________________________________
-MergeScenarioHandleSetter::MergeScenarioHandleSetter(Context & ctx, const ProbeJetAlgo & _algo): algo(_algo) {
+MergeScenarioHandleSetter::MergeScenarioHandleSetter(Context & ctx, const ProbeJetAlgo & _algo, const string & handle_name_GENtW):
+  algo(_algo),
+  fHandle_GENtW(ctx.get_handle<ltt::SingleTopGen_tWch>(handle_name_GENtW))
+{
   h_probejet = ctx.get_handle<TopJet>("ProbeJet"+kProbeJetAlgos.at(_algo).name);
   h_hadronictop = ctx.get_handle<GenParticle>("HadronicTopQuark"); // will be unset if process is neither ttbar->l+jets nor single t->hadronic
 
@@ -501,14 +504,18 @@ bool MergeScenarioHandleSetter::process(Event & event) {
   else event.set(output_has_probejet, false);
 
   MergeScenario msc = MergeScenario::isBackground;
-  if(event.isRealData || !event.is_valid(h_hadronictop) || !event.is_valid(h_probejet)) {
+  // if(event.isRealData || !event.is_valid(h_hadronictop) || !event.is_valid(h_probejet)) {
+  //   event.set(output_merge_scenario, kMergeScenarios.at(msc).index);
+  //   event.set(h_merge_scenario, msc);
+  //   return true;
+  // }
+  if(event.isRealData || !event.is_valid(h_probejet)) {
     event.set(output_merge_scenario, kMergeScenarios.at(msc).index);
     event.set(h_merge_scenario, msc);
     return true;
   }
 
-  const TopJet probejet = event.get(h_probejet);
-  const GenParticle hadronic_top = event.get(h_hadronictop);
+  const TopJet & probejet = event.get(h_probejet);
   double dRmatch(-1.);
   if(algo == ProbeJetAlgo::isAK8) {
     dRmatch = 0.8;
@@ -516,6 +523,31 @@ bool MergeScenarioHandleSetter::process(Event & event) {
   else if(algo == ProbeJetAlgo::isHOTVR) {
     dRmatch = HOTVR_Reff(probejet);
   }
+
+  if(!event.is_valid(h_hadronictop)) {
+    if(event.is_valid(fHandle_GENtW)) {
+       const SingleTopGen_tWch & GENtW = event.get(fHandle_GENtW);
+       if(GENtW.IsAssHadronicDecay()) {
+         const GenParticle & d1 = GENtW.WAssDecay1();
+         const GenParticle & d2 = GENtW.WAssDecay2();
+         const GenParticle bAss = GENtW.HasAssociatedBottom() ? GENtW.bAss() : GenParticle();
+         const bool merged_d1 = deltaR(d1.v4(), probejet.v4()) < dRmatch;
+         const bool merged_d2 = deltaR(d2.v4(), probejet.v4()) < dRmatch;
+         const bool merged_bAss = GENtW.HasAssociatedBottom() ? deltaR(bAss.v4(), probejet.v4()) < dRmatch : false;
+         // now check the merge scenarios:
+         if(merged_bAss && merged_d1 && merged_d2) msc = MergeScenario::isBackground; // we have three quarks merged but they are not all from a top, so we call it background
+         else if(!merged_bAss && merged_d1 && merged_d2) msc = MergeScenario::isWMerged;
+         else if(merged_bAss && merged_d1 && !merged_d2) msc = MergeScenario::isQBMerged;
+         else if(merged_bAss && !merged_d1 && merged_d2) msc = MergeScenario::isQBMerged;
+         else msc = MergeScenario::isNotMerged;
+       }
+    }
+    event.set(output_merge_scenario, kMergeScenarios.at(msc).index);
+    event.set(h_merge_scenario, msc);
+    return true;
+  }
+
+  const GenParticle & hadronic_top = event.get(h_hadronictop);
   GenParticle gen_w;
   GenParticle gen_b;
   get_Wb_daughters(gen_w, gen_b, hadronic_top, *event.genparticles);

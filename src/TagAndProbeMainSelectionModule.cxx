@@ -297,8 +297,8 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx):
   decay_channel_and_hadronic_top.reset(new ltt::DecayChannelAndHadronicTopHandleSetter(ctx));
   probejet_hotvr.reset(new ltt::ProbeJetHandleSetter(ctx, ProbeJetAlgo::isHOTVR));
   probejet_ak8.reset(new ltt::ProbeJetHandleSetter(ctx, ProbeJetAlgo::isAK8, kCollectionName_AK8_rec));
-  merge_scenarios_hotvr.reset(new ltt::MergeScenarioHandleSetter(ctx, ProbeJetAlgo::isHOTVR));
-  merge_scenarios_ak8.reset(new ltt::MergeScenarioHandleSetter(ctx, ProbeJetAlgo::isAK8));
+  merge_scenarios_hotvr.reset(new ltt::MergeScenarioHandleSetter(ctx, ProbeJetAlgo::isHOTVR, kHandleName_SingleTopGen_tWch));
+  merge_scenarios_ak8.reset(new ltt::MergeScenarioHandleSetter(ctx, ProbeJetAlgo::isAK8, kHandleName_SingleTopGen_tWch));
   main_output.reset(new ltt::MainOutputSetter(ctx));
 
   fHandle_band = ctx.declare_event_output<int>("band");
@@ -330,7 +330,7 @@ bool TagAndProbeMainSelectionModule::process(Event & event) {
     if(event.electrons->size() != 1) return false;
   }
   if(is_tW) {
-    prod_SingleTopGen_tWch->process(event); // needed for WeightTrickery
+    prod_SingleTopGen_tWch->process(event); // needed for WeightTrickery and setting correct merge scenario for tW
   }
 
   bool lowpt(false);

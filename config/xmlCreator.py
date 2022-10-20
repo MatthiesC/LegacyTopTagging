@@ -165,6 +165,7 @@ class configContainer:
          for k, v in samplesDict.items():
             use_me = v.get('years') == None or year in v.get('years', [])
             use_me = use_me and (v.get('analysis') == None or 'sf' in v.get('analysis'))
+            use_me = use_me and 'QCD_HT' in k
             if extra_syst:
                use_me = use_me and (v.get('extra_systs') != None and extra_syst in v.get('extra_systs').keys())
             if use_me:
@@ -277,7 +278,7 @@ class xmlCreator:
 
    '''Creates XML files for SFrame'''
 
-   def __init__(self, selection: str, year: str, extra_syst=None):
+   def __init__(self, selection: str, year: str, channel:str, extra_syst=None):
 
       self.extra_syst = extra_syst
 
@@ -294,7 +295,7 @@ class xmlCreator:
          sys.exit('Given value of argument "selection" not valid. Abort.')
       self.selection = selection
       self.is_mainsel = True if selection=='mainsel' else False
-      self.channel = 'muo'
+      self.channel = channel
 
       if year not in ['UL16preVFP', 'UL16postVFP', 'UL17', 'UL18']:
          sys.exit('Given value of argument "year" not valid. Abort.')
@@ -523,6 +524,7 @@ if __name__=='__main__':
 
    selections = ['presel', 'mainsel']
    years = ['UL16preVFP', 'UL16postVFP', 'UL17', 'UL18']
+   channels = ['ele', 'muo']
 
    if not sys.argv[1:]: sys.exit('No arguments provided. Exit.')
    parser = argparse.ArgumentParser()
@@ -531,6 +533,7 @@ if __name__=='__main__':
    parser.add_argument('-x', '--extra-systs', action='store_true', help='Create XML files for special systematics which require different MC samples (e.g. hdamp variations).')
    parser.add_argument('-s', '--selections', choices=selections, nargs='*', default=[])
    parser.add_argument('-y', '--years', choices=years, nargs='*', default=[])
+   parser.add_argument('-c', '--channels', choices=channels, nargs='*', default=['muo'])
    parser.add_argument('-a', '--auto-complete', action='store_true', help='Auto-complete arguments if not all arguments for selections and years are given.')
    args = parser.parse_args(sys.argv[1:])
 
@@ -539,6 +542,7 @@ if __name__=='__main__':
          sys.exit('Not allowed to use "--all" option jointly with manually given selection or year argument. Exit.')
       args.selections = selections
       args.years = years
+      args.channels = channels
       if(args.auto_complete):
          print('Warning: You already specified "--all". Therefore, "--auto-complete" will not have any effect.')
    else:
@@ -546,6 +550,7 @@ if __name__=='__main__':
          print('Auto-completing arguments.')
          if not args.selections: args.selections = selections
          if not args.years: args.years = years
+         if not args.channels: args.channels = channels
       else:
          for p in permutations([args.selections, args.years]):
             if p[0] and not p[1]:
@@ -554,17 +559,19 @@ if __name__=='__main__':
    print('Going to create XML files for:')
    print('  Selections: '+', '.join(str(x) for x in args.selections))
    print('  Years: '+', '.join(str(x) for x in args.years))
+   print('  Channels: '+', '.join(str(x) for x in args.channels))
 
    # configContainer.read_database(args.years)
    configContainer.read_database_106X_v2(args.years)
 
    for selection in args.selections:
       for year in args.years:
-         x = xmlCreator(selection, year)
-         x.write_xml()
-         if args.syst:
-            x.write_all_systematics_xmls()
-         x.write_bash_scripts()
+         for channel in args.channels:
+            x = xmlCreator(selection, year, channel)
+            x.write_xml()
+            if args.syst:
+               x.write_all_systematics_xmls()
+            x.write_bash_scripts()
 
    #_________________________________________________
    # Now do the extra systematics:
@@ -588,6 +595,6 @@ if __name__=='__main__':
 
          if 'mainsel' in args.selections:
             for year in args.years:
-               # for channel in args.channels:
-               xx = xmlCreator(selection, year, extra_syst=syst)
-               xx.write_xml()
+               for channel in args.channels:
+                  xx = xmlCreator(selection, year, channel, extra_syst=syst)
+                  xx.write_xml()

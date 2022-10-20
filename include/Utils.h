@@ -285,10 +285,11 @@ private:
 //____________________________________________________________________________________________________
 class MergeScenarioHandleSetter: public uhh2::AnalysisModule {
 public:
-  MergeScenarioHandleSetter(uhh2::Context & ctx, const ProbeJetAlgo & _algo);
+  MergeScenarioHandleSetter(uhh2::Context & ctx, const ProbeJetAlgo & _algo, const std::string & handle_name_GENtW);
   virtual bool process(uhh2::Event & event) override;
 private:
   const ProbeJetAlgo algo;
+  const uhh2::Event::Handle<ltt::SingleTopGen_tWch> fHandle_GENtW;
   uhh2::Event::Handle<TopJet> h_probejet;
   uhh2::Event::Handle<GenParticle> h_hadronictop;
   uhh2::Event::Handle<bool> output_has_probejet;

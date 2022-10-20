@@ -15,7 +15,9 @@ sys.path.append(os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTa
 # from constants import WorkingPoint, _TAGGERS, _DEEPCSV_WPS, _DEEPJET_WPS, _BANDS, _SYSTEMATICS, _PT_INTERVALS_TANDP_HOTVR, _PT_INTERVALS_TANDP_AK8_T, _PT_INTERVALS_TANDP_AK8_W
 from constants import WorkingPoint, _TAGGERS, _BANDS, _PT_INTERVALS_TANDP_HOTVR, _PT_INTERVALS_TANDP_AK8_T, _PT_INTERVALS_TANDP_AK8_W, Systematics
 
-systematics = Systematics(blacklist=['sfelec', 'sfmu_iso'])
+# systematics = Systematics(blacklist=['sfelec', 'sfmu_iso'])
+# systematics = Systematics(blacklist=['sfmu_iso'])
+systematics = Systematics(blacklist=['sfelec_trigger', 'sfmu_iso'])
 _SYSTEMATICS = systematics.get_all_variations()
 # for k,v in _SYSTEMATICS.items():
 #     print(k, v.weight_based)
@@ -24,7 +26,10 @@ from parallel_threading import run_with_pool
 
 
 all_years = ['UL16preVFP', 'UL16postVFP', 'UL17', 'UL18']
-all_channels = ['muo']
+all_channels = [
+'muo',
+'ele',
+]
 
 taggers = ['ak8_t__tau', 'ak8_t_btagDJet__tau', 'hotvr_t__tau', 'ak8_w__partnet']
 taggers = {k: _TAGGERS[k] for k in taggers}
@@ -115,7 +120,7 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
         if '_t_' in tagger.name:
             binning = np.array([50, 70, 85, 105, 120, 140, 155, 170, 185, 200, 210, 220, 230, 250, 275, 300, 350, 400, 450, 500], dtype=float)
         elif '_w_' in tagger.name:
-            binning = np.array([50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 140, 150, 160, 170, 185, 200, 250, 300], dtype=float)
+            binning = np.array([50, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 155, 170, 185, 200, 250, 300], dtype=float)
         else:
             binning = None
             sys.exit('Not a W or top tagger: no defined binning')
@@ -304,8 +309,8 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
 
 if __name__ == '__main__':
 
-    # for year in years:
-    #     create_input_hists(the_tagger, year, the_tagger.fit_variable)
+    #_______________________________________
+    ## Running ROOT in pool mode doesn't work (probably due to ROOT extensive use of global variables...)
 
     # sets_of_args = []
     # for year in years:
@@ -322,28 +327,33 @@ if __name__ == '__main__':
     # create_input_hists(variable=the_tagger.fit_variable, tagger=the_tagger, arg_wp=the_tagger.wps[0], year='UL17', arg_syst=_SYSTEMATICS['nominal'], arg_band=_BANDS['Main'], arg_region='Fail', arg_channel='muo')
 
 
-
-
     #_______________________________________
-    # create_input_hists(variable=the_tagger.fit_variable, tagger=the_tagger, arg_wp=the_tagger.wps[0], year='UL17', arg_syst=_SYSTEMATICS['nominal'])
+    ## For running individual jobs manually
 
+    # # create_input_hists(variable=the_tagger.fit_variable, tagger=the_tagger, arg_wp=the_tagger.wps[0], year='UL17', arg_syst=_SYSTEMATICS['nominal'])
+    #
     # the_vars = [the_tagger.fit_variable]
     # if args.vars:
     #     the_vars = args.vars
     #
-    # the_wps = the_tagger.wps
-    # if args.wps:
-    #     the_wps = [the_tagger.wps[int(x)] for x in args.wps]
+    # # the_wps = the_tagger.wps
+    # # if args.wps:
+    # #     the_wps = [the_tagger.wps[int(x)] for x in args.wps]
     #
     # the_systs = args.systs
     #
     # for var in the_vars:
-    #     for wp in the_wps:
-    #         for year in years:
+    #     for year in years:
+    #         the_wp_indices = range(0, len(the_tagger.get_wp(year=year)))
+    #         if args.wps:
+    #             the_wp_indices = [int(x) for x in args.wps]
+    #         for wp_index in the_wp_indices:
     #             for syst in the_systs:
-    #                 create_input_hists(variable=var, tagger=the_tagger, arg_wp=wp, year=year, arg_syst=_SYSTEMATICS[syst])
+    #                 create_input_hists(variable=var, tagger=the_tagger, arg_wp_index=wp_index, year=year, arg_syst=_SYSTEMATICS[syst])
 
 
+    #_______________________________________
+    ## code part for condor jobs
 
     the_vars = [the_tagger.fit_variable]
     if args.vars:

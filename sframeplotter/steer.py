@@ -22,8 +22,8 @@ from constants import _YEARS
 
 # years = ['2016', '2017', '2018']
 all_years = ['UL16preVFP', 'UL16postVFP', 'UL17', 'UL18']
-# all_channels = ['ele', 'muo']
-all_channels = ['muo']
+all_channels = ['ele', 'muo']
+# all_channels = ['muo']
 combos = list()
 
 #--------#
