@@ -28,6 +28,8 @@ void restructure_root_trees_qcd_ak8(const string & year, const string & ht_cutof
   vector<float> *ak8jets_tau21 = 0;
   vector<float> *ak8jets_deepak8_TvsQCD = 0;
   vector<float> *ak8jets_deepak8_WvsQCD = 0;
+  vector<float> *ak8jets_MDdeepak8_TvsQCD = 0;
+  vector<float> *ak8jets_MDdeepak8_WvsQCD = 0;
   vector<float> *ak8jets_partnet_TvsQCD = 0;
   vector<float> *ak8jets_partnet_WvsQCD = 0;
 
@@ -40,6 +42,8 @@ void restructure_root_trees_qcd_ak8(const string & year, const string & ht_cutof
   infile_tree_qcd->SetBranchAddress("ak8jets_tau21", &ak8jets_tau21);
   infile_tree_qcd->SetBranchAddress("ak8jets_deepak8_TvsQCD", &ak8jets_deepak8_TvsQCD);
   infile_tree_qcd->SetBranchAddress("ak8jets_deepak8_WvsQCD", &ak8jets_deepak8_WvsQCD);
+  infile_tree_qcd->SetBranchAddress("ak8jets_MDdeepak8_TvsQCD", &ak8jets_MDdeepak8_TvsQCD);
+  infile_tree_qcd->SetBranchAddress("ak8jets_MDdeepak8_WvsQCD", &ak8jets_MDdeepak8_WvsQCD);
   infile_tree_qcd->SetBranchAddress("ak8jets_partnet_TvsQCD", &ak8jets_partnet_TvsQCD);
   infile_tree_qcd->SetBranchAddress("ak8jets_partnet_WvsQCD", &ak8jets_partnet_WvsQCD);
 
@@ -56,6 +60,8 @@ void restructure_root_trees_qcd_ak8(const string & year, const string & ht_cutof
   float jet_tau21;
   float jet_deepak8_TvsQCD;
   float jet_deepak8_WvsQCD;
+  float jet_MDdeepak8_TvsQCD;
+  float jet_MDdeepak8_WvsQCD;
   float jet_partnet_TvsQCD;
   float jet_partnet_WvsQCD;
 
@@ -68,6 +74,8 @@ void restructure_root_trees_qcd_ak8(const string & year, const string & ht_cutof
   outfile_tree_qcd->Branch("tau21", &jet_tau21, "tau21/F");
   outfile_tree_qcd->Branch("deepak8_TvsQCD", &jet_deepak8_TvsQCD, "deepak8_TvsQCD/F");
   outfile_tree_qcd->Branch("deepak8_WvsQCD", &jet_deepak8_WvsQCD, "deepak8_WvsQCD/F");
+  outfile_tree_qcd->Branch("MDdeepak8_TvsQCD", &jet_MDdeepak8_TvsQCD, "MDdeepak8_TvsQCD/F");
+  outfile_tree_qcd->Branch("MDdeepak8_WvsQCD", &jet_MDdeepak8_WvsQCD, "MDdeepak8_WvsQCD/F");
   outfile_tree_qcd->Branch("partnet_TvsQCD", &jet_partnet_TvsQCD, "partnet_TvsQCD/F");
   outfile_tree_qcd->Branch("partnet_WvsQCD", &jet_partnet_WvsQCD, "partnet_WvsQCD/F");
 
@@ -84,6 +92,8 @@ void restructure_root_trees_qcd_ak8(const string & year, const string & ht_cutof
       jet_tau21 = ak8jets_tau21->at(j);
       jet_deepak8_TvsQCD = ak8jets_deepak8_TvsQCD->at(j);
       jet_deepak8_WvsQCD = ak8jets_deepak8_WvsQCD->at(j);
+      jet_MDdeepak8_TvsQCD = ak8jets_MDdeepak8_TvsQCD->at(j);
+      jet_MDdeepak8_WvsQCD = ak8jets_MDdeepak8_WvsQCD->at(j);
       jet_partnet_TvsQCD = ak8jets_partnet_TvsQCD->at(j);
       jet_partnet_WvsQCD = ak8jets_partnet_WvsQCD->at(j);
       outfile_tree_qcd->Fill();
@@ -187,6 +197,7 @@ void restructure_root_trees_wjets_ak8(const string & year, const string & ht_cut
   float wnearestak8jet_msd;
   float wnearestak8jet_tau21;
   float wnearestak8jet_deepak8_WvsQCD;
+  float wnearestak8jet_MDdeepak8_WvsQCD;
   float wnearestak8jet_partnet_WvsQCD;
   float wnearestak8jet_dr;
 
@@ -195,6 +206,7 @@ void restructure_root_trees_wjets_ak8(const string & year, const string & ht_cut
   infile_tree_wjets->SetBranchAddress("wnearestak8jet_msd", &wnearestak8jet_msd);
   infile_tree_wjets->SetBranchAddress("wnearestak8jet_tau21", &wnearestak8jet_tau21);
   infile_tree_wjets->SetBranchAddress("wnearestak8jet_deepak8_WvsQCD", &wnearestak8jet_deepak8_WvsQCD);
+  infile_tree_wjets->SetBranchAddress("wnearestak8jet_MDdeepak8_WvsQCD", &wnearestak8jet_MDdeepak8_WvsQCD);
   infile_tree_wjets->SetBranchAddress("wnearestak8jet_partnet_WvsQCD", &wnearestak8jet_partnet_WvsQCD);
   infile_tree_wjets->SetBranchAddress("wnearestak8jet_dr", &wnearestak8jet_dr);
 
@@ -207,6 +219,7 @@ void restructure_root_trees_wjets_ak8(const string & year, const string & ht_cut
   float w_ak8jet_msd;
   float w_ak8jet_tau21;
   float w_ak8jet_deepak8_WvsQCD;
+  float w_ak8jet_MDdeepak8_WvsQCD;
   float w_ak8jet_partnet_WvsQCD;
   float w_ak8jet_dr;
 
@@ -215,6 +228,7 @@ void restructure_root_trees_wjets_ak8(const string & year, const string & ht_cut
   outfile_tree_wjets->Branch("msd", &w_ak8jet_msd, "msd/F");
   outfile_tree_wjets->Branch("tau21", &w_ak8jet_tau21, "tau21/F");
   outfile_tree_wjets->Branch("deepak8_WvsQCD", &w_ak8jet_deepak8_WvsQCD, "deepak8_WvsQCD/F");
+  outfile_tree_wjets->Branch("MDdeepak8_WvsQCD", &w_ak8jet_MDdeepak8_WvsQCD, "MDdeepak8_WvsQCD/F");
   outfile_tree_wjets->Branch("partnet_WvsQCD", &w_ak8jet_partnet_WvsQCD, "partnet_WvsQCD/F");
   outfile_tree_wjets->Branch("dr", &w_ak8jet_dr, "dr/F");
 
@@ -230,6 +244,7 @@ void restructure_root_trees_wjets_ak8(const string & year, const string & ht_cut
     w_ak8jet_msd = wnearestak8jet_msd;
     w_ak8jet_tau21 = wnearestak8jet_tau21;
     w_ak8jet_deepak8_WvsQCD = wnearestak8jet_deepak8_WvsQCD;
+    w_ak8jet_MDdeepak8_WvsQCD = wnearestak8jet_MDdeepak8_WvsQCD;
     w_ak8jet_partnet_WvsQCD = wnearestak8jet_partnet_WvsQCD;
     w_ak8jet_dr = wnearestak8jet_dr;
     if(w_ak8jet_dr <= max_dr_ak8 && w_ak8jet_pt >= 0.f) outfile_tree_wjets->Fill();
@@ -263,6 +278,8 @@ void restructure_root_trees_ttbar(const string & year) {
   float tnearestak8jet_tau21;
   float tnearestak8jet_deepak8_TvsQCD;
   float tnearestak8jet_deepak8_WvsQCD;
+  float tnearestak8jet_MDdeepak8_TvsQCD;
+  float tnearestak8jet_MDdeepak8_WvsQCD;
   float tnearestak8jet_partnet_TvsQCD;
   float tnearestak8jet_partnet_WvsQCD;
   float tnearestak8jet_dr;
@@ -275,6 +292,8 @@ void restructure_root_trees_ttbar(const string & year) {
   float antitnearestak8jet_tau21;
   float antitnearestak8jet_deepak8_TvsQCD;
   float antitnearestak8jet_deepak8_WvsQCD;
+  float antitnearestak8jet_MDdeepak8_TvsQCD;
+  float antitnearestak8jet_MDdeepak8_WvsQCD;
   float antitnearestak8jet_partnet_TvsQCD;
   float antitnearestak8jet_partnet_WvsQCD;
   float antitnearestak8jet_dr;
@@ -289,6 +308,8 @@ void restructure_root_trees_ttbar(const string & year) {
   float wplusnearestak8jet_tau21;
   float wplusnearestak8jet_deepak8_TvsQCD;
   float wplusnearestak8jet_deepak8_WvsQCD;
+  float wplusnearestak8jet_MDdeepak8_TvsQCD;
+  float wplusnearestak8jet_MDdeepak8_WvsQCD;
   float wplusnearestak8jet_partnet_TvsQCD;
   float wplusnearestak8jet_partnet_WvsQCD;
   float wplusnearestak8jet_dr;
@@ -302,6 +323,8 @@ void restructure_root_trees_ttbar(const string & year) {
   float wminusnearestak8jet_tau21;
   float wminusnearestak8jet_deepak8_TvsQCD;
   float wminusnearestak8jet_deepak8_WvsQCD;
+  float wminusnearestak8jet_MDdeepak8_TvsQCD;
+  float wminusnearestak8jet_MDdeepak8_WvsQCD;
   float wminusnearestak8jet_partnet_TvsQCD;
   float wminusnearestak8jet_partnet_WvsQCD;
   float wminusnearestak8jet_dr;
@@ -339,6 +362,8 @@ void restructure_root_trees_ttbar(const string & year) {
   infile_tree_ttbar->SetBranchAddress("tnearestak8jet_tau21", &tnearestak8jet_tau21);
   infile_tree_ttbar->SetBranchAddress("tnearestak8jet_deepak8_TvsQCD", &tnearestak8jet_deepak8_TvsQCD);
   infile_tree_ttbar->SetBranchAddress("tnearestak8jet_deepak8_WvsQCD", &tnearestak8jet_deepak8_WvsQCD);
+  infile_tree_ttbar->SetBranchAddress("tnearestak8jet_MDdeepak8_TvsQCD", &tnearestak8jet_MDdeepak8_TvsQCD);
+  infile_tree_ttbar->SetBranchAddress("tnearestak8jet_MDdeepak8_WvsQCD", &tnearestak8jet_MDdeepak8_WvsQCD);
   infile_tree_ttbar->SetBranchAddress("tnearestak8jet_partnet_TvsQCD", &tnearestak8jet_partnet_TvsQCD);
   infile_tree_ttbar->SetBranchAddress("tnearestak8jet_partnet_WvsQCD", &tnearestak8jet_partnet_WvsQCD);
   infile_tree_ttbar->SetBranchAddress("tnearestak8jet_dr", &tnearestak8jet_dr);
@@ -351,6 +376,8 @@ void restructure_root_trees_ttbar(const string & year) {
   infile_tree_ttbar->SetBranchAddress("antitnearestak8jet_tau21", &antitnearestak8jet_tau21);
   infile_tree_ttbar->SetBranchAddress("antitnearestak8jet_deepak8_TvsQCD", &antitnearestak8jet_deepak8_TvsQCD);
   infile_tree_ttbar->SetBranchAddress("antitnearestak8jet_deepak8_WvsQCD", &antitnearestak8jet_deepak8_WvsQCD);
+  infile_tree_ttbar->SetBranchAddress("antitnearestak8jet_MDdeepak8_TvsQCD", &antitnearestak8jet_MDdeepak8_TvsQCD);
+  infile_tree_ttbar->SetBranchAddress("antitnearestak8jet_MDdeepak8_WvsQCD", &antitnearestak8jet_MDdeepak8_WvsQCD);
   infile_tree_ttbar->SetBranchAddress("antitnearestak8jet_partnet_TvsQCD", &antitnearestak8jet_partnet_TvsQCD);
   infile_tree_ttbar->SetBranchAddress("antitnearestak8jet_partnet_WvsQCD", &antitnearestak8jet_partnet_WvsQCD);
   infile_tree_ttbar->SetBranchAddress("antitnearestak8jet_dr", &antitnearestak8jet_dr);
@@ -365,6 +392,8 @@ void restructure_root_trees_ttbar(const string & year) {
   infile_tree_ttbar->SetBranchAddress("wplusnearestak8jet_tau21", &wplusnearestak8jet_tau21);
   infile_tree_ttbar->SetBranchAddress("wplusnearestak8jet_deepak8_TvsQCD", &wplusnearestak8jet_deepak8_TvsQCD);
   infile_tree_ttbar->SetBranchAddress("wplusnearestak8jet_deepak8_WvsQCD", &wplusnearestak8jet_deepak8_WvsQCD);
+  infile_tree_ttbar->SetBranchAddress("wplusnearestak8jet_MDdeepak8_TvsQCD", &wplusnearestak8jet_MDdeepak8_TvsQCD);
+  infile_tree_ttbar->SetBranchAddress("wplusnearestak8jet_MDdeepak8_WvsQCD", &wplusnearestak8jet_MDdeepak8_WvsQCD);
   infile_tree_ttbar->SetBranchAddress("wplusnearestak8jet_partnet_TvsQCD", &wplusnearestak8jet_partnet_TvsQCD);
   infile_tree_ttbar->SetBranchAddress("wplusnearestak8jet_partnet_WvsQCD", &wplusnearestak8jet_partnet_WvsQCD);
   infile_tree_ttbar->SetBranchAddress("wplusnearestak8jet_dr", &wplusnearestak8jet_dr);
@@ -378,6 +407,8 @@ void restructure_root_trees_ttbar(const string & year) {
   infile_tree_ttbar->SetBranchAddress("wminusnearestak8jet_tau21", &wminusnearestak8jet_tau21);
   infile_tree_ttbar->SetBranchAddress("wminusnearestak8jet_deepak8_TvsQCD", &wminusnearestak8jet_deepak8_TvsQCD);
   infile_tree_ttbar->SetBranchAddress("wminusnearestak8jet_deepak8_WvsQCD", &wminusnearestak8jet_deepak8_WvsQCD);
+  infile_tree_ttbar->SetBranchAddress("wminusnearestak8jet_MDdeepak8_TvsQCD", &wminusnearestak8jet_MDdeepak8_TvsQCD);
+  infile_tree_ttbar->SetBranchAddress("wminusnearestak8jet_MDdeepak8_WvsQCD", &wminusnearestak8jet_MDdeepak8_WvsQCD);
   infile_tree_ttbar->SetBranchAddress("wminusnearestak8jet_partnet_TvsQCD", &wminusnearestak8jet_partnet_TvsQCD);
   infile_tree_ttbar->SetBranchAddress("wminusnearestak8jet_partnet_WvsQCD", &wminusnearestak8jet_partnet_WvsQCD);
   infile_tree_ttbar->SetBranchAddress("wminusnearestak8jet_dr", &wminusnearestak8jet_dr);
@@ -426,6 +457,8 @@ void restructure_root_trees_ttbar(const string & year) {
   float t_ak8jet_tau21;
   float t_ak8jet_deepak8_TvsQCD;
   float t_ak8jet_deepak8_WvsQCD;
+  float t_ak8jet_MDdeepak8_TvsQCD;
+  float t_ak8jet_MDdeepak8_WvsQCD;
   float t_ak8jet_partnet_TvsQCD;
   float t_ak8jet_partnet_WvsQCD;
   float t_ak8jet_dr;
@@ -439,6 +472,8 @@ void restructure_root_trees_ttbar(const string & year) {
   float w_ak8jet_tau21;
   float w_ak8jet_deepak8_TvsQCD;
   float w_ak8jet_deepak8_WvsQCD;
+  float w_ak8jet_MDdeepak8_TvsQCD;
+  float w_ak8jet_MDdeepak8_WvsQCD;
   float w_ak8jet_partnet_TvsQCD;
   float w_ak8jet_partnet_WvsQCD;
   float w_ak8jet_dr;
@@ -463,6 +498,8 @@ void restructure_root_trees_ttbar(const string & year) {
   outfile_tree_ttbar_t_ak8->Branch("tau21", &t_ak8jet_tau21, "tau21/F");
   outfile_tree_ttbar_t_ak8->Branch("deepak8_TvsQCD", &t_ak8jet_deepak8_TvsQCD, "deepak8_TvsQCD/F");
   outfile_tree_ttbar_t_ak8->Branch("deepak8_WvsQCD", &t_ak8jet_deepak8_WvsQCD, "deepak8_WvsQCD/F");
+  outfile_tree_ttbar_t_ak8->Branch("MDdeepak8_TvsQCD", &t_ak8jet_MDdeepak8_TvsQCD, "MDdeepak8_TvsQCD/F");
+  outfile_tree_ttbar_t_ak8->Branch("MDdeepak8_WvsQCD", &t_ak8jet_MDdeepak8_WvsQCD, "MDdeepak8_WvsQCD/F");
   outfile_tree_ttbar_t_ak8->Branch("partnet_TvsQCD", &t_ak8jet_partnet_TvsQCD, "partnet_TvsQCD/F");
   outfile_tree_ttbar_t_ak8->Branch("partnet_WvsQCD", &t_ak8jet_partnet_WvsQCD, "partnet_WvsQCD/F");
   outfile_tree_ttbar_t_ak8->Branch("dr", &t_ak8jet_dr, "dr/F");
@@ -476,6 +513,8 @@ void restructure_root_trees_ttbar(const string & year) {
   outfile_tree_ttbar_w_ak8->Branch("tau21", &w_ak8jet_tau21, "tau21/F");
   outfile_tree_ttbar_w_ak8->Branch("deepak8_TvsQCD", &w_ak8jet_deepak8_TvsQCD, "deepak8_TvsQCD/F");
   outfile_tree_ttbar_w_ak8->Branch("deepak8_WvsQCD", &w_ak8jet_deepak8_WvsQCD, "deepak8_WvsQCD/F");
+  outfile_tree_ttbar_w_ak8->Branch("MDdeepak8_TvsQCD", &w_ak8jet_MDdeepak8_TvsQCD, "MDdeepak8_TvsQCD/F");
+  outfile_tree_ttbar_w_ak8->Branch("MDdeepak8_WvsQCD", &w_ak8jet_MDdeepak8_WvsQCD, "MDdeepak8_WvsQCD/F");
   outfile_tree_ttbar_w_ak8->Branch("partnet_TvsQCD", &w_ak8jet_partnet_TvsQCD, "partnet_TvsQCD/F");
   outfile_tree_ttbar_w_ak8->Branch("partnet_WvsQCD", &w_ak8jet_partnet_WvsQCD, "partnet_WvsQCD/F");
   outfile_tree_ttbar_w_ak8->Branch("dr", &w_ak8jet_dr, "dr/F");
@@ -509,6 +548,8 @@ void restructure_root_trees_ttbar(const string & year) {
       t_ak8jet_tau21 = tnearestak8jet_tau21;
       t_ak8jet_deepak8_TvsQCD = tnearestak8jet_deepak8_TvsQCD;
       t_ak8jet_deepak8_WvsQCD = tnearestak8jet_deepak8_WvsQCD;
+      t_ak8jet_MDdeepak8_TvsQCD = tnearestak8jet_MDdeepak8_TvsQCD;
+      t_ak8jet_MDdeepak8_WvsQCD = tnearestak8jet_MDdeepak8_WvsQCD;
       t_ak8jet_partnet_TvsQCD = tnearestak8jet_partnet_TvsQCD;
       t_ak8jet_partnet_WvsQCD = tnearestak8jet_partnet_WvsQCD;
       t_ak8jet_dr = tnearestak8jet_dr;
@@ -523,6 +564,8 @@ void restructure_root_trees_ttbar(const string & year) {
       t_ak8jet_tau21 = antitnearestak8jet_tau21;
       t_ak8jet_deepak8_TvsQCD = antitnearestak8jet_deepak8_TvsQCD;
       t_ak8jet_deepak8_WvsQCD = antitnearestak8jet_deepak8_WvsQCD;
+      t_ak8jet_MDdeepak8_TvsQCD = antitnearestak8jet_MDdeepak8_TvsQCD;
+      t_ak8jet_MDdeepak8_WvsQCD = antitnearestak8jet_MDdeepak8_WvsQCD;
       t_ak8jet_partnet_TvsQCD = antitnearestak8jet_partnet_TvsQCD;
       t_ak8jet_partnet_WvsQCD = antitnearestak8jet_partnet_WvsQCD;
       t_ak8jet_dr = antitnearestak8jet_dr;
@@ -539,6 +582,8 @@ void restructure_root_trees_ttbar(const string & year) {
       w_ak8jet_tau21 = wplusnearestak8jet_tau21;
       w_ak8jet_deepak8_TvsQCD = wplusnearestak8jet_deepak8_TvsQCD;
       w_ak8jet_deepak8_WvsQCD = wplusnearestak8jet_deepak8_WvsQCD;
+      w_ak8jet_MDdeepak8_TvsQCD = wplusnearestak8jet_MDdeepak8_TvsQCD;
+      w_ak8jet_MDdeepak8_WvsQCD = wplusnearestak8jet_MDdeepak8_WvsQCD;
       w_ak8jet_partnet_TvsQCD = wplusnearestak8jet_partnet_TvsQCD;
       w_ak8jet_partnet_WvsQCD = wplusnearestak8jet_partnet_WvsQCD;
       w_ak8jet_dr = wplusnearestak8jet_dr;
@@ -554,6 +599,8 @@ void restructure_root_trees_ttbar(const string & year) {
       w_ak8jet_tau21 = wminusnearestak8jet_tau21;
       w_ak8jet_deepak8_TvsQCD = wminusnearestak8jet_deepak8_TvsQCD;
       w_ak8jet_deepak8_WvsQCD = wminusnearestak8jet_deepak8_WvsQCD;
+      w_ak8jet_MDdeepak8_TvsQCD = wminusnearestak8jet_MDdeepak8_TvsQCD;
+      w_ak8jet_MDdeepak8_WvsQCD = wminusnearestak8jet_MDdeepak8_WvsQCD;
       w_ak8jet_partnet_TvsQCD = wminusnearestak8jet_partnet_TvsQCD;
       w_ak8jet_partnet_WvsQCD = wminusnearestak8jet_partnet_WvsQCD;
       w_ak8jet_dr = wminusnearestak8jet_dr;

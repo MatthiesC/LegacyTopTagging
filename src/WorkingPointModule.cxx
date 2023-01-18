@@ -115,6 +115,8 @@ private:
   Event::Handle<float> tnearestak8jet_tau21;
   Event::Handle<float> tnearestak8jet_deepak8_TvsQCD;
   Event::Handle<float> tnearestak8jet_deepak8_WvsQCD;
+  Event::Handle<float> tnearestak8jet_MDdeepak8_TvsQCD;
+  Event::Handle<float> tnearestak8jet_MDdeepak8_WvsQCD;
   Event::Handle<float> tnearestak8jet_partnet_TvsQCD;
   Event::Handle<float> tnearestak8jet_partnet_WvsQCD;
   Event::Handle<float> tnearestak8jet_dr;
@@ -127,6 +129,8 @@ private:
   Event::Handle<float> antitnearestak8jet_tau21;
   Event::Handle<float> antitnearestak8jet_deepak8_TvsQCD;
   Event::Handle<float> antitnearestak8jet_deepak8_WvsQCD;
+  Event::Handle<float> antitnearestak8jet_MDdeepak8_TvsQCD;
+  Event::Handle<float> antitnearestak8jet_MDdeepak8_WvsQCD;
   Event::Handle<float> antitnearestak8jet_partnet_TvsQCD;
   Event::Handle<float> antitnearestak8jet_partnet_WvsQCD;
   Event::Handle<float> antitnearestak8jet_dr;
@@ -141,6 +145,8 @@ private:
   Event::Handle<float> wplusnearestak8jet_tau21;
   Event::Handle<float> wplusnearestak8jet_deepak8_TvsQCD;
   Event::Handle<float> wplusnearestak8jet_deepak8_WvsQCD;
+  Event::Handle<float> wplusnearestak8jet_MDdeepak8_TvsQCD;
+  Event::Handle<float> wplusnearestak8jet_MDdeepak8_WvsQCD;
   Event::Handle<float> wplusnearestak8jet_partnet_TvsQCD;
   Event::Handle<float> wplusnearestak8jet_partnet_WvsQCD;
   Event::Handle<float> wplusnearestak8jet_dr;
@@ -154,6 +160,8 @@ private:
   Event::Handle<float> wminusnearestak8jet_tau21;
   Event::Handle<float> wminusnearestak8jet_deepak8_TvsQCD;
   Event::Handle<float> wminusnearestak8jet_deepak8_WvsQCD;
+  Event::Handle<float> wminusnearestak8jet_MDdeepak8_TvsQCD;
+  Event::Handle<float> wminusnearestak8jet_MDdeepak8_WvsQCD;
   Event::Handle<float> wminusnearestak8jet_partnet_TvsQCD;
   Event::Handle<float> wminusnearestak8jet_partnet_WvsQCD;
   Event::Handle<float> wminusnearestak8jet_dr;
@@ -197,6 +205,7 @@ private:
   Event::Handle<float> wnearestak8jet_msd;
   Event::Handle<float> wnearestak8jet_tau21;
   Event::Handle<float> wnearestak8jet_deepak8_WvsQCD;
+  Event::Handle<float> wnearestak8jet_MDdeepak8_WvsQCD;
   Event::Handle<float> wnearestak8jet_partnet_WvsQCD;
   Event::Handle<float> wnearestak8jet_dr;
 
@@ -210,6 +219,8 @@ private:
   Event::Handle<vector<float>> ak8jets_tau21;
   Event::Handle<vector<float>> ak8jets_deepak8_TvsQCD;
   Event::Handle<vector<float>> ak8jets_deepak8_WvsQCD;
+  Event::Handle<vector<float>> ak8jets_MDdeepak8_TvsQCD;
+  Event::Handle<vector<float>> ak8jets_MDdeepak8_WvsQCD;
   Event::Handle<vector<float>> ak8jets_partnet_TvsQCD;
   Event::Handle<vector<float>> ak8jets_partnet_WvsQCD;
 
@@ -370,6 +381,8 @@ WorkingPointModule::WorkingPointModule(Context & ctx):
     tnearestak8jet_tau21 = ctx.declare_event_output<float>("tnearestak8jet_tau21");
     tnearestak8jet_deepak8_TvsQCD = ctx.declare_event_output<float>("tnearestak8jet_deepak8_TvsQCD");
     tnearestak8jet_deepak8_WvsQCD = ctx.declare_event_output<float>("tnearestak8jet_deepak8_WvsQCD");
+    tnearestak8jet_MDdeepak8_TvsQCD = ctx.declare_event_output<float>("tnearestak8jet_MDdeepak8_TvsQCD");
+    tnearestak8jet_MDdeepak8_WvsQCD = ctx.declare_event_output<float>("tnearestak8jet_MDdeepak8_WvsQCD");
     tnearestak8jet_partnet_TvsQCD = ctx.declare_event_output<float>("tnearestak8jet_partnet_TvsQCD");
     tnearestak8jet_partnet_WvsQCD = ctx.declare_event_output<float>("tnearestak8jet_partnet_WvsQCD");
     tnearestak8jet_dr = ctx.declare_event_output<float>("tnearestak8jet_dr");
@@ -382,6 +395,8 @@ WorkingPointModule::WorkingPointModule(Context & ctx):
     antitnearestak8jet_tau21 = ctx.declare_event_output<float>("antitnearestak8jet_tau21");
     antitnearestak8jet_deepak8_TvsQCD = ctx.declare_event_output<float>("antitnearestak8jet_deepak8_TvsQCD");
     antitnearestak8jet_deepak8_WvsQCD = ctx.declare_event_output<float>("antitnearestak8jet_deepak8_WvsQCD");
+    antitnearestak8jet_MDdeepak8_TvsQCD = ctx.declare_event_output<float>("antitnearestak8jet_MDdeepak8_TvsQCD");
+    antitnearestak8jet_MDdeepak8_WvsQCD = ctx.declare_event_output<float>("antitnearestak8jet_MDdeepak8_WvsQCD");
     antitnearestak8jet_partnet_TvsQCD = ctx.declare_event_output<float>("antitnearestak8jet_partnet_TvsQCD");
     antitnearestak8jet_partnet_WvsQCD = ctx.declare_event_output<float>("antitnearestak8jet_partnet_WvsQCD");
     antitnearestak8jet_dr = ctx.declare_event_output<float>("antitnearestak8jet_dr");
@@ -396,6 +411,8 @@ WorkingPointModule::WorkingPointModule(Context & ctx):
     wplusnearestak8jet_tau21 = ctx.declare_event_output<float>("wplusnearestak8jet_tau21");
     wplusnearestak8jet_deepak8_TvsQCD = ctx.declare_event_output<float>("wplusnearestak8jet_deepak8_TvsQCD");
     wplusnearestak8jet_deepak8_WvsQCD = ctx.declare_event_output<float>("wplusnearestak8jet_deepak8_WvsQCD");
+    wplusnearestak8jet_MDdeepak8_TvsQCD = ctx.declare_event_output<float>("wplusnearestak8jet_MDdeepak8_TvsQCD");
+    wplusnearestak8jet_MDdeepak8_WvsQCD = ctx.declare_event_output<float>("wplusnearestak8jet_MDdeepak8_WvsQCD");
     wplusnearestak8jet_partnet_TvsQCD = ctx.declare_event_output<float>("wplusnearestak8jet_partnet_TvsQCD");
     wplusnearestak8jet_partnet_WvsQCD = ctx.declare_event_output<float>("wplusnearestak8jet_partnet_WvsQCD");
     wplusnearestak8jet_dr = ctx.declare_event_output<float>("wplusnearestak8jet_dr");
@@ -409,6 +426,8 @@ WorkingPointModule::WorkingPointModule(Context & ctx):
     wminusnearestak8jet_tau21 = ctx.declare_event_output<float>("wminusnearestak8jet_tau21");
     wminusnearestak8jet_deepak8_TvsQCD = ctx.declare_event_output<float>("wminusnearestak8jet_deepak8_TvsQCD");
     wminusnearestak8jet_deepak8_WvsQCD = ctx.declare_event_output<float>("wminusnearestak8jet_deepak8_WvsQCD");
+    wminusnearestak8jet_MDdeepak8_TvsQCD = ctx.declare_event_output<float>("wminusnearestak8jet_MDdeepak8_TvsQCD");
+    wminusnearestak8jet_MDdeepak8_WvsQCD = ctx.declare_event_output<float>("wminusnearestak8jet_MDdeepak8_WvsQCD");
     wminusnearestak8jet_partnet_TvsQCD = ctx.declare_event_output<float>("wminusnearestak8jet_partnet_TvsQCD");
     wminusnearestak8jet_partnet_WvsQCD = ctx.declare_event_output<float>("wminusnearestak8jet_partnet_WvsQCD");
     wminusnearestak8jet_dr = ctx.declare_event_output<float>("wminusnearestak8jet_dr");
@@ -451,6 +470,7 @@ WorkingPointModule::WorkingPointModule(Context & ctx):
     wnearestak8jet_msd = ctx.declare_event_output<float>("wnearestak8jet_msd");
     wnearestak8jet_tau21 = ctx.declare_event_output<float>("wnearestak8jet_tau21");
     wnearestak8jet_deepak8_WvsQCD = ctx.declare_event_output<float>("wnearestak8jet_deepak8_WvsQCD");
+    wnearestak8jet_MDdeepak8_WvsQCD = ctx.declare_event_output<float>("wnearestak8jet_MDdeepak8_WvsQCD");
     wnearestak8jet_partnet_WvsQCD = ctx.declare_event_output<float>("wnearestak8jet_partnet_WvsQCD");
     wnearestak8jet_dr = ctx.declare_event_output<float>("wnearestak8jet_dr");
   }
@@ -463,6 +483,8 @@ WorkingPointModule::WorkingPointModule(Context & ctx):
     ak8jets_tau21 = ctx.declare_event_output<vector<float>>("ak8jets_tau21");
     ak8jets_deepak8_TvsQCD = ctx.declare_event_output<vector<float>>("ak8jets_deepak8_TvsQCD");
     ak8jets_deepak8_WvsQCD = ctx.declare_event_output<vector<float>>("ak8jets_deepak8_WvsQCD");
+    ak8jets_MDdeepak8_TvsQCD = ctx.declare_event_output<vector<float>>("ak8jets_MDdeepak8_TvsQCD");
+    ak8jets_MDdeepak8_WvsQCD = ctx.declare_event_output<vector<float>>("ak8jets_MDdeepak8_WvsQCD");
     ak8jets_partnet_TvsQCD = ctx.declare_event_output<vector<float>>("ak8jets_partnet_TvsQCD");
     ak8jets_partnet_WvsQCD = ctx.declare_event_output<vector<float>>("ak8jets_partnet_WvsQCD");
 
@@ -642,6 +664,8 @@ bool WorkingPointModule::process(Event & event) {
     float _tnearestak8jet_tau21 = -1.;
     float _tnearestak8jet_deepak8_TvsQCD = -1.;
     float _tnearestak8jet_deepak8_WvsQCD = -1.;
+    float _tnearestak8jet_MDdeepak8_TvsQCD = -1.;
+    float _tnearestak8jet_MDdeepak8_WvsQCD = -1.;
     float _tnearestak8jet_partnet_TvsQCD = -1.;
     float _tnearestak8jet_partnet_WvsQCD = -1.;
     float _tnearestak8jet_dr = -1.;
@@ -654,6 +678,8 @@ bool WorkingPointModule::process(Event & event) {
     float _antitnearestak8jet_tau21 = -1.;
     float _antitnearestak8jet_deepak8_TvsQCD = -1.;
     float _antitnearestak8jet_deepak8_WvsQCD = -1.;
+    float _antitnearestak8jet_MDdeepak8_TvsQCD = -1.;
+    float _antitnearestak8jet_MDdeepak8_WvsQCD = -1.;
     float _antitnearestak8jet_partnet_TvsQCD = -1.;
     float _antitnearestak8jet_partnet_WvsQCD = -1.;
     float _antitnearestak8jet_dr = -1.;
@@ -668,6 +694,8 @@ bool WorkingPointModule::process(Event & event) {
     float _wplusnearestak8jet_tau21 = -1.;
     float _wplusnearestak8jet_deepak8_TvsQCD = -1.;
     float _wplusnearestak8jet_deepak8_WvsQCD = -1.;
+    float _wplusnearestak8jet_MDdeepak8_TvsQCD = -1.;
+    float _wplusnearestak8jet_MDdeepak8_WvsQCD = -1.;
     float _wplusnearestak8jet_partnet_TvsQCD = -1.;
     float _wplusnearestak8jet_partnet_WvsQCD = -1.;
     float _wplusnearestak8jet_dr = -1.;
@@ -681,6 +709,8 @@ bool WorkingPointModule::process(Event & event) {
     float _wminusnearestak8jet_tau21 = -1.;
     float _wminusnearestak8jet_deepak8_TvsQCD = -1.;
     float _wminusnearestak8jet_deepak8_WvsQCD = -1.;
+    float _wminusnearestak8jet_MDdeepak8_TvsQCD = -1.;
+    float _wminusnearestak8jet_MDdeepak8_WvsQCD = -1.;
     float _wminusnearestak8jet_partnet_TvsQCD = -1.;
     float _wminusnearestak8jet_partnet_WvsQCD = -1.;
     float _wminusnearestak8jet_dr = -1.;
@@ -698,6 +728,8 @@ bool WorkingPointModule::process(Event & event) {
       _tnearestak8jet_tau21 = tau21(*tnearestak8jet);
       _tnearestak8jet_deepak8_TvsQCD = tnearestak8jet->btag_DeepBoosted_TvsQCD();
       _tnearestak8jet_deepak8_WvsQCD = tnearestak8jet->btag_DeepBoosted_WvsQCD();
+      _tnearestak8jet_MDdeepak8_TvsQCD = tnearestak8jet->btag_MassDecorrelatedDeepBoosted_TvsQCD();
+      _tnearestak8jet_MDdeepak8_WvsQCD = tnearestak8jet->btag_MassDecorrelatedDeepBoosted_WvsQCD();
       _tnearestak8jet_partnet_TvsQCD = tnearestak8jet->btag_ParticleNetDiscriminatorsJetTags_TvsQCD();
       _tnearestak8jet_partnet_WvsQCD = tnearestak8jet->btag_ParticleNetDiscriminatorsJetTags_WvsQCD();
       _tnearestak8jet_dr = deltaR(tnearestak8jet->v4(), top.v4());
@@ -711,6 +743,8 @@ bool WorkingPointModule::process(Event & event) {
       _antitnearestak8jet_tau21 = tau21(*antitnearestak8jet);
       _antitnearestak8jet_deepak8_TvsQCD = antitnearestak8jet->btag_DeepBoosted_TvsQCD();
       _antitnearestak8jet_deepak8_WvsQCD = antitnearestak8jet->btag_DeepBoosted_WvsQCD();
+      _antitnearestak8jet_MDdeepak8_TvsQCD = antitnearestak8jet->btag_MassDecorrelatedDeepBoosted_TvsQCD();
+      _antitnearestak8jet_MDdeepak8_WvsQCD = antitnearestak8jet->btag_MassDecorrelatedDeepBoosted_WvsQCD();
       _antitnearestak8jet_partnet_TvsQCD = antitnearestak8jet->btag_ParticleNetDiscriminatorsJetTags_TvsQCD();
       _antitnearestak8jet_partnet_WvsQCD = antitnearestak8jet->btag_ParticleNetDiscriminatorsJetTags_WvsQCD();
       _antitnearestak8jet_dr = deltaR(antitnearestak8jet->v4(), antitop.v4());
@@ -726,6 +760,8 @@ bool WorkingPointModule::process(Event & event) {
       _wplusnearestak8jet_tau21 = tau21(*wplusnearestak8jet);
       _wplusnearestak8jet_deepak8_TvsQCD = wplusnearestak8jet->btag_DeepBoosted_TvsQCD();
       _wplusnearestak8jet_deepak8_WvsQCD = wplusnearestak8jet->btag_DeepBoosted_WvsQCD();
+      _wplusnearestak8jet_MDdeepak8_TvsQCD = wplusnearestak8jet->btag_MassDecorrelatedDeepBoosted_TvsQCD();
+      _wplusnearestak8jet_MDdeepak8_WvsQCD = wplusnearestak8jet->btag_MassDecorrelatedDeepBoosted_WvsQCD();
       _wplusnearestak8jet_partnet_TvsQCD = wplusnearestak8jet->btag_ParticleNetDiscriminatorsJetTags_TvsQCD();
       _wplusnearestak8jet_partnet_WvsQCD = wplusnearestak8jet->btag_ParticleNetDiscriminatorsJetTags_WvsQCD();
       _wplusnearestak8jet_dr = deltaR(wplusnearestak8jet->v4(), genWplus.v4());
@@ -740,6 +776,8 @@ bool WorkingPointModule::process(Event & event) {
       _wminusnearestak8jet_tau21 = tau21(*wminusnearestak8jet);
       _wminusnearestak8jet_deepak8_TvsQCD = wminusnearestak8jet->btag_DeepBoosted_TvsQCD();
       _wminusnearestak8jet_deepak8_WvsQCD = wminusnearestak8jet->btag_DeepBoosted_WvsQCD();
+      _wminusnearestak8jet_MDdeepak8_TvsQCD = wminusnearestak8jet->btag_MassDecorrelatedDeepBoosted_TvsQCD();
+      _wminusnearestak8jet_MDdeepak8_WvsQCD = wminusnearestak8jet->btag_MassDecorrelatedDeepBoosted_WvsQCD();
       _wminusnearestak8jet_partnet_TvsQCD = wminusnearestak8jet->btag_ParticleNetDiscriminatorsJetTags_TvsQCD();
       _wminusnearestak8jet_partnet_WvsQCD = wminusnearestak8jet->btag_ParticleNetDiscriminatorsJetTags_WvsQCD();
       _wminusnearestak8jet_dr = deltaR(wminusnearestak8jet->v4(), genWminus.v4());
@@ -756,6 +794,8 @@ bool WorkingPointModule::process(Event & event) {
     event.set(tnearestak8jet_tau21, _tnearestak8jet_tau21);
     event.set(tnearestak8jet_deepak8_TvsQCD, _tnearestak8jet_deepak8_TvsQCD);
     event.set(tnearestak8jet_deepak8_WvsQCD, _tnearestak8jet_deepak8_WvsQCD);
+    event.set(tnearestak8jet_MDdeepak8_TvsQCD, _tnearestak8jet_MDdeepak8_TvsQCD);
+    event.set(tnearestak8jet_MDdeepak8_WvsQCD, _tnearestak8jet_MDdeepak8_WvsQCD);
     event.set(tnearestak8jet_partnet_TvsQCD, _tnearestak8jet_partnet_TvsQCD);
     event.set(tnearestak8jet_partnet_WvsQCD, _tnearestak8jet_partnet_WvsQCD);
     event.set(tnearestak8jet_dr, _tnearestak8jet_dr);
@@ -768,6 +808,8 @@ bool WorkingPointModule::process(Event & event) {
     event.set(antitnearestak8jet_tau21, _antitnearestak8jet_tau21);
     event.set(antitnearestak8jet_deepak8_TvsQCD, _antitnearestak8jet_deepak8_TvsQCD);
     event.set(antitnearestak8jet_deepak8_WvsQCD, _antitnearestak8jet_deepak8_WvsQCD);
+    event.set(antitnearestak8jet_MDdeepak8_TvsQCD, _antitnearestak8jet_MDdeepak8_TvsQCD);
+    event.set(antitnearestak8jet_MDdeepak8_WvsQCD, _antitnearestak8jet_MDdeepak8_WvsQCD);
     event.set(antitnearestak8jet_partnet_TvsQCD, _antitnearestak8jet_partnet_TvsQCD);
     event.set(antitnearestak8jet_partnet_WvsQCD, _antitnearestak8jet_partnet_WvsQCD);
     event.set(antitnearestak8jet_dr, _antitnearestak8jet_dr);
@@ -782,6 +824,8 @@ bool WorkingPointModule::process(Event & event) {
     event.set(wplusnearestak8jet_tau21, _wplusnearestak8jet_tau21);
     event.set(wplusnearestak8jet_deepak8_TvsQCD, _wplusnearestak8jet_deepak8_TvsQCD);
     event.set(wplusnearestak8jet_deepak8_WvsQCD, _wplusnearestak8jet_deepak8_WvsQCD);
+    event.set(wplusnearestak8jet_MDdeepak8_TvsQCD, _wplusnearestak8jet_MDdeepak8_TvsQCD);
+    event.set(wplusnearestak8jet_MDdeepak8_WvsQCD, _wplusnearestak8jet_MDdeepak8_WvsQCD);
     event.set(wplusnearestak8jet_partnet_TvsQCD, _wplusnearestak8jet_partnet_TvsQCD);
     event.set(wplusnearestak8jet_partnet_WvsQCD, _wplusnearestak8jet_partnet_WvsQCD);
     event.set(wplusnearestak8jet_dr, _wplusnearestak8jet_dr);
@@ -795,6 +839,8 @@ bool WorkingPointModule::process(Event & event) {
     event.set(wminusnearestak8jet_tau21, _wminusnearestak8jet_tau21);
     event.set(wminusnearestak8jet_deepak8_TvsQCD, _wminusnearestak8jet_deepak8_TvsQCD);
     event.set(wminusnearestak8jet_deepak8_WvsQCD, _wminusnearestak8jet_deepak8_WvsQCD);
+    event.set(wminusnearestak8jet_MDdeepak8_TvsQCD, _wminusnearestak8jet_MDdeepak8_TvsQCD);
+    event.set(wminusnearestak8jet_MDdeepak8_WvsQCD, _wminusnearestak8jet_MDdeepak8_WvsQCD);
     event.set(wminusnearestak8jet_partnet_TvsQCD, _wminusnearestak8jet_partnet_TvsQCD);
     event.set(wminusnearestak8jet_partnet_WvsQCD, _wminusnearestak8jet_partnet_WvsQCD);
     event.set(wminusnearestak8jet_dr, _wminusnearestak8jet_dr);
@@ -905,6 +951,7 @@ bool WorkingPointModule::process(Event & event) {
     float _wnearestak8jet_msd = -1.;
     float _wnearestak8jet_tau21 = -1.;
     float _wnearestak8jet_deepak8_WvsQCD = -1.;
+    float _wnearestak8jet_MDdeepak8_WvsQCD = -1.;
     float _wnearestak8jet_partnet_WvsQCD = -1.;
     float _wnearestak8jet_dr = -1.;
 
@@ -914,6 +961,7 @@ bool WorkingPointModule::process(Event & event) {
       _wnearestak8jet_msd = mSD(*wnearestak8jet);
       _wnearestak8jet_tau21 = tau21(*wnearestak8jet);
       _wnearestak8jet_deepak8_WvsQCD = wnearestak8jet->btag_DeepBoosted_WvsQCD();
+      _wnearestak8jet_MDdeepak8_WvsQCD = wnearestak8jet->btag_MassDecorrelatedDeepBoosted_WvsQCD();
       _wnearestak8jet_partnet_WvsQCD = wnearestak8jet->btag_ParticleNetDiscriminatorsJetTags_WvsQCD();
       _wnearestak8jet_dr = deltaR(wnearestak8jet->v4(), genW->v4());
     }
@@ -922,6 +970,7 @@ bool WorkingPointModule::process(Event & event) {
     event.set(wnearestak8jet_msd, _wnearestak8jet_msd);
     event.set(wnearestak8jet_tau21, _wnearestak8jet_tau21);
     event.set(wnearestak8jet_deepak8_WvsQCD, _wnearestak8jet_deepak8_WvsQCD);
+    event.set(wnearestak8jet_MDdeepak8_WvsQCD, _wnearestak8jet_MDdeepak8_WvsQCD);
     event.set(wnearestak8jet_partnet_WvsQCD, _wnearestak8jet_partnet_WvsQCD);
     event.set(wnearestak8jet_dr, _wnearestak8jet_dr);
   }
@@ -934,6 +983,8 @@ bool WorkingPointModule::process(Event & event) {
     vector<float> _ak8jets_tau21;
     vector<float> _ak8jets_deepak8_TvsQCD;
     vector<float> _ak8jets_deepak8_WvsQCD;
+    vector<float> _ak8jets_MDdeepak8_TvsQCD;
+    vector<float> _ak8jets_MDdeepak8_WvsQCD;
     vector<float> _ak8jets_partnet_TvsQCD;
     vector<float> _ak8jets_partnet_WvsQCD;
     for(const auto & j : ak8jets) {
@@ -945,6 +996,8 @@ bool WorkingPointModule::process(Event & event) {
       _ak8jets_tau21.push_back(tau21(j));
       _ak8jets_deepak8_TvsQCD.push_back(j.btag_DeepBoosted_TvsQCD());
       _ak8jets_deepak8_WvsQCD.push_back(j.btag_DeepBoosted_WvsQCD());
+      _ak8jets_MDdeepak8_TvsQCD.push_back(j.btag_MassDecorrelatedDeepBoosted_TvsQCD());
+      _ak8jets_MDdeepak8_WvsQCD.push_back(j.btag_MassDecorrelatedDeepBoosted_WvsQCD());
       _ak8jets_partnet_TvsQCD.push_back(j.btag_ParticleNetDiscriminatorsJetTags_TvsQCD());
       _ak8jets_partnet_WvsQCD.push_back(j.btag_ParticleNetDiscriminatorsJetTags_WvsQCD());
     }
@@ -956,6 +1009,8 @@ bool WorkingPointModule::process(Event & event) {
     event.set(ak8jets_tau21, _ak8jets_tau21);
     event.set(ak8jets_deepak8_TvsQCD, _ak8jets_deepak8_TvsQCD);
     event.set(ak8jets_deepak8_WvsQCD, _ak8jets_deepak8_WvsQCD);
+    event.set(ak8jets_MDdeepak8_TvsQCD, _ak8jets_MDdeepak8_TvsQCD);
+    event.set(ak8jets_MDdeepak8_WvsQCD, _ak8jets_MDdeepak8_WvsQCD);
     event.set(ak8jets_partnet_TvsQCD, _ak8jets_partnet_TvsQCD);
     event.set(ak8jets_partnet_WvsQCD, _ak8jets_partnet_WvsQCD);
 

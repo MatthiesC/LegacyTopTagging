@@ -165,7 +165,7 @@ class configContainer:
          for k, v in samplesDict.items():
             use_me = v.get('years') == None or year in v.get('years', [])
             use_me = use_me and (v.get('analysis') == None or 'sf' in v.get('analysis'))
-            use_me = use_me and 'QCD_HT' in k
+            # use_me = use_me and 'QCD_HT' in k # HACK
             if extra_syst:
                use_me = use_me and (v.get('extra_systs') != None and extra_syst in v.get('extra_systs').keys())
             if use_me:

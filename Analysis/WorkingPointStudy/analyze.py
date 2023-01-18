@@ -15,7 +15,7 @@ import argparse
 # from ROOT import TFile, TGraph
 
 sys.path.append(os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/Analysis'))
-from constants import _TAGGERS
+from constants import _TAGGERS, VarInterval
 from parallel_threading import run_with_pool
 
 options_year = ['UL16preVFP', 'UL16postVFP', 'UL17', 'UL18']
@@ -47,6 +47,8 @@ scan_vars = {
     'partnet_WvsQCD': VarInterval('partnet_WvsQCD', 0, 1),
     'deepak8_TvsQCD': VarInterval('deepak8_TvsQCD', 0, 1),
     'deepak8_WvsQCD': VarInterval('deepak8_WvsQCD', 0, 1),
+    'MDdeepak8_TvsQCD': VarInterval('MDdeepak8_TvsQCD', 0, 1),
+    'MDdeepak8_WvsQCD': VarInterval('MDdeepak8_WvsQCD', 0, 1),
 }
 
 def get_file_names(key, year, sig_wjets = False):
@@ -111,7 +113,7 @@ def analyze_tagger(tagger_k, pool=False):
         tree_bkg = uproot.open(os.path.join(inputDir, file_path_bkg))['my_tree']
         tree_sig = uproot.open(os.path.join(inputDir, file_path_sig))['my_tree']
         scan_var = scan_vars[tagger_v.scan_var]
-    for i_var, var in enumerate(tagger_v.var_intervals):
+    for i_var, var in enumerate(tagger_v.var_intervals.values()):
         print('{0}Interval:'.format('Tagger: {0}, '.format(tagger_k) if pool else ''), var.name, '({0}/{1})'.format(i_var+1, len(tagger_v.var_intervals)))
         outputDir = os.path.join(inputDir, tagger_k, var.name)
         # os.makedirs(outputDir, exist_ok=True)
@@ -119,7 +121,7 @@ def analyze_tagger(tagger_k, pool=False):
         if recalculate:
             if not pool: print('(Re-)calculate efficiencies')
             if not pool: print('Background')
-            expr = '({tag_rule}) & ({var_rule})'.format(tag_rule=tagger_v.get_tag_rule(), var_rule='({0} > {1}) & ({0} < {2})'.format(var.var, var.var_min, var.var_max))
+            expr = '({tag_rule}) & ({var_rule})'.format(tag_rule=tagger_v.get_tag_rule(year=year), var_rule='({0} > {1}) & ({0} < {2})'.format(var.var, var.var_min, var.var_max))
             arrays_bkg = tree_bkg.arrays(['weight', scan_var.var], expr)
             expr_norm = '({var_rule})'.format(var_rule='({0} > {1}) & ({0} < {2})'.format(var.var, var.var_min, var.var_max))
             norm = np.sum(tree_bkg.arrays(['weight'], expr_norm)['weight'])
@@ -155,7 +157,31 @@ def analyze_tagger(tagger_k, pool=False):
             root_file.Close()
 
 if __name__=='__main__':
-    _TAGGERS_to_analyze = _TAGGERS.keys()
+    # _TAGGERS_to_analyze = _TAGGERS.keys()
+    _TAGGERS_to_analyze = [
+        # 'ak8_t_incl__MDdeepak8',
+        # 'ak8_t__MDdeepak8',
+        # 'ak8_w_incl__MDdeepak8',
+        # 'ak8_w__MDdeepak8',
+        # 'ak8_t_incl__deepak8',
+        # 'ak8_t__deepak8',
+        # 'ak8_w_incl__deepak8',
+        # 'ak8_w__deepak8',
+        # 'ak8_t_incl__partnet',
+        # 'ak8_t__partnet',
+        # 'ak8_w_incl__partnet',
+        # 'ak8_w__partnet',
+        # 'hotvr_t__tau',
+        # 'hotvr_t_incl__tau',
+        # 'ak8_t_incl__tau',
+        # 'ak8_t__tau',
+        # 'ak8_w_incl__tau',
+        # 'ak8_w__tau',
+
+
+        'ak8_t_btagDCSV__tau',
+        'ak8_t_btagDJet__tau',
+    ]
     sets_of_args = []
     for tagger in _TAGGERS_to_analyze:
         set_of_args = {}

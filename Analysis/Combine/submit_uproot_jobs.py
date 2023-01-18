@@ -72,11 +72,16 @@ if __name__=='__main__':
     # key = tagger_name, value = number of wps
     # don't submit all at once! Will go over 5,000 jobs limit! (With all systs incl. all JES splits, FSR/ISR splits, one WP creates 146 jobs/year)
     taggers = {
-        # 'ak8_t__tau': 5,
+        'ak8_t__tau': 5,
         'ak8_t_btagDJet__tau': 5,
+        'ak8_t_btagDCSV__tau': 5,
         # 'hotvr_t__tau': 1,
-        # 'ak8_w__partnet': 1,
+        'ak8_w__partnet': 2,
+        'ak8_t__MDdeepak8': 1,
     }
+
+    # null_wp = False
+    null_wp = True
 
     for tagger_name, n_wps in taggers.items():
         for wp_index in range(n_wps):
@@ -85,6 +90,8 @@ if __name__=='__main__':
                 js.write_submit_file()
                 # js.submit(dryrun=True)
                 js.submit()
+            if null_wp==True:
+                break
 
     # #____________
     # ## For submitting individual job batches:

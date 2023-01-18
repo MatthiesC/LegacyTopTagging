@@ -411,42 +411,42 @@ samplesDict = {
         'channel': ['ele'],
     },
     #_________________________________________________
-    'QCD_HT50to100': {
-        'db_name': 'QCD_HT50to100',
-        'analysis': ['wp', 'sf', 'tw'],
-    },
-    'QCD_HT100to200': {
-        'db_name': 'QCD_HT100to200',
-        'analysis': ['wp', 'sf', 'tw'],
-    },
-    'QCD_HT200to300': {
-        'db_name': 'QCD_HT200to300',
-        'analysis': ['wp', 'sf', 'tw'],
-    },
-    'QCD_HT300to500': {
-        'db_name': 'QCD_HT300to500',
-        'analysis': ['wp', 'sf', 'tw'],
-    },
-    'QCD_HT500to700': {
-        'db_name': 'QCD_HT500to700',
-        'analysis': ['wp', 'sf', 'tw'],
-    },
-    'QCD_HT700to1000': {
-        'db_name': 'QCD_HT700to1000',
-        'analysis': ['wp', 'sf', 'tw'],
-    },
-    'QCD_HT1000to1500': {
-        'db_name': 'QCD_HT1000to1500',
-        'analysis': ['wp', 'sf', 'tw'],
-    },
-    'QCD_HT1500to2000': {
-        'db_name': 'QCD_HT1500to2000',
-        'analysis': ['wp', 'sf', 'tw'],
-    },
-    'QCD_HT2000toInf': {
-        'db_name': 'QCD_HT2000toInf',
-        'analysis': ['wp', 'sf', 'tw'],
-    },
+    # 'QCD_HT50to100': {
+    #     'db_name': 'QCD_HT50to100',
+    #     'analysis': ['wp', 'sf', 'tw'],
+    # },
+    # 'QCD_HT100to200': {
+    #     'db_name': 'QCD_HT100to200',
+    #     'analysis': ['wp', 'sf', 'tw'],
+    # },
+    # 'QCD_HT200to300': {
+    #     'db_name': 'QCD_HT200to300',
+    #     'analysis': ['wp', 'sf', 'tw'],
+    # },
+    # 'QCD_HT300to500': {
+    #     'db_name': 'QCD_HT300to500',
+    #     'analysis': ['wp', 'sf', 'tw'],
+    # },
+    # 'QCD_HT500to700': {
+    #     'db_name': 'QCD_HT500to700',
+    #     'analysis': ['wp', 'sf', 'tw'],
+    # },
+    # 'QCD_HT700to1000': {
+    #     'db_name': 'QCD_HT700to1000',
+    #     'analysis': ['wp', 'sf', 'tw'],
+    # },
+    # 'QCD_HT1000to1500': {
+    #     'db_name': 'QCD_HT1000to1500',
+    #     'analysis': ['wp', 'sf', 'tw'],
+    # },
+    # 'QCD_HT1500to2000': {
+    #     'db_name': 'QCD_HT1500to2000',
+    #     'analysis': ['wp', 'sf', 'tw'],
+    # },
+    # 'QCD_HT2000toInf': {
+    #     'db_name': 'QCD_HT2000toInf',
+    #     'analysis': ['wp', 'sf', 'tw'],
+    # },
     #_________________________________________________
     'WJetsToQQ_HT200to400': {
         'db_name': 'WJetsToQQ_HT200to400',

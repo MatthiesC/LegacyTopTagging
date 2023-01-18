@@ -30,7 +30,7 @@ AK4Hists::AK4Hists(Context & ctx, const string & dirname, const unsigned int def
   fHandle_bJets_hemi_medium(ctx.get_handle<vector<Jet>>(kHandleName_bJets_hemi_medium)),
   fHandle_bJets_hemi_tight(ctx.get_handle<vector<Jet>>(kHandleName_bJets_hemi_tight)),
   fHandle_PrimaryLepton(ctx.get_handle<FlavorParticle>(kHandleName_PrimaryLepton)),
-  fHandle_weight_btagdisc_central(ctx.get_handle<float>("weight_btagdisc__central")), // same handle name as defined in MCWeight.cxx --> MCBTagDiscriminantReweighting
+  fHandle_weight_btagdisc_central(ctx.get_handle<float>("weight_btagdisc_central")), // same handle name as defined in MCWeight.cxx --> MCBTagDiscriminantReweighting
   fHandle_weight_btag_njet_sf(ctx.get_handle<float>(kHandleName_weight_btag_njet_sf))
 {
   hist_number_puppijets = book<TH1F>("number_puppijets", "Number of AK4 PUPPI jets", 11, -0.5, 10.5);

@@ -272,8 +272,8 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx):
 
   sf_vjets.reset(new ltt::VJetsReweighting(ctx));
 
-  slct_trigger_highpt.reset(new ltt::MyTriggerSelection(ctx, false));
-  slct_trigger_lowpt.reset(new ltt::MyTriggerSelection(ctx, true));
+  slct_trigger_highpt.reset(new ltt::MyTriggerSelection(ctx, false, true));
+  slct_trigger_lowpt.reset(new ltt::MyTriggerSelection(ctx, true, true));
 
   sf_muon_trigger_highpt.reset(new ltt::MuonTriggerScaleFactors(ctx, true, false)); // avoid check since we do not request official muon isolation
   sf_muon_trigger_lowpt.reset(new ltt::MuonTriggerScaleFactors(ctx, false, false)); // --"--

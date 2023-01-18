@@ -11,9 +11,10 @@ using namespace uhh2::ltt;
 namespace uhh2 { namespace ltt {
 //____________________________________________________________________________________________________
 // Information on EGamma triggers taken from https://twiki.cern.ch/twiki/bin/view/CMS/EgHLTRunIISummary
-MyTriggerSelection::MyTriggerSelection(Context & ctx, const bool low_pt):
+MyTriggerSelection::MyTriggerSelection(Context & ctx, const bool low_pt, const bool simplerEleSetup):
   fYear(extract_year(ctx)),
   fChannel(extract_channel(ctx)),
+  fSimplerEleSetup(simplerEleSetup),
   fLowPt(low_pt)
 {
   const TString dataset_version = ctx.get("dataset_version");
@@ -76,17 +77,32 @@ bool MyTriggerSelection::passes(const Event & event) {
     }
     else if(fChannel == Channel::isEle) {
       if(fDataStream == DataStream::isMC) {
-        if(fLowPt) return fTrigSel_Ele27_WPTight_Gsf->passes(event);
-        else return fTrigSel_Ele115_CaloIdVT_GsfTrkIdT->passes(event) || fTrigSel_Photon175->passes(event);
+        if(fSimplerEleSetup) {
+          return fTrigSel_Ele27_WPTight_Gsf->passes(event) || fTrigSel_Ele115_CaloIdVT_GsfTrkIdT->passes(event) || fTrigSel_Photon175->passes(event);
+        }
+        else {
+          if(fLowPt) return fTrigSel_Ele27_WPTight_Gsf->passes(event);
+          else return fTrigSel_Ele115_CaloIdVT_GsfTrkIdT->passes(event) || fTrigSel_Photon175->passes(event);
+        }
       }
       else if(fDataStream == DataStream::isSingleElectron) {
-        if(fLowPt) return fTrigSel_Ele27_WPTight_Gsf->passes(event);
-        else return fTrigSel_Ele115_CaloIdVT_GsfTrkIdT->passes(event);
+        if(fSimplerEleSetup) {
+          return fTrigSel_Ele27_WPTight_Gsf->passes(event) || fTrigSel_Ele115_CaloIdVT_GsfTrkIdT->passes(event);
+        }
+        else {
+          if(fLowPt) return fTrigSel_Ele27_WPTight_Gsf->passes(event);
+          else return fTrigSel_Ele115_CaloIdVT_GsfTrkIdT->passes(event);
+        }
       }
       else if(fDataStream == DataStream::isSinglePhoton) {
-        // Veto Ele115 since those events will be in the SingleElectron stream already
-        if(fLowPt) return false;
-        else return !fTrigSel_Ele115_CaloIdVT_GsfTrkIdT->passes(event) && fTrigSel_Photon175->passes(event);
+        // Veto Ele27 / Ele115 since those events will be in the SingleElectron stream already
+        if(fSimplerEleSetup) {
+          return !fTrigSel_Ele27_WPTight_Gsf->passes(event) && !fTrigSel_Ele115_CaloIdVT_GsfTrkIdT->passes(event) && fTrigSel_Photon175->passes(event);
+        }
+        else {
+          if(fLowPt) return false;
+          else return !fTrigSel_Ele115_CaloIdVT_GsfTrkIdT->passes(event) && fTrigSel_Photon175->passes(event);
+        }
       }
       else return false;
     }
@@ -123,8 +139,13 @@ bool MyTriggerSelection::passes(const Event & event) {
         // Use random number generator with eta-dependent seed for reproducibility
         TRandom3 *random = new TRandom3((int)(fabs(event.electrons->at(0).v4().eta()*1000))); // TRandom3 is the same generator as used for gRandom
         if(random->Rndm() > lumi_percentage_UL17_RunB) { // Run C-F emulation
-          if(fLowPt) return fTrigSel_Ele35_WPTight_Gsf->passes(event);
-          else return fTrigSel_Ele115_CaloIdVT_GsfTrkIdT->passes(event) || fTrigSel_Photon200->passes(event);
+          if(fSimplerEleSetup) {
+            return fTrigSel_Ele35_WPTight_Gsf->passes(event) || fTrigSel_Ele115_CaloIdVT_GsfTrkIdT->passes(event) || fTrigSel_Photon200->passes(event);
+          }
+          else {
+            if(fLowPt) return fTrigSel_Ele35_WPTight_Gsf->passes(event);
+            else return fTrigSel_Ele115_CaloIdVT_GsfTrkIdT->passes(event) || fTrigSel_Photon200->passes(event);
+          }
         }
         else { // Run B emulation
           return fTrigSel_Ele35_WPTight_Gsf->passes(event) || fTrigSel_Photon200->passes(event);
@@ -135,19 +156,28 @@ bool MyTriggerSelection::passes(const Event & event) {
           return fTrigSel_Ele35_WPTight_Gsf->passes(event);
         }
         else {
-          if(fLowPt) return fTrigSel_Ele35_WPTight_Gsf->passes(event);
-          else return fTrigSel_Ele115_CaloIdVT_GsfTrkIdT->passes(event);
+          if(fSimplerEleSetup) {
+            return fTrigSel_Ele35_WPTight_Gsf->passes(event) || fTrigSel_Ele115_CaloIdVT_GsfTrkIdT->passes(event);
+          }
+          else {
+            if(fLowPt) return fTrigSel_Ele35_WPTight_Gsf->passes(event);
+            else return fTrigSel_Ele115_CaloIdVT_GsfTrkIdT->passes(event);
+          }
         }
       }
       else if(fDataStream == DataStream::isSinglePhoton) {
+        // Veto Ele35 / Ele115 since those events will be in the SingleElectron stream already
         if(is_UL17_RunB(event)) {
-          // Veto Ele35 since those events will be in the SingleElectron stream already
           return !fTrigSel_Ele35_WPTight_Gsf->passes(event) && fTrigSel_Photon200->passes(event);
         }
         else {
-          // Veto Ele115 since those events will be in the SingleElectron stream already
-          if(fLowPt) return false;
-          else return !fTrigSel_Ele115_CaloIdVT_GsfTrkIdT->passes(event) && fTrigSel_Photon200->passes(event);
+          if(fSimplerEleSetup) {
+            return !fTrigSel_Ele35_WPTight_Gsf->passes(event) && !fTrigSel_Ele115_CaloIdVT_GsfTrkIdT->passes(event) && fTrigSel_Photon200->passes(event);
+          }
+          else {
+            if(fLowPt) return false;
+            else return !fTrigSel_Ele115_CaloIdVT_GsfTrkIdT->passes(event) && fTrigSel_Photon200->passes(event);
+          }
         }
       }
       else return false;
@@ -162,8 +192,13 @@ bool MyTriggerSelection::passes(const Event & event) {
     else if(fChannel == Channel::isEle) {
       // No need for differentiation between SingleElectron and SinglePhoton streams since we have EGamma in 2018
       // According to https://twiki.cern.ch/twiki/bin/view/CMS/EgHLTRunIISummary#2018 there is no need for a photon trigger
-      if(fLowPt) return fTrigSel_Ele32_WPTight_Gsf->passes(event);
-      else return fTrigSel_Ele115_CaloIdVT_GsfTrkIdT->passes(event) || fTrigSel_Photon200->passes(event);
+      if(fSimplerEleSetup) {
+        return fTrigSel_Ele32_WPTight_Gsf->passes(event) || fTrigSel_Ele115_CaloIdVT_GsfTrkIdT->passes(event) || fTrigSel_Photon200->passes(event);
+      }
+      else {
+        if(fLowPt) return fTrigSel_Ele32_WPTight_Gsf->passes(event);
+        else return fTrigSel_Ele115_CaloIdVT_GsfTrkIdT->passes(event) || fTrigSel_Photon200->passes(event);
+      }
     }
     else return false;
   }

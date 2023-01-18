@@ -99,6 +99,7 @@ class NiceStackWithRatio():
         text_top_left = None,
         text_top_right = None,
         nostack = False,
+        logy = False,
         debug = False
     ):
         '''
@@ -130,7 +131,8 @@ class NiceStackWithRatio():
         self.y_axis_title = None
         self.counted_objects = 'Events' # could also be 'Jets' for example if plotting pT of all jets in an event
         self.x_axis_unit = x_axis_unit
-        self.x_axis_title = x_axis_title + ' [{0}]'.format(self.x_axis_unit)
+        self.x_axis_title = x_axis_title + (' [{0}]'.format(self.x_axis_unit) if self.x_axis_unit != None else '')
+        self.is_multiplicity_plot = 'number of ' in self.x_axis_title.lower() or ' multiplicity' in self.x_axis_title.lower()
         self.text_size = 0.035
         self.text_prelim = text_prelim
         self.text_top_left = text_top_left
@@ -148,7 +150,7 @@ class NiceStackWithRatio():
         self.infile_path = infile_path
         self.infile = root.TFile.Open(self.infile_path, 'READ')
         self.infile_directory = infile_directory
-        self.divide_by_bin_width = divide_by_bin_width
+        self.divide_by_bin_width = False if self.is_multiplicity_plot else divide_by_bin_width
         self.include_underflow = include_underflow
         self.include_overflow = include_overflow
 
@@ -158,6 +160,8 @@ class NiceStackWithRatio():
 
         self.binning = None
 
+        self.logy = logy
+
     def setup_canvas(self):
         self.canvas = root.TCanvas('canvas', 'canvas title', self.canvas_height, self.canvas_width)
         self.canvas.cd()
@@ -166,6 +170,7 @@ class NiceStackWithRatio():
         self.pad_main.SetBottomMargin(0.5 * self.border_width / (1. - self.border_y))
         if self.debug: self.pad_main.SetFrameFillColor(root.kGreen)
         self.pad_main.Draw()
+        if self.logy: self.pad_main.SetLogy()
         self.canvas.cd()
         self.pad_ratio = root.TPad('pad_ratio', 'ratio pad title', 0, 0, 1, self.border_y)
         self.pad_ratio.SetTopMargin(0.5 * self.border_width / self.border_y)
@@ -382,39 +387,59 @@ class NiceStackWithRatio():
         maximum_stack = last.GetBinContent(last.GetMaximumBin())
         maximum_data = max(self.data.GetY())
         maximum = max(maximum_data, maximum_stack)
-        new_maximum = 1.5 * maximum
+
+        minimum_stack = last.GetBinContent(last.GetMinimumBin())
+        minimum_data = min(self.data.GetY())
+        minimum = min(minimum_data, minimum_stack)
+
+        if self.logy:
+            new_minimum = 1. # could also be one order of magnitude or so below the minimum bin value of the process that is lowest in the stack
+            # new_minimum = max(new_minimum, minimum * 0.01) # how it should be, but y axis range is somehow not correctly set to this value
+            new_minimum = max(new_minimum, minimum * 0.1)
+            print('new_minimum:', new_minimum)
+            # new_maximum = math.pow(10, 1.5 * (math.log(maximum, 10) - math.log(new_minimum, 10))) # how it should be, but y axis range is somehow not correctly set to this value
+            new_maximum = math.pow(10, 2.71828182846 * (math.log(maximum, 10) - math.log(new_minimum, 10)))
+            print('new_maximum:', new_maximum)
+        else:
+            new_minimum = 0.
+            new_maximum = 1.5 * maximum
         last.SetMaximum(new_maximum) # this updates the axis maximum
         hist.SetMaximum(new_maximum)
+        last.SetMinimum(new_minimum)
+        hist.SetMinimum(new_minimum)
+        # last.GetYaxis().SetRangeUser(new_minimum, new_maximum)
+        # hist.GetYaxis().SetRangeUser(new_minimum, new_maximum)
 
-        #####################
-        # Do the re-labeling of y axis if values get too large
-        if self.nostack:
-            self.stack[0].GetYaxis().SetLimits(0., new_maximum) # needed to find correct number of labels
-        else:
-            hist.GetYaxis().SetLimits(0., new_maximum) # needed to find correct number of labels
-        hist.GetYaxis().SetMaxDigits(99) # never use ugly "x 10^N" notation
-        ndiv = hist.GetYaxis().GetNdivisions()
-        if ndiv > 0:
-            divxo = c_int()
-            x1o = root.Double()
-            x2o = root.Double()
-            bwx = root.Double()
-            root.THLimitsFinder.Optimize(hist.GetYaxis().GetXmin(), hist.GetYaxis().GetXmax(), ndiv%100, x1o, x2o, divxo, bwx, '')
-            n_labels = divxo.value + 1
-        else:
-            divx = -ndiv
-            n_labels = divx%100 + 1
-        # print(n_labels) # number of labels
-        # print(x1o) # min label
-        # print(x2o) # max label
-        # print(bwx) # label value difference
-        if x2o >= 10000.:
-            label_values = np.linspace(x1o, x2o, n_labels)
-            for i_label in range(0, n_labels):
-                hist.GetYaxis().ChangeLabel(i_label+1, -1, -1, -1, -1, -1, human_format(label_values[i_label]))
-            # sometimes, the highest label is not yet fixed, so we need this additional line (that has no effect if it is not needed??):
-            hist.GetYaxis().ChangeLabel(n_labels+1, -1, -1, -1, -1, -1, human_format(label_values[n_labels-1] + bwx))
-        #####################
+        if not self.logy:
+            #####################
+            # Do the re-labeling of y axis if values get too large
+            if self.nostack:
+                self.stack[0].GetYaxis().SetLimits(new_minimum, new_maximum) # needed to find correct number of labels
+            else:
+                hist.GetYaxis().SetLimits(new_minimum, new_maximum) # needed to find correct number of labels
+            hist.GetYaxis().SetMaxDigits(99) # never use ugly "x 10^N" notation
+            ndiv = hist.GetYaxis().GetNdivisions()
+            if ndiv > 0:
+                divxo = c_int()
+                x1o = root.Double()
+                x2o = root.Double()
+                bwx = root.Double()
+                root.THLimitsFinder.Optimize(hist.GetYaxis().GetXmin(), hist.GetYaxis().GetXmax(), ndiv%100, x1o, x2o, divxo, bwx, '')
+                n_labels = divxo.value + 1
+            else:
+                divx = -ndiv
+                n_labels = divx%100 + 1
+            # print(n_labels) # number of labels
+            # print(x1o) # min label
+            # print(x2o) # max label
+            # print(bwx) # label value difference
+            if x2o >= 10000.:
+                label_values = np.linspace(x1o, x2o, n_labels)
+                for i_label in range(0, n_labels):
+                    hist.GetYaxis().ChangeLabel(i_label+1, -1, -1, -1, -1, -1, human_format(label_values[i_label]))
+                # sometimes, the highest label is not yet fixed, so we need this additional line (that has no effect if it is not needed??):
+                hist.GetYaxis().ChangeLabel(n_labels+1, -1, -1, -1, -1, -1, human_format(label_values[n_labels-1] + bwx))
+            #####################
 
         has_fixed_binning = True
         n_bins = last.GetNbinsX()
@@ -424,11 +449,11 @@ class NiceStackWithRatio():
                 break
         if self.y_axis_title != None:
             y_axis_title = self.y_axis_title
-        elif has_fixed_binning and not self.divide_by_bin_width:
+        elif has_fixed_binning and not self.divide_by_bin_width and not self.is_multiplicity_plot:
             bin_width_string = ('%f' % last.GetBinWidth(1)).rstrip('0').rstrip('.')
-            y_axis_title = self.counted_objects+' / '+bin_width_string+' '+self.x_axis_unit
+            y_axis_title = self.counted_objects+' / '+bin_width_string+(' '+self.x_axis_unit if self.x_axis_unit else '')
         elif self.divide_by_bin_width:
-            y_axis_title = self.counted_objects+' / '+self.x_axis_unit
+            y_axis_title = self.counted_objects+' / '+(self.x_axis_unit if self.x_axis_unit else 'unity')
         else:
             y_axis_title = self.counted_objects+' / bin'
         hist.GetYaxis().SetTitle(y_axis_title)
@@ -437,7 +462,7 @@ class NiceStackWithRatio():
         hist.GetYaxis().SetLabelOffset(0.01)
         hist.GetXaxis().SetLabelOffset(999) # hack: let x axis title/labels vanish under pad_ratio
         hist.GetXaxis().SetTitle('')
-        if 'number of ' in self.x_axis_title.lower() or ' multiplicity' in self.x_axis_title.lower():
+        if self.is_multiplicity_plot:
             hist.GetXaxis().SetNdivisions(hist.GetNbinsX())
 
         # Fix inconsistent tick lengths:

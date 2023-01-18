@@ -586,8 +586,8 @@ private:
     { MCProcess::ST_sChannel, "ST_sChannel" },
     // { MCProcess::ST, "ST" },
     { MCProcess::TTbar, "TTbar" },
-    { MCProcess::WJets, "WJets" },
-    { MCProcess::DYJets, "DYJets" },
+    { MCProcess::WJets, "WJetsToLNu" },
+    { MCProcess::DYJets, "DYJetsToLL" },
     { MCProcess::Diboson, "Diboson" },
   };
 

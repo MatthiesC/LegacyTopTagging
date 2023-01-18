@@ -82,9 +82,9 @@ for k in _JECSMEAR_SOURCES.keys():
 
 dict_sourceFiles = {
     ### TTbar
-    # 'TTbar': [
-    #     'TTbar*__AllMergeScenarios',
-    # ],
+    'TTbar': [
+        'TTbar*__AllMergeScenarios',
+    ],
     # 'TTbar__FullyMerged': [
     #     'TTbar*__FullyMerged',
     # ],
@@ -128,9 +128,9 @@ dict_sourceFiles = {
     #     'TTbarToHadronic*',
     # ],
     ### Single Top
-    # 'ST': [
-    #     'ST*__AllMergeScenarios',
-    # ],
+    'ST': [
+        'ST*__AllMergeScenarios',
+    ],
     # 'ST__FullyMerged': [
     #     'ST*__FullyMerged',
     # ],
@@ -183,27 +183,30 @@ dict_sourceFiles = {
     #     'DYJetsToLL_HT*',
     #     'Diboson*',
     # ],
-    # 'VJetsAndVV': [
-    #     'WJetsToLNu_HT*',
-    #     'DYJetsToLL_HT*',
-    #     'Diboson*',
-    # ],
-    'QCD_Pt': [
+    'VJetsAndVV': [
+        'WJetsToLNu_HT*',
+        'DYJetsToLL_HT*',
+        'Diboson*',
+    ],
+    'QCD': [
         'QCD*Pt*',
     ],
-    'QCD_HT': [
-        'QCD*HT*',
-    ],
-    # 'nonQCD': [
-    #     'TTbar*__AllMergeScenarios',
-    #     'ST*__AllMergeScenarios',
-    #     'WJetsToLNu_HT*',
-    #     'DYJetsToLL_HT*',
-    #     'Diboson*',
+    # 'QCD_Pt': [
+    #     'QCD*Pt*',
     # ],
-    # 'DATA': [
-    #     'DATA*',
-    # ]
+    # 'QCD_HT': [
+    #     'QCD*HT*',
+    # ],
+    'nonQCD': [
+        'TTbar*__AllMergeScenarios',
+        'ST*__AllMergeScenarios',
+        'WJetsToLNu_HT*',
+        'DYJetsToLL_HT*',
+        'Diboson*',
+    ],
+    'DATA': [
+        'DATA*',
+    ]
 }
 
 fileNamePrefix = 'uhh2.AnalysisModuleRunner.'
@@ -268,7 +271,7 @@ for year in args.years:
                 numbersOfEntries = np.array([])
                 for rootFileName in sourceFilePaths:
                     rootFile = root.TFile.Open(rootFileName, 'READ')
-                    # print rootFileName
+                    print rootFileName
                     numbersOfEntries = np.append(numbersOfEntries, rootFile.Get('AnalysisTree').GetEntries())
                 numbersOfEntries.flatten()
                 # print numbersOfEntries

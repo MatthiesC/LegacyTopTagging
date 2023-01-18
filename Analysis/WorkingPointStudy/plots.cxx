@@ -897,15 +897,16 @@ void do_plot_all_years(
 
   const string infilePathBase = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/";
   string infilePath;
-  for(const auto & year : kYears) {
-    infilePath = infilePathBase+year.second.name+"/nominal/"+tagger.name_base+"/"+pt_bin.name+"/graphs.root";
+  for(const auto & year_ : kAllYears) {
+    const auto year = kYears.at(year_);
+    infilePath = infilePathBase+year.name+"/nominal/"+tagger.name_base+"/"+pt_bin.name+"/graphs.root";
     TFile* infile = TFile::Open(infilePath.c_str(), "READ");
     graph_pipe = *(TGraph*)infile->Get(graph_base_name.c_str());
     graph_pipe.SetLineWidth(2);
-    graph_pipe.SetLineStyle(year.second.linestyle);
-    graph_pipe.SetLineColor(year.second.tcolor);
+    graph_pipe.SetLineStyle(year.linestyle);
+    graph_pipe.SetLineColor(year.tcolor);
     graphs.push_back(graph_pipe);
-    TString year_nice_name = year.second.nice_name;
+    TString year_nice_name = year.nice_name;
     year_nice_name.ReplaceAll("Ultra Legacy ", "");
     legends.push_back(string(year_nice_name.Data()));
     infile->Close();
@@ -916,16 +917,17 @@ void do_plot_all_years(
   vector<TMarker*> markers;
   Tagger tagger_pipe = tagger;
   vector<float> wps_for_legend; // HACK
-  for(const auto & year : kYears) {
+  for(const auto & year_ : kAllYears) {
+    const auto year = kYears.at(year_);
     tagger_pipe.wps.clear();
-    calculate_working_points(year.first, tagger_pipe, pt_bin, false);
+    calculate_working_points(year_, tagger_pipe, pt_bin, false);
     for(const auto & wp : tagger_pipe.wps.at(tagger_pipe.name_base)) {
       double x=0, y=0;
       if(is_roc) { x=wp.real_eff_sig; y=wp.real_eff_bkg; }
       else if(is_eff_bkg) { x=wp.scan_cut; y=wp.real_eff_bkg; }
       else if(is_eff_sig) { x=wp.scan_cut; y=wp.real_eff_sig; }
       TMarker *marker1 = new TMarker(x, y, 24);
-      marker1->SetMarkerColor(year.second.tcolor);
+      marker1->SetMarkerColor(year.tcolor);
       marker1->SetMarkerSize(1.2);
       // marker1->Draw();
       markers.push_back(marker1);
@@ -1174,6 +1176,8 @@ void plots(const string & arg_year, const string & arg_tagger) {
   pt_bins_vec.push_back(PtBin{"pt_200to250", "200 < #it{p}_{T}/GeV < 250", kOrange-3, 8});
   pt_bins_vec.push_back(PtBin{"pt_250to300", "250 < #it{p}_{T}/GeV < 300", kOrange-3, 9});
 
+  pt_bins_vec.push_back(PtBin{"pt_500to600", "500 < #it{p}_{T}/GeV < 600", kMagenta, 1});
+
   map<string, PtBin> pt_bins;
   for(const auto & pt_bin : pt_bins_vec) {
     pt_bins[pt_bin.name] = pt_bin;
@@ -1215,7 +1219,7 @@ void plots(const string & arg_year, const string & arg_tagger) {
     .scan_var_tlatex_axis = "#tau_{3}/#tau_{2} upper limit",
   };
 
-  const string ref_pt_ak8_w__partnet = "pt_200toInf";
+  const string ref_pt_ak8_w__partnet = "pt_400toInf";
   const Tagger tagger_template_ak8_w__partnet = {
     .probejetalgo = ProbeJetAlgo::isAK8,
     .name_base = "ak8_w__partnet",
@@ -1227,6 +1231,66 @@ void plots(const string & arg_year, const string & arg_tagger) {
     .legend_variants = {"Inclusive jet collection"},
     .scan_var_tlatex = "ParticleNet \"WvsQCD\" score",
     .scan_var_tlatex_axis = "ParticleNet \"WvsQCD\" score lower limit",
+  };
+
+  // const string ref_pt_ak8_t__deepak8 = "pt_500to600";
+  const string ref_pt_ak8_t__deepak8 = "pt_400toInf";
+  const Tagger tagger_template_ak8_t__deepak8 = {
+    .probejetalgo = ProbeJetAlgo::isAK8,
+    .name_base = "ak8_t__deepak8",
+    .name_variants = {"ak8_t_incl__deepak8"},
+    .target_effs_bkg = {0.001, 0.005, 0.01, 0.025, 0.05},
+    .linestyle_variants = {3},
+    .linecolor_variants = {kBlack},
+    .legend_base = "105 < #it{m}_{SD}/GeV < 210",
+    .legend_variants = {"Inclusive jet collection"},
+    .scan_var_tlatex = "DeepAK8 \"TvsQCD\" score",
+    .scan_var_tlatex_axis = "DeepAK8 \"TvsQCD\" score lower limit",
+  };
+
+  // const string ref_pt_ak8_t__MDdeepak8 = "pt_500to600";
+  const string ref_pt_ak8_t__MDdeepak8 = "pt_400toInf";
+  const Tagger tagger_template_ak8_t__MDdeepak8 = {
+    .probejetalgo = ProbeJetAlgo::isAK8,
+    .name_base = "ak8_t__MDdeepak8",
+    .name_variants = {"ak8_t_incl__MDdeepak8"},
+    .target_effs_bkg = {0.001, 0.005, 0.01, 0.025, 0.05},
+    .linestyle_variants = {3},
+    .linecolor_variants = {kBlack},
+    .legend_base = "105 < #it{m}_{SD}/GeV < 210",
+    .legend_variants = {"Inclusive jet collection"},
+    .scan_var_tlatex = "Mass-decorrelated DeepAK8 \"TvsQCD\" score",
+    .scan_var_tlatex_axis = "Mass-decorrelated DeepAK8 \"TvsQCD\" score lower limit",
+  };
+
+  // const string ref_pt_ak8_w__deepak8 = "pt_500to600";
+  const string ref_pt_ak8_w__deepak8 = "pt_400toInf";
+  const Tagger tagger_template_ak8_w__deepak8 = {
+    .probejetalgo = ProbeJetAlgo::isAK8,
+    .name_base = "ak8_w__deepak8",
+    .name_variants = {"ak8_w_incl__deepak8"},
+    .target_effs_bkg = {0.001, 0.005, 0.01, 0.025, 0.05},
+    .linestyle_variants = {3},
+    .linecolor_variants = {kBlack},
+    .legend_base = "65 < #it{m}_{SD}/GeV < 105",
+    .legend_variants = {"Inclusive jet collection"},
+    .scan_var_tlatex = "DeepAK8 \"WvsQCD\" score",
+    .scan_var_tlatex_axis = "DeepAK8 \"WvsQCD\" score lower limit",
+  };
+
+  // const string ref_pt_ak8_w__MDdeepak8 = "pt_500to600";
+  const string ref_pt_ak8_w__MDdeepak8 = "pt_400toInf";
+  const Tagger tagger_template_ak8_w__MDdeepak8 = {
+    .probejetalgo = ProbeJetAlgo::isAK8,
+    .name_base = "ak8_w__MDdeepak8",
+    .name_variants = {"ak8_w_incl__MDdeepak8"},
+    .target_effs_bkg = {0.001, 0.005, 0.01, 0.025, 0.05},
+    .linestyle_variants = {3},
+    .linecolor_variants = {kBlack},
+    .legend_base = "65 < #it{m}_{SD}/GeV < 105",
+    .legend_variants = {"Inclusive jet collection"},
+    .scan_var_tlatex = "Mass-decorrelated DeepAK8 \"WvsQCD\" score",
+    .scan_var_tlatex_axis = "Mass-decorrelated DeepAK8 \"WvsQCD\" score lower limit",
   };
 
   string ref_pt;
@@ -1242,6 +1306,22 @@ void plots(const string & arg_year, const string & arg_tagger) {
   else if(arg_tagger == "ak8_w__partnet") {
     tagger_template = tagger_template_ak8_w__partnet;
     ref_pt = ref_pt_ak8_w__partnet;
+  }
+  else if(arg_tagger == "ak8_t__deepak8") {
+    tagger_template = tagger_template_ak8_t__deepak8;
+    ref_pt = ref_pt_ak8_t__deepak8;
+  }
+  else if(arg_tagger == "ak8_t__MDdeepak8") {
+    tagger_template = tagger_template_ak8_t__MDdeepak8;
+    ref_pt = ref_pt_ak8_t__MDdeepak8;
+  }
+  else if(arg_tagger == "ak8_w__deepak8") {
+    tagger_template = tagger_template_ak8_w__deepak8;
+    ref_pt = ref_pt_ak8_w__deepak8;
+  }
+  else if(arg_tagger == "ak8_w__MDdeepak8") {
+    tagger_template = tagger_template_ak8_w__MDdeepak8;
+    ref_pt = ref_pt_ak8_w__MDdeepak8;
   }
 
   Tagger reference_tagger = tagger_template;
@@ -1272,21 +1352,21 @@ void plots(const string & arg_year, const string & arg_tagger) {
     }
   }
 
-  vector<PtBin> pt_bins_summary_plots;
-  pt_bins_summary_plots.push_back(pt_bins.at("pt_400toInf"));
-  // pt_bins_summary_plots.push_back(pt_bins.at("pt_300to400"));
-  pt_bins_summary_plots.push_back(pt_bins.at("pt_300to350"));
-  pt_bins_summary_plots.push_back(pt_bins.at("pt_350to400"));
-  pt_bins_summary_plots.push_back(pt_bins.at("pt_400to480"));
-  pt_bins_summary_plots.push_back(pt_bins.at("pt_480to600"));
-  pt_bins_summary_plots.push_back(pt_bins.at("pt_600toInf"));
-
-  for(const auto & graph_base_name : graph_base_names) {
-    do_summary_plot(year, reference_tagger, reference_tagger.name_base, pt_bins_summary_plots, graph_base_name, true, tagger_pt_480to600, tagger_pt_480to600_DPnote);
-    do_summary_plot(year, reference_tagger, reference_tagger.name_base, pt_bins_summary_plots, graph_base_name, false, tagger_pt_480to600, tagger_pt_480to600_DPnote);
-    for(const auto & variant : reference_tagger.name_variants) {
-      do_summary_plot(year, reference_tagger, variant, pt_bins_summary_plots, graph_base_name, true, tagger_pt_480to600, tagger_pt_480to600_DPnote);
-      do_summary_plot(year, reference_tagger, variant, pt_bins_summary_plots, graph_base_name, false, tagger_pt_480to600, tagger_pt_480to600_DPnote);
-    }
-  }
+  // vector<PtBin> pt_bins_summary_plots;
+  // pt_bins_summary_plots.push_back(pt_bins.at("pt_400toInf"));
+  // // pt_bins_summary_plots.push_back(pt_bins.at("pt_300to400"));
+  // pt_bins_summary_plots.push_back(pt_bins.at("pt_300to350"));
+  // pt_bins_summary_plots.push_back(pt_bins.at("pt_350to400"));
+  // pt_bins_summary_plots.push_back(pt_bins.at("pt_400to480"));
+  // pt_bins_summary_plots.push_back(pt_bins.at("pt_480to600"));
+  // pt_bins_summary_plots.push_back(pt_bins.at("pt_600toInf"));
+  //
+  // for(const auto & graph_base_name : graph_base_names) {
+  //   do_summary_plot(year, reference_tagger, reference_tagger.name_base, pt_bins_summary_plots, graph_base_name, true, tagger_pt_480to600, tagger_pt_480to600_DPnote);
+  //   do_summary_plot(year, reference_tagger, reference_tagger.name_base, pt_bins_summary_plots, graph_base_name, false, tagger_pt_480to600, tagger_pt_480to600_DPnote);
+  //   for(const auto & variant : reference_tagger.name_variants) {
+  //     do_summary_plot(year, reference_tagger, variant, pt_bins_summary_plots, graph_base_name, true, tagger_pt_480to600, tagger_pt_480to600_DPnote);
+  //     do_summary_plot(year, reference_tagger, variant, pt_bins_summary_plots, graph_base_name, false, tagger_pt_480to600, tagger_pt_480to600_DPnote);
+  //   }
+  // }
 }

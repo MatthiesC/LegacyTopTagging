@@ -38,7 +38,7 @@ class wpXmlCreator:
             for k, v in samplesDict.items():
                 use_me = v.get('years') == None or year in v.get('years', [])
                 use_me = use_me and ('wp' in v.get('analysis', []))
-                use_me = use_me and ('TTbar' in k) ############################################## HACK #################################################
+                # use_me = use_me and ('TTbar' in k) ############################################## HACK #################################################
                 if use_me:
                     sample_entity = sampleEntity('106X_v2', (k, v, year,))
                     if not os.path.isfile(sample_entity.xmlPath):

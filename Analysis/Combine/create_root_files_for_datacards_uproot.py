@@ -13,7 +13,7 @@ import hist
 
 sys.path.append(os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/Analysis'))
 # from constants import WorkingPoint, _TAGGERS, _DEEPCSV_WPS, _DEEPJET_WPS, _BANDS, _SYSTEMATICS, _PT_INTERVALS_TANDP_HOTVR, _PT_INTERVALS_TANDP_AK8_T, _PT_INTERVALS_TANDP_AK8_W
-from constants import WorkingPoint, _TAGGERS, _BANDS, _PT_INTERVALS_TANDP_HOTVR, _PT_INTERVALS_TANDP_AK8_T, _PT_INTERVALS_TANDP_AK8_W, Systematics
+from constants import WorkingPoint, _TAGGERS, _BANDS, _PT_INTERVALS_TANDP_HOTVR, _PT_INTERVALS_TANDP_AK8_T, _PT_INTERVALS_TANDP_AK8_W, Systematics, get_variable_binning_xlabel_xunit, _NULL_WP
 
 # systematics = Systematics(blacklist=['sfelec', 'sfmu_iso'])
 # systematics = Systematics(blacklist=['sfmu_iso'])
@@ -31,33 +31,33 @@ all_channels = [
 'ele',
 ]
 
-taggers = ['ak8_t__tau', 'ak8_t_btagDJet__tau', 'hotvr_t__tau', 'ak8_w__partnet']
+taggers = ['ak8_t__tau', 'ak8_t_btagDJet__tau', 'ak8_t_btagDCSV__tau', 'hotvr_t__tau', 'ak8_w__partnet', 'ak8_t__MDdeepak8']
 taggers = {k: _TAGGERS[k] for k in taggers}
 
-# set working points:
-for tagger_k, tagger in taggers.items():
-    if tagger_k == 'ak8_t__tau' or tagger_k == 'ak8_t_btagDJet__tau' or tagger_k == 'ak8_t_btagDCSV__tau':
-        # tagger.wps = [
-        #     WorkingPoint(0.001, 0.38),
-        #     WorkingPoint(0.005, 0.47),
-        #     WorkingPoint(0.010, 0.52),
-        #     WorkingPoint(0.025, 0.61),
-        #     WorkingPoint(0.050, 0.69),
-        # ]
-        tagger.var_intervals = _PT_INTERVALS_TANDP_AK8_T
-        tagger.fit_variable = 'output_probejet_AK8_mSD'
-    if tagger_k == 'hotvr_t__tau':
-        # hotvr_wp = WorkingPoint(9.999, 0.56) # providing bkg_eff does not make sense here; I have not derived it on my own; should be 3% or so
-        # hotvr_wp.name = 'Standard'
-        # tagger.wps = [hotvr_wp]
-        tagger.var_intervals = _PT_INTERVALS_TANDP_HOTVR
-        tagger.fit_variable = 'output_probejet_HOTVR_mass'
-    if tagger_k == 'ak8_w__partnet':
-        # tagger.wps = [
-        #     WorkingPoint(0.030, 0.00), # cut value year dependent! Need to hack it in the code below where we define the cut rules...
-        # ]
-        tagger.var_intervals = _PT_INTERVALS_TANDP_AK8_W
-        tagger.fit_variable = 'output_probejet_AK8_mSD'
+# # set working points:
+# for tagger_k, tagger in taggers.items():
+#     if tagger_k == 'ak8_t__tau' or tagger_k == 'ak8_t_btagDJet__tau' or tagger_k == 'ak8_t_btagDCSV__tau' or tagger_k == 'ak8_t__MDdeepak8':
+#         # tagger.wps = [
+#         #     WorkingPoint(0.001, 0.38),
+#         #     WorkingPoint(0.005, 0.47),
+#         #     WorkingPoint(0.010, 0.52),
+#         #     WorkingPoint(0.025, 0.61),
+#         #     WorkingPoint(0.050, 0.69),
+#         # ]
+#         tagger.var_intervals = _PT_INTERVALS_TANDP_AK8_T
+#         tagger.fit_variable = 'output_probejet_AK8_mSD'
+#     if tagger_k == 'hotvr_t__tau':
+#         # hotvr_wp = WorkingPoint(9.999, 0.56) # providing bkg_eff does not make sense here; I have not derived it on my own; should be 3% or so
+#         # hotvr_wp.name = 'Standard'
+#         # tagger.wps = [hotvr_wp]
+#         tagger.var_intervals = _PT_INTERVALS_TANDP_HOTVR
+#         tagger.fit_variable = 'output_probejet_HOTVR_mass'
+#     if tagger_k == 'ak8_w__partnet':
+#         # tagger.wps = [
+#         #     WorkingPoint(0.030, 0.00), # cut value year dependent! Need to hack it in the code below where we define the cut rules...
+#         # ]
+#         tagger.var_intervals = _PT_INTERVALS_TANDP_AK8_W
+#         tagger.fit_variable = 'output_probejet_AK8_mSD'
 
 # MSc = Merge Scenario
 processes = [
@@ -71,6 +71,7 @@ processes = [
 'TTbar__MSc_NotMerged',
 'TTbar__MSc_YllufMerged',
 'TTbar__MSc_SemiMerged',
+'TTbar__MSc_NotTopOrWMerged',
 'TTbar__MSc_Background',
 'ST',
 'ST__MSc_FullyMerged',
@@ -79,6 +80,7 @@ processes = [
 'ST__MSc_NotMerged',
 'ST__MSc_YllufMerged',
 'ST__MSc_SemiMerged',
+'ST__MSc_NotTopOrWMerged',
 'ST__MSc_Background',
 'VJetsAndVV',
 ]
@@ -107,7 +109,7 @@ years = args.years
 channels = args.channels
 the_tagger = taggers[args.tagger]
 
-def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None, arg_band=None, arg_region=None, arg_channel=None):
+def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None, arg_band=None, arg_region=None, arg_channel=None, arg_fit_variable=True):
 
     probejetalgo = ''
     if tagger.name.startswith('ak8'):
@@ -115,18 +117,20 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
     elif tagger.name.startswith('hotvr'):
         probejetalgo = 'HOTVR'
 
-    # binning = None # FIXME: other variables than mSD and mass use other binning than the following one...
-    if variable.endswith('_mSD') or variable.endswith('_mass'):
-        if '_t_' in tagger.name:
-            binning = np.array([50, 70, 85, 105, 120, 140, 155, 170, 185, 200, 210, 220, 230, 250, 275, 300, 350, 400, 450, 500], dtype=float)
-        elif '_w_' in tagger.name:
-            binning = np.array([50, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 155, 170, 185, 200, 250, 300], dtype=float)
-        else:
-            binning = None
-            sys.exit('Not a W or top tagger: no defined binning')
-    else:
-        binning = None
-        sys.exit('Variable "{}" has no defined binning'.format(variable))
+    binning, _, _ = get_variable_binning_xlabel_xunit(variable_name=variable.split('_'+probejetalgo+'_')[-1], tagger_name=tagger.name, fit_variable=arg_fit_variable)
+
+    # # binning = None # FIXME: other variables than mSD and mass use other binning than the following one...
+    # if variable.endswith('_mSD') or variable.endswith('_mass'):
+    #     if '_t_' in tagger.name:
+    #         binning = np.array([50, 70, 85, 105, 120, 140, 155, 170, 185, 200, 210, 220, 230, 250, 275, 300, 350, 400, 450, 500], dtype=float)
+    #     elif '_w_' in tagger.name:
+    #         binning = np.array([50, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 155, 170, 185, 200, 250, 300], dtype=float)
+    #     else:
+    #         binning = None
+    #         sys.exit('Not a W or top tagger: no defined binning')
+    # else:
+    #     binning = None
+    #     sys.exit('Variable "{}" has no defined binning'.format(variable))
 
     inDirBase = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel', year)
     outDirBase = os.path.join(inDirBase, 'combine', tagger.name)
@@ -150,11 +154,17 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
 
         # tandp_rule = tagger.tandp_rule.replace('WP_VALUE', '{:.5f}'.format(wp.cut_value)).replace('DEEPCSV_SCORE', '{:.5f}'.format(_DEEPCSV_WPS[year]['loose'])).replace('DEEPJET_SCORE', '{:.5f}'.format(_DEEPJET_WPS[year]['loose']))
 
-    tandp_rule = tagger.get_tandp_rule(arg_wp_index, year)
-
-    wp = tagger.get_wp(wp_index, year)
+    if arg_wp_index != -1:
+        tandp_rule = tagger.get_tandp_rule(arg_wp_index, year)
+        wp = tagger.get_wp(wp_index, year)
+    else:
+        tandp_rule = 'True'
+        wp = _NULL_WP
 
     for pt_bin in tagger.var_intervals.values():
+
+        if arg_wp_index == -1 and pt_bin.total_range != True:
+            continue
 
         batches = {}
         hists = {}
@@ -164,6 +174,8 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
             for band_k, band in ({arg_band.name: arg_band}.items() if arg_band else bands.items()):
 
                 for region in ([arg_region] if arg_region else regions): # Pass or Fail
+                    if region == 'Fail' and arg_wp_index == -1:
+                        continue
 
                     for channel in ([arg_channel] if arg_channel else channels):
 
@@ -211,6 +223,8 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
                 # cut_rule += '& (output_probejet_{}_pt <= {:.5f})'.format(probejetalgo, pt_bin.var_max)
 
                 for region in ([arg_region] if arg_region else regions): # Pass or Fail
+                    if region == 'Fail' and arg_wp_index == -1:
+                        continue
 
                     print('Working on region:', region)
 
@@ -255,6 +269,8 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
                                 cut_rule += ' & ((output_merge_scenario_{0} == 2) | (output_merge_scenario_{0} == 3) | (output_merge_scenario_{0} == 4))'.format(probejetalgo)
                             elif msc == 'SemiMerged':
                                 cut_rule += ' & ((output_merge_scenario_{0} == 2) | (output_merge_scenario_{0} == 3))'.format(probejetalgo)
+                            elif msc == 'NotTopOrWMerged':
+                                cut_rule += ' & ((output_merge_scenario_{0} == 3) | (output_merge_scenario_{0} == 4))'.format(probejetalgo)
                             elif msc == 'Background':
                                 cut_rule += ' & (output_merge_scenario_{0} == -1)'.format(probejetalgo)
 
@@ -262,13 +278,16 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
 
                             weight_alias = syst_v.weight_alias
                             expressions = [
-                                variable,
+                                # variable,
                                 'the_weight',
                                 'output_has_probejet_{}'.format(probejetalgo),
                                 'band',
                                 'output_probejet_{}_pt'.format(probejetalgo),
                                 'output_merge_scenario_{}'.format(probejetalgo),
                             ]
+                            if variable not in expressions: # avoid error due to having same variable twice in expressions list
+                                expressions.append(variable)
+
                             # manually add the variables used in the tandp_rule to the expressions list (pretty hacky):
                             for var_string in tandp_rule.replace('(', ' ').replace(')', ' ').split(' '):
                                 if var_string.startswith('output'):
@@ -298,6 +317,8 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
                     for band_k, band in ({arg_band.name: arg_band}.items() if arg_band else bands.items()):
 
                         for region in ([arg_region] if arg_region else regions): # Pass or Fail
+                            if region == 'Fail' and arg_wp_index == -1:
+                                continue
 
                             for channel in ([arg_channel] if arg_channel else channels):
 
@@ -327,9 +348,9 @@ if __name__ == '__main__':
     # create_input_hists(variable=the_tagger.fit_variable, tagger=the_tagger, arg_wp=the_tagger.wps[0], year='UL17', arg_syst=_SYSTEMATICS['nominal'], arg_band=_BANDS['Main'], arg_region='Fail', arg_channel='muo')
 
 
-    #_______________________________________
-    ## For running individual jobs manually
-
+    # #_______________________________________
+    # ## For running individual jobs manually
+    #
     # # create_input_hists(variable=the_tagger.fit_variable, tagger=the_tagger, arg_wp=the_tagger.wps[0], year='UL17', arg_syst=_SYSTEMATICS['nominal'])
     #
     # the_vars = [the_tagger.fit_variable]
@@ -353,22 +374,70 @@ if __name__ == '__main__':
 
 
     #_______________________________________
-    ## code part for condor jobs
+    ## For running individual jobs manually for non-WP plots
 
-    the_vars = [the_tagger.fit_variable]
-    if args.vars:
-        the_vars = args.vars
+    # create_input_hists(variable=the_tagger.fit_variable, tagger=the_tagger, arg_wp=the_tagger.wps[0], year='UL17', arg_syst=_SYSTEMATICS['nominal'])
+
+    # the_vars = [the_tagger.fit_variable]
+    the_vars = []
+    if the_tagger.name.startswith('ak8_t'):
+        the_vars = [
+            'output_probejet_AK8_tau32',
+            'output_probejet_AK8_maxDeepJet',
+            'output_probejet_AK8_maxDeepCSV',
+            'output_probejet_AK8_MDDeepAK8_TvsQCD',
+            'output_probejet_AK8_mSD',
+            'output_probejet_AK8_mass',
+            'output_probejet_AK8_pt',
+        ]
+    elif the_tagger.name.startswith('ak8_w'):
+        the_vars = [
+            'output_probejet_AK8_ParticleNet_WvsQCD',
+            'output_probejet_AK8_mSD',
+            'output_probejet_AK8_mass',
+            'output_probejet_AK8_pt',
+        ]
+    elif the_tagger.name.startswith('hotvr_t'):
+        the_vars = [
+            'output_probejet_HOTVR_tau32',
+            'output_probejet_HOTVR_nsub',
+            'output_probejet_HOTVR_fpt1',
+            'output_probejet_HOTVR_mpair',
+            'output_probejet_HOTVR_mass',
+            'output_probejet_HOTVR_pt',
+        ]
+    # if args.vars:
+    #     the_vars = args.vars
+
+    # the_wps = the_tagger.wps
+    # if args.wps:
+    #     the_wps = [the_tagger.wps[int(x)] for x in args.wps]
 
     the_systs = args.systs
 
     for var in the_vars:
         for year in years:
+            for syst in the_systs:
+                create_input_hists(variable=var, tagger=the_tagger, arg_wp_index=-1, year=year, arg_syst=_SYSTEMATICS[syst], arg_fit_variable=False)
 
-            # the_wps = the_tagger.wps
-            the_wp_indices = range(0, len(the_tagger.get_wp(year=year)))
-            if args.wps:
-                the_wp_indices = [int(x) for x in args.wps]
 
-            for wp_index in the_wp_indices:
-                for syst in the_systs:
-                    create_input_hists(variable=var, tagger=the_tagger, arg_wp_index=wp_index, year=year, arg_syst=_SYSTEMATICS[syst])
+    # #_______________________________________
+    # ## code part for condor jobs
+    #
+    # the_vars = [the_tagger.fit_variable]
+    # if args.vars:
+    #     the_vars = args.vars
+    #
+    # the_systs = args.systs
+    #
+    # for var in the_vars:
+    #     for year in years:
+    #
+    #         # the_wps = the_tagger.wps
+    #         the_wp_indices = range(0, len(the_tagger.get_wp(year=year)))
+    #         if args.wps:
+    #             the_wp_indices = [int(x) for x in args.wps]
+    #
+    #         for wp_index in the_wp_indices:
+    #             for syst in the_systs:
+    #                 create_input_hists(variable=var, tagger=the_tagger, arg_wp_index=wp_index, year=year, arg_syst=_SYSTEMATICS[syst])

@@ -614,6 +614,8 @@ MainOutputSetter::MainOutputSetter(Context & ctx):
   output_names.push_back(prefix+"maxDeepJet");
   output_names.push_back(prefix+"DeepAK8_TvsQCD");
   output_names.push_back(prefix+"DeepAK8_WvsQCD");
+  output_names.push_back(prefix+"MDDeepAK8_TvsQCD");
+  output_names.push_back(prefix+"MDDeepAK8_WvsQCD");
   output_names.push_back(prefix+"ParticleNet_TvsQCD");
   output_names.push_back(prefix+"ParticleNet_WvsQCD");
 
@@ -665,6 +667,8 @@ bool MainOutputSetter::process(Event & event) {
   values.at(i++) = has_ak8_jet ? maxDeepJetSubJetValue(probejet_ak8) : zero_padding;
   values.at(i++) = has_ak8_jet ? probejet_ak8.btag_DeepBoosted_TvsQCD() : zero_padding;
   values.at(i++) = has_ak8_jet ? probejet_ak8.btag_DeepBoosted_WvsQCD() : zero_padding;
+  values.at(i++) = has_ak8_jet ? probejet_ak8.btag_MassDecorrelatedDeepBoosted_TvsQCD() : zero_padding;
+  values.at(i++) = has_ak8_jet ? probejet_ak8.btag_MassDecorrelatedDeepBoosted_WvsQCD() : zero_padding;
   values.at(i++) = has_ak8_jet ? probejet_ak8.btag_ParticleNetDiscriminatorsJetTags_TvsQCD() : zero_padding;
   values.at(i++) = has_ak8_jet ? probejet_ak8.btag_ParticleNetDiscriminatorsJetTags_WvsQCD() : zero_padding;
 

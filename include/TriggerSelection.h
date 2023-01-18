@@ -11,11 +11,12 @@ namespace uhh2 { namespace ltt {
 //____________________________________________________________________________________________________
 class MyTriggerSelection : public uhh2::Selection {
 public:
-  MyTriggerSelection(uhh2::Context & ctx, const bool low_pt);
+  MyTriggerSelection(uhh2::Context & ctx, const bool low_pt, const bool simplerEleSetup);
   virtual bool passes(const uhh2::Event & event) override;
 private:
   const Year fYear;
   const ltt::Channel fChannel;
+  const bool fSimplerEleSetup;
   const bool fLowPt;
   enum class DataStream {
     isMC,

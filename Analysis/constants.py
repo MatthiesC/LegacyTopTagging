@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import sys
 from collections import OrderedDict
 import numpy as np
 
@@ -123,7 +124,7 @@ _DEEPJET_WPS = {
 
 class VarInterval:
 
-    def __init__(self, var, var_min=None, var_max=None, inversed=False, fit=False):
+    def __init__(self, var, var_min=None, var_max=None, inversed=False, fit=False, total_range=False):
         self.var = var
         self.var_min = var_min or 0
         self.var_max = var_max or 999999
@@ -131,6 +132,10 @@ class VarInterval:
         self.name = '_'.join([var, str(var_min)+'to'+str(var_max or 'Inf')])
         self.inversed = inversed # defines in which direction to scan; e.g. either 1 to 0 or 0 to 1
         self.fit = fit
+        self.total_range = total_range
+
+    def get_interval_tex(self):
+        return '{}--{}'.format(self.var_min, self.var_max if self.max_set else r'$\infty$')
 
 _PT_INTERVALS = [
     VarInterval('pt', 200),
@@ -146,6 +151,7 @@ _PT_INTERVALS = [
     VarInterval('pt', 400, 480),
     VarInterval('pt', 480),
     VarInterval('pt', 480, 600),
+    VarInterval('pt', 500, 600), # for DeepAK8
     VarInterval('pt', 600),
     VarInterval('pt', 600, 800),
     VarInterval('pt', 800),
@@ -153,13 +159,14 @@ _PT_INTERVALS = [
     VarInterval('pt', 1000),
     VarInterval('pt', 1000, 1500),
     VarInterval('pt', 1500),
-    # VarInterval('pt', 600, 620), # just for quick tests
+    VarInterval('pt', 600, 620), # just for quick tests
 ]
 _PT_INTERVALS = {pt_interval.name: pt_interval for pt_interval in _PT_INTERVALS}
 
 _PT_INTERVALS_TANDP_HOTVR = [
     VarInterval('pt', 200,
         # fit=True,
+        total_range=True,
     ),
     VarInterval('pt', 200, 250,
         fit=True,
@@ -194,6 +201,7 @@ _PT_INTERVALS_TANDP_HOTVR = {pt_interval.name: pt_interval for pt_interval in _P
 _PT_INTERVALS_TANDP_AK8_T = [
     VarInterval('pt', 300,
         # fit=True,
+        total_range=True,
     ),
     VarInterval('pt', 300, 350,
         fit=True,
@@ -222,6 +230,7 @@ _PT_INTERVALS_TANDP_AK8_T = {pt_interval.name: pt_interval for pt_interval in _P
 _PT_INTERVALS_TANDP_AK8_W = [
     VarInterval('pt', 200,
         # fit=True,
+        total_range=True,
     ),
     VarInterval('pt', 200, 250,
         fit=True,
@@ -259,19 +268,47 @@ _PT_INTERVALS_TANDP_AK8_W = {pt_interval.name: pt_interval for pt_interval in _P
 
 class WorkingPoint:
 
-    def __init__(self, bkg_eff, cut_value, name=None):
+    def __init__(self, bkg_eff, cut_value, name=None, null=False):
         self.bkg_eff = bkg_eff
-        self.cut_value = cut_value
+        self.cut_value = cut_value # can be float or dict (key=year, value=float)
         self.name = name or 'BkgEff' + '{:.3f}'.format(bkg_eff).replace('.', 'p')
+        self.null = null
+
+    def get_cut_value(self, year=None):
+        '''
+        Use this function, not self.cut_value directly!
+        '''
+        if isinstance(self.cut_value, dict):
+            if year is not None:
+                return self.cut_value[year]
+            else:
+                sys.exit('Cut values of working point {} are year-dependent. But year not provided'.format(self.name))
+        else:
+            return self.cut_value
+
+_NULL_WP = WorkingPoint(1., np.inf, 'NullWP', null=True)
 
 
 class Tagger:
 
-    def __init__(self, name, scan_var, tag_rule = [], wps = [], tandp_rule='', label=''):
+    def __init__(self, name, scan_var, tag_rule = [], wps = [], tandp_rule='', label='', use_all_pt_intervals=False):
         self.name = name
         self.scan_var = scan_var
         self.tag_rule = tag_rule
-        self.var_intervals = _PT_INTERVALS # just use all for now
+        if self.name.startswith('ak8_t'):
+            self.var_intervals = _PT_INTERVALS_TANDP_AK8_T
+            self.fit_variable = 'output_probejet_AK8_mSD'
+        elif self.name.startswith('ak8_w'):
+            self.var_intervals = _PT_INTERVALS_TANDP_AK8_W
+            self.fit_variable = 'output_probejet_AK8_mSD'
+        elif self.name.startswith('hotvr_t'):
+            self.var_intervals = _PT_INTERVALS_TANDP_HOTVR
+            self.fit_variable = 'output_probejet_HOTVR_mass'
+        else:
+            self.var_intervals = _PT_INTERVALS # just use all for now
+            self.fit_variable = 'VAR_NOT_DEFINED' # fixme
+        if use_all_pt_intervals:
+            self.var_intervals = _PT_INTERVALS
         self.wps = wps # cut values for scan_var; should be list of instances of class "WorkingPoint"
         self.tandp_rule = tandp_rule
         self.label = label
@@ -279,11 +316,16 @@ class Tagger:
     def set_tag_rule(self, tag_rule):
         self.tag_rule = tag_rule
 
-    def get_tag_rule(self):
-        if len(tag_rule):
-            return ' & '.join(['('+x+')' for x in self.tag_rule])
+    def get_tag_rule(self, year=None):
+        if len(self.tag_rule):
+            tag_rule = ' & '.join(['('+x+')' for x in self.tag_rule])
         else:
-            return 'True'
+            tag_rule = 'True'
+        replaces = {}
+        if year:
+            replaces['DEEPCSV_SCORE'] = '{:.5f}'.format(_DEEPCSV_WPS[year]['loose'])
+            replaces['DEEPJET_SCORE'] = '{:.5f}'.format(_DEEPJET_WPS[year]['loose'])
+        return tag_rule.format(**replaces)
 
     def get_wp(self, wp_index=None, year=None):
         # if wp_index not given, will return list of all wps for the given year
@@ -390,6 +432,8 @@ _TAGGERS = [
         ['mass > 140', 'mass < 220', 'fpt1 < 0.8', 'nsub > 2', 'mpair > 50'],
         tandp_rule='(output_probejet_HOTVR_fpt1 < 0.8) & (output_probejet_HOTVR_nsub > 2) & (output_probejet_HOTVR_mpair > 50) & (output_probejet_HOTVR_tau32 < {WP_VALUE})',
         wps=[
+        # Varified on Nov 15, 2022 with my WorkingPointStudy code that for UL with pt > 400 GeV, |eta| < 2.5, a tau32 cut of < 0.550 or 0.551 (depending on year) would lead to 3% bkg. eff. in QCD HT, HT > 300 GeV
+        # We stick to 0.56 for consistency with previous
             WorkingPoint(9.999, 0.56, name='Standard') # providing bkg_eff does not make sense here; I have not derived it on my own; should be 3% or so
         ],
         label='#tau_{3}/#tau_{2} < {WP_VALUE} + HOTVR cuts',
@@ -444,6 +488,11 @@ _TAGGERS = [
         ],
         label='#tau_{3}/#tau_{2} < {WP_VALUE} + loose DeepCSV subjet b tag',
     ),
+    Tagger('ak8_t_incl__partnet',
+        'partnet_TvsQCD',
+        [],
+        tandp_rule='(output_probejet_AK8_ParticleNet_TvsQCD > {WP_VALUE})',
+    ),
     Tagger('ak8_t__partnet',
         'partnet_TvsQCD',
         ['msd > 105', 'msd < 210'],
@@ -453,6 +502,49 @@ _TAGGERS = [
         'deepak8_TvsQCD',
         ['msd > 105', 'msd < 210'],
         tandp_rule='(output_probejet_AK8_DeepAK8_TvsQCD > {WP_VALUE})',
+    ),
+    Tagger('ak8_t_incl__deepak8',
+        'deepak8_TvsQCD',
+        [],
+        tandp_rule='(output_probejet_AK8_DeepAK8_TvsQCD > {WP_VALUE})',
+    ),
+    Tagger('ak8_t__MDdeepak8',
+        'MDdeepak8_TvsQCD',
+        ['msd > 105', 'msd < 210'],
+        tandp_rule='(output_probejet_AK8_MDDeepAK8_TvsQCD > {WP_VALUE})',
+        wps=[
+        # Re-varified on Nov 15, 2022 for pt > 200 (first entry) and pt > 400 (second entry)
+            WorkingPoint(0.010,
+            {
+                'UL16preVFP': 0.485,
+                'UL16postVFP': 0.475,
+                'UL17': 0.487,
+                'UL18': 0.477,
+            },
+            name='CustomPt400'
+            ),
+        ],
+        # wps={
+        # # Re-varified on Nov 15, 2022 for pt > 200 (first entry) and pt > 400 (second entry)
+        #     'UL16preVFP': [
+        #         WorkingPoint(0.010, 0.485, name='CustomPt400'),
+        #     ],
+        #     'UL16postVFP': [
+        #         WorkingPoint(0.010, 0.475, name='CustomPt400'),
+        #     ],
+        #     'UL17': [
+        #         WorkingPoint(0.010, 0.487, name='CustomPt400'),
+        #     ],
+        #     'UL18': [
+        #         WorkingPoint(0.010, 0.477, name='CustomPt400'),
+        #     ],
+        # },
+        label='MD-DeepAK8 TvsQCD > {WP_VALUE}',
+    ),
+    Tagger('ak8_t_incl__MDdeepak8',
+        'MDdeepak8_TvsQCD',
+        [],
+        tandp_rule='(output_probejet_AK8_MDDeepAK8_TvsQCD > {WP_VALUE})',
     ),
     Tagger('ak8_w_incl__tau',
         'tau21',
@@ -477,26 +569,58 @@ _TAGGERS = [
         'partnet_WvsQCD',
         ['msd > 65', 'msd < 105'],
         tandp_rule='(output_probejet_AK8_ParticleNet_WvsQCD > {WP_VALUE})',
-        wps={
-            'UL16preVFP': [
-                WorkingPoint(0.030, 0.871),
-            ],
-            'UL16postVFP': [
-                WorkingPoint(0.030, 0.868),
-            ],
-            'UL17': [
-                WorkingPoint(0.030, 0.868),
-            ],
-            'UL18': [
-                WorkingPoint(0.030, 0.864),
-            ],
-        },
-        label='ParticleNet WvsQCD < {WP_VALUE}',
+        wps=[
+        # Re-varified on Nov 15, 2022 for pt > 200 (first entry) and pt > 400 (second entry)
+            WorkingPoint(0.030,
+            {
+                'UL16preVFP': 0.737,
+                'UL16postVFP': 0.729,
+                'UL17': 0.746,
+                'UL18': 0.734,
+            },
+            name='CustomPt400'
+            ),
+        ],
+        # wps={
+        # # Re-varified on Nov 15, 2022 for pt > 200 (first entry) and pt > 400 (second entry)
+        #     'UL16preVFP': [
+        #         # WorkingPoint(0.030, 0.871, name='CustomPt200'),
+        #         WorkingPoint(0.030, 0.737, name='CustomPt400'),
+        #     ],
+        #     'UL16postVFP': [
+        #         # WorkingPoint(0.030, 0.868, name='CustomPt200'),
+        #         WorkingPoint(0.030, 0.729, name='CustomPt400'),
+        #     ],
+        #     'UL17': [
+        #         # WorkingPoint(0.030, 0.868, name='CustomPt200'),
+        #         WorkingPoint(0.030, 0.746, name='CustomPt400'),
+        #     ],
+        #     'UL18': [
+        #         # WorkingPoint(0.030, 0.864, name='CustomPt200'),
+        #         WorkingPoint(0.030, 0.734, name='CustomPt400'),
+        #     ],
+        # },
+        label='ParticleNet WvsQCD > {WP_VALUE}',
     ),
     Tagger('ak8_w__deepak8',
         'deepak8_WvsQCD',
         ['msd > 65', 'msd < 105'],
         tandp_rule='(output_probejet_AK8_DeepAK8_WvsQCD > {WP_VALUE})',
+    ),
+    Tagger('ak8_w_incl__deepak8',
+        'deepak8_WvsQCD',
+        [],
+        tandp_rule='(output_probejet_AK8_DeepAK8_WvsQCD > {WP_VALUE})',
+    ),
+    Tagger('ak8_w__MDdeepak8',
+        'MDdeepak8_WvsQCD',
+        ['msd > 65', 'msd < 105'],
+        tandp_rule='(output_probejet_AK8_MDDeepAK8_WvsQCD > {WP_VALUE})',
+    ),
+    Tagger('ak8_w_incl__MDdeepak8',
+        'MDdeepak8_WvsQCD',
+        [],
+        tandp_rule='(output_probejet_AK8_MDDeepAK8_WvsQCD > {WP_VALUE})',
     ),
 ]
 _TAGGERS = {tagger.name: tagger for tagger in _TAGGERS}
@@ -527,6 +651,7 @@ _TCOLORS = {
 # Correlations taken from: https://docs.google.com/spreadsheets/d/1JZfk78_9SD225bcUuTWVo4i02vwI5FfeVKH-dwzUdhM/edit#gid=1345121349
 # This spreadsheet is linked here: https://twiki.cern.ch/twiki/bin/view/CMS/JECUncertaintySources#Run2_JEC_uncertainty_correlation
 # keys are the source names, compatible with the names given in the JEC textFiles. Values are the correlations between RunII years
+# 0.5 are the optimal values; can be simplified to 1.0 if necessary
 _JECSMEAR_SOURCES = {
     'AbsoluteMPFBias': 1.0,
     'AbsoluteScale': 1.0,
@@ -917,6 +1042,7 @@ class Systematic:
 class Systematics:
 
     def __init__(self, include_jes_splits=True, blacklist=[], whitelist=[]):
+        self.include_jes_splits = include_jes_splits
         self.nominal = Variation('nominal')
         self.nominal.name = self.nominal.short_name
         self.base = [
@@ -1013,62 +1139,63 @@ class Systematics:
                 'up': 'weight * weight_fsr_2_up',
                 },
                 combine_name='FSR2',
+                tandp=True,
             ),
             Systematic('fsr_g2gg_mur', {
                 'down': 'weight * weight_fsr_g2gg_mur_down',
                 'up': 'weight * weight_fsr_g2gg_mur_up',
                 },
                 combine_name='FSRg2ggMuR',
-                tandp=True,
+                # tandp=True,
             ),
             Systematic('fsr_g2qq_mur', {
                 'down': 'weight * weight_fsr_g2qq_mur_down',
                 'up': 'weight * weight_fsr_g2qq_mur_up',
                 },
                 combine_name='FSRg2qqMuR',
-                tandp=True,
+                # tandp=True,
             ),
             Systematic('fsr_q2qg_mur', {
                 'down': 'weight * weight_fsr_q2qg_mur_down',
                 'up': 'weight * weight_fsr_q2qg_mur_up',
                 },
                 combine_name='FSRq2qgMuR',
-                tandp=True,
+                # tandp=True,
             ),
             Systematic('fsr_x2xg_mur', {
                 'down': 'weight * weight_fsr_x2xg_mur_down',
                 'up': 'weight * weight_fsr_x2xg_mur_up',
                 },
                 combine_name='FSRx2xgMuR',
-                tandp=True,
+                # tandp=True,
             ),
             Systematic('fsr_g2gg_cns', {
                 'down': 'weight * weight_fsr_g2gg_cns_down',
                 'up': 'weight * weight_fsr_g2gg_cns_up',
                 },
                 combine_name='FSRg2ggCNS',
-                tandp=True,
+                # tandp=True,
             ),
             Systematic('fsr_g2qq_cns', {
                 'down': 'weight * weight_fsr_g2qq_cns_down',
                 'up': 'weight * weight_fsr_g2qq_cns_up',
                 },
                 combine_name='FSRg2qqCNS',
-                tandp=True,
+                # tandp=True,
             ),
             Systematic('fsr_q2qg_cns', {
                 'down': 'weight * weight_fsr_q2qg_cns_down',
                 'up': 'weight * weight_fsr_q2qg_cns_up',
                 },
                 combine_name='FSRq2qgCNS',
-                tandp=True,
+                # tandp=True,
             ),
             Systematic('fsr_x2xg_cns', {
                 'down': 'weight * weight_fsr_x2xg_cns_down',
                 'up': 'weight * weight_fsr_x2xg_cns_up',
                 },
                 combine_name='FSRx2xgCNS',
-                tandp=True,
+                # tandp=True,
             ),
             #________________________________________
             Systematic('isr_2', {
@@ -1083,63 +1210,63 @@ class Systematics:
                 'up': 'weight * weight_isr_g2gg_mur_up',
                 },
                 combine_name='ISRg2ggMuR',
-                tandp=True,
+                # tandp=True,
             ),
             Systematic('isr_g2qq_mur', {
                 'down': 'weight * weight_isr_g2qq_mur_down',
                 'up': 'weight * weight_isr_g2qq_mur_up',
                 },
                 combine_name='ISRg2qqMuR',
-                tandp=True,
+                # tandp=True,
             ),
             Systematic('isr_q2qg_mur', {
                 'down': 'weight * weight_isr_q2qg_mur_down',
                 'up': 'weight * weight_isr_q2qg_mur_up',
                 },
                 combine_name='ISRq2qgMuR',
-                tandp=True,
+                # tandp=True,
             ),
             Systematic('isr_x2xg_mur', {
                 'down': 'weight * weight_isr_x2xg_mur_down',
                 'up': 'weight * weight_isr_x2xg_mur_up',
                 },
                 combine_name='ISRx2xgMuR',
-                tandp=True,
+                # tandp=True,
             ),
             Systematic('isr_g2gg_cns', {
                 'down': 'weight * weight_isr_g2gg_cns_down',
                 'up': 'weight * weight_isr_g2gg_cns_up',
                 },
                 combine_name='ISRg2ggCNS',
-                tandp=True,
+                # tandp=True,
             ),
             Systematic('isr_g2qq_cns', {
                 'down': 'weight * weight_isr_g2qq_cns_down',
                 'up': 'weight * weight_isr_g2qq_cns_up',
                 },
                 combine_name='ISRg2qqCNS',
-                tandp=True,
+                # tandp=True,
             ),
             Systematic('isr_q2qg_cns', {
                 'down': 'weight * weight_isr_q2qg_cns_down',
                 'up': 'weight * weight_isr_q2qg_cns_up',
                 },
                 combine_name='ISRq2qgCNS',
-                tandp=True,
+                # tandp=True,
             ),
             Systematic('isr_x2xg_cns', {
                 'down': 'weight * weight_isr_x2xg_cns_down',
                 'up': 'weight * weight_isr_x2xg_cns_up',
                 },
                 combine_name='ISRx2xgCNS',
-                tandp=True,
+                # tandp=True,
             ),
             #________________________________________
             Systematic('prefire', {
                 'down': 'weight / weight_prefire * weight_prefire_down',
                 'up': 'weight / weight_prefire * weight_prefire_up',
                 },
-                tandp=True,
+                # tandp=True,
             ),
             #________________________________________
             Systematic('pu', {
@@ -1155,7 +1282,7 @@ class Systematics:
                 'up': 'weight / weight_sfmu_id * weight_sfmu_id_up',
                 },
                 combine_name='sfmuID',
-                tandp=True,
+                # tandp=True,
             ),
             Systematic('sfmu_iso', {
                 'down': 'weight / weight_sfmu_iso * weight_sfmu_iso_down',
@@ -1168,19 +1295,21 @@ class Systematics:
                 'up': 'weight / weight_sfmu_trigger * weight_sfmu_trigger_up',
                 },
                 combine_name='sfmuTrigger',
-                tandp=True,
+                # tandp=True,
             ),
             Systematic('sfelec_id', {
                 'down': 'weight / weight_sfelec_id * weight_sfelec_id_down',
                 'up': 'weight / weight_sfelec_id * weight_sfelec_id_up',
                 },
                 combine_name='sfelecID',
+                # tandp=True,
             ),
             Systematic('sfelec_reco', {
                 'down': 'weight / weight_sfelec_reco * weight_sfelec_reco_down',
                 'up': 'weight / weight_sfelec_reco * weight_sfelec_reco_up',
                 },
                 combine_name='sfelecReco',
+                # tandp=True,
             ),
             Systematic('sfelec_trigger', {
                 'down': 'weight / weight_sfelec_trigger * weight_sfelec_trigger_down',
@@ -1211,6 +1340,7 @@ class Systematics:
                 'up': None,
                 },
                 0.0,
+                tandp=True,
             ),
             #________________________________________
             Systematic('jer', {
@@ -1234,7 +1364,7 @@ class Systematics:
                 'up': None,
                 },
                 1.0,
-                tandp=True,
+                # tandp=True,
             ),
             #________________________________________
             Systematic('hdamp', {
@@ -1242,7 +1372,7 @@ class Systematics:
                 'up': None,
                 },
                 1.0,
-                tandp=True,
+                # tandp=True,
             ),
             #________________________________________
             Systematic('cr', {
@@ -1251,17 +1381,18 @@ class Systematics:
                 'erdon': None,
                 },
                 1.0,
-                tandp=True,
+                # tandp=True,
             ),
         ]
-        for name, corr_eras in _JECSMEAR_SOURCES.items():
-            self.base.append(Systematic('jes'+name, {
-                'down': None,
-                'up': None,
-                },
-                corr_eras,
-                tandp=True,
-            ))
+        if self.include_jes_splits:
+            for name, corr_eras in _JECSMEAR_SOURCES.items():
+                self.base.append(Systematic('jes'+name, {
+                    'down': None,
+                    'up': None,
+                    },
+                    corr_eras,
+                    tandp=True,
+                ))
         self.base = {syst.name: syst for syst in self.base}
 
         ### whitelist has higher priority than blacklist. Only works with "startswith"-matches
@@ -1289,3 +1420,101 @@ class Systematics:
             for variation in syst.variations.values():
                 all_variations[variation.name] = variation
         return all_variations
+
+
+def get_variable_binning_xlabel_xunit(variable_name, tagger_name=None, fit_variable=False):
+
+    logy = False
+    leg_offset_x = 0.
+    leg_offset_y = 0.
+
+    # binning = None # FIXME: other variables than mSD and mass use other binning than the following one...
+    if variable_name=='mSD' or variable_name=='mass':
+
+        if tagger_name==None:
+            sys.exit('Tagger name not given. Cannot determine binning for mSD or mass')
+        elif '_t_' in tagger_name:
+            if fit_variable:
+                binning = np.array([50, 70, 85, 105, 120, 140, 155, 170, 185, 200, 210, 220, 230, 250, 275, 300, 350, 400, 450, 500], dtype=float)
+            else:
+                binning = np.linspace(0, 500, num=51)
+        elif '_w_' in tagger_name:
+            if fit_variable:
+                binning = np.array([50, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 155, 170, 185, 200, 250, 300], dtype=float)
+            else:
+                binning = np.linspace(0, 300, num=51)
+        else:
+            binning = None
+            sys.exit('Not a W or top tagger: no defined binning')
+
+        if variable_name=='mSD':
+            xlabel = 'Probe jet #it{m}_{SD}'
+        elif variable_name=='mass':
+            xlabel = 'Probe jet #it{m}_{jet}'
+        xunit = 'GeV'
+
+    elif variable_name=='tau32':
+        binning = np.linspace(0, 1, num=51)
+        xlabel = 'Probe jet #tau_{3}/#tau_{2}'
+        xunit = None
+        leg_offset_x = -0.35
+
+    elif variable_name=='maxDeepJet':#, 'maxDeepCSV', 'MDdeepak8_TvsQCD', 'ParticleNet_WvsQCD', 'fpt1']:
+        binning = np.linspace(0, 1, num=51)
+        xlabel = 'Max. DeepJet score of probe subjets'
+        xunit = None
+        logy = True
+        leg_offset_x = -0.23
+        leg_offset_y = 0.06
+
+    elif variable_name=='maxDeepCSV':#, 'maxDeepCSV', 'MDdeepak8_TvsQCD', 'ParticleNet_WvsQCD', 'fpt1']:
+        binning = np.linspace(0, 1, num=51)
+        xlabel = 'Max. DeepCSV score of probe subjets'
+        xunit = None
+        logy = True
+        leg_offset_x = -0.23
+        leg_offset_y = 0.06
+
+    elif variable_name=='MDDeepAK8_TvsQCD':#, 'maxDeepCSV', 'MDdeepak8_TvsQCD', 'ParticleNet_WvsQCD', 'fpt1']:
+        binning = np.linspace(0, 1, num=51)
+        xlabel = 'Probe jet MD-DeepAK8 TvsQCD score'
+        xunit = None
+        logy = True
+        leg_offset_x = -0.23
+        leg_offset_y = 0.06
+
+    elif variable_name=='ParticleNet_WvsQCD':#, 'maxDeepCSV', 'MDdeepak8_TvsQCD', 'ParticleNet_WvsQCD', 'fpt1']:
+        binning = np.linspace(0, 1, num=51)
+        xlabel = 'Probe jet ParticleNet WvsQCD score'
+        xunit = None
+        logy = True
+        leg_offset_x = -0.23
+        leg_offset_y = 0.06
+
+    elif variable_name=='fpt1':
+        binning = np.linspace(0, 1, num=51)
+        xlabel = '#it{p}_{T} fraction of leading probe subjet'
+        xunit = None
+        leg_offset_x = -0.41
+        leg_offset_y = 0.06
+
+    elif variable_name=='nsub':
+        binning = np.linspace(-0.5, 10.5, num=12)
+        xlabel = 'Probe subjet multiplicity'
+        xunit = None
+
+    elif variable_name=='mpair':
+        binning = np.linspace(0, 250, num=51)
+        xlabel = 'Min. #it{m}_{ij} of three leading probe subjets'
+        xunit = 'GeV'
+
+    elif variable_name=='pt':
+        binning = np.linspace(0, 1000, num=51)
+        xlabel = 'Probe jet #it{p}_{T}'
+        xunit = 'GeV'
+
+    else:
+        binning = None
+        sys.exit('Variable "{}" has no defined binning'.format(variable_name))
+
+    return binning, xlabel, xunit, logy, leg_offset_x, leg_offset_y
