@@ -15,3 +15,4 @@ All output goes to `<your/path/to/LegacyTopTaggingOutput>/TagAndProbe/mainsel/UL
 - Adjust settings in `submit_uproot_jobs.py` and then run `python submit_uproot_jobs.py` (choose which tagger to run, how many WPs, which years...)
 - If you want to run specific tagger/year/wp etc. locally, you can just run `pyconda3 create_root_files_for_datacards_uproot.py` with appropriate parameters (you can also choose different variable than jet mass)
 - Rearrange histograms in combine-friendly format: `python rearrange_basic_hists_from_uproot.py` (need to adjust settings in the file, no argparse implemented)
+- Create LaTeX beamer slides with pre-/post-fit plots with `pyconda3 create_latex_slides.py` (adjust settings in the file, no argparse)
