@@ -3,6 +3,7 @@ from __future__ import print_function
 import sys
 from collections import OrderedDict
 import numpy as np
+import sympy
 
 
 # Source: https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopSystematics#Luminosity
@@ -327,7 +328,7 @@ class Tagger:
             replaces['DEEPJET_SCORE'] = '{:.5f}'.format(_DEEPJET_WPS[year]['loose'])
         return tag_rule.format(**replaces)
 
-    def get_wp(self, wp_index=None, year=None):
+    def get_wp(self, wp_index=None, year=None, wp_name=None):
         # if wp_index not given, will return list of all wps for the given year
         # if year not given, will return
         if isinstance(self.wps, dict):
@@ -342,6 +343,16 @@ class Tagger:
         elif isinstance(self.wps, list):
             if wp_index != None:
                 return self.wps[wp_index]
+            elif wp_name != None:
+                result = None
+                for wp in self.wps:
+                    if wp_name == wp.name:
+                        result = wp
+                        break
+                if result is not None:
+                    return result
+                else:
+                    sys.exit('WP with name {} not found'.format(wp_name))
             else:
                 return self.wps
         else:
@@ -1518,3 +1529,13 @@ def get_variable_binning_xlabel_xunit(variable_name, tagger_name=None, fit_varia
         sys.exit('Variable "{}" has no defined binning'.format(variable_name))
 
     return binning, xlabel, xunit, logy, leg_offset_x, leg_offset_y
+
+
+class Primes():
+
+    def __init__(self):
+        self.calls_to_get_next_prime = 0
+
+    def get_next_prime(self):
+        self.calls_to_get_next_prime += 1
+        return sympy.prime(self.calls_to_get_next_prime)

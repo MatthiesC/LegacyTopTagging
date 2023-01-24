@@ -169,9 +169,9 @@ elif mscSplitting == 'mscW3':
 #     (p.name, p) for p in processes_Plotter
 # ])
 processes_Plotter_temp = OrderedDict()
-for index, p in enumerate(processes_Plotter):
-    p.index = index
-    processes_Plotter_temp[p.name] = p
+for index, proc in enumerate(processes_Plotter):
+    proc.index = index
+    processes_Plotter_temp[p.name] = proc
 processes_Plotter = processes_Plotter_temp
 
 systs_Plotter = []

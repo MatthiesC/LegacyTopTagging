@@ -1,3 +1,7 @@
+from __future__ import print_function
+
+import sys
+
 from HiggsAnalysis.CombinedLimit.PhysicsModel import PhysicsModel
 
 # https://hypernews.cern.ch/HyperNews/CMS/get/higgs-combination/1653.html
@@ -7,193 +11,146 @@ class LegacyTopTaggingModel(PhysicsModel):
 
     def __init__(self):
         super(LegacyTopTaggingModel, self).__init__()
-        self.ttbar_categories = None
-        self.sf_name_prefix = 'SF_'
-        self.antisf_name_prefix = 'AntiSF_'
-        # self.postfix = None
-        self.tasks = None
+        self.merge_scenarios = {}
+        self.sf_naming_scheme = None
+        self.sf_range = None
+        self.pt_bin_names = None
+        self.years = None
+        self.regions = ['Pass', 'Fail']
 
     def setPhysicsOptions(self, physOptions):
         for po in physOptions:
-            if po.startswith('categories='):
-                # physOptions.remove(po)
-                self.ttbar_categories = po.replace('categories=', '').split(',')
-            # if po.startswith('postfix='):
-            #     self.postfix = po.replace('postfix=', '')
-            if po.startswith('tasks='):
-                self.tasks = po.replace('tasks=', '').split(',')
-        if not self.ttbar_categories:
-            self.ttbar_categories = [
-                # 'TTbar',
-                'FullyMerged',
-                # 'SemiMerged',
-                # 'WMerged',
-                # 'QBMerged',
-                # 'BkgOrNotMerged',
-                # 'NotFullyOrWMerged',
-                'YllufMerged',
-            ]
-            print 'No ttbar categories provided via "--PO categories=catA,catB,...". Assuming these:'
-            print self.ttbar_categories
+            if po.startswith('merge_scenarios='):
+                # self.merge_scenarios = po.replace('merge_scenarios=', '').split(',')
+                split = po.replace('merge_scenarios=', '').split(',')
+                for s in split:
+                    merge_scenario = s.split(':')[0]
+                    use_TagAndProbe = s.split(':')[1] == 'TagAndProbe'
+                    self.merge_scenarios[merge_scenario] = use_TagAndProbe
+            if po.startswith('sf_naming_scheme='):
+                self.sf_naming_scheme = po.replace('sf_naming_scheme=', '')
+            if po.startswith('sf_range='):
+                self.sf_range = po.replace('sf_range=', '')
+            if po.startswith('pt_bin_names='):
+                self.pt_bin_names = po.replace('pt_bin_names=', '').split(',')
+            if po.startswith('years='):
+                self.years = po.replace('years=', '').split(',')
 
-    def getProcessCategory(self, process):
-        result = None
-        if self.DC.isSignal.get(process):
-            for cat in self.ttbar_categories:
-                if cat in process.split('_'):
-                # if cat in process:
-                    result = cat
-                    break
-        return result
+    def getMergeScenarioFromProcess(self, process):
+        split = process.split('__')
+        for s in split:
+            for msc in self.merge_scenarios.keys():
+                msc_string = 'MSc_'+msc
+                if s == msc_string:
+                    return msc
+        return 'dummy'
+        sys.exit('Merge scenario not identified')
 
-    def getTaskFromBin(self, bin):
-        if self.tasks:
-            result = None
-            for task in self.tasks:
-                if task in bin:
-                    result = task
-                    break
-            return result
-        else:
-            return 'dummy'
+    def getYearFromProcess(self, process):
+        split = process.split('__')
+        for s in split:
+            if s in self.years:
+                return s
+        return 'dummy'
+        sys.exit('Year not identified')
+
+    def getPtBinFromProcess(self, process):
+        split = process.split('__')
+        for s in split:
+            if s in self.pt_bin_names:
+                return s
+        return 'dummy'
+        sys.exit('PtBin not identified')
 
     def getRegionFromBin(self, bin):
-        split = bin.split('_')
+        split = bin.split('-')
         for s in split:
-            if 'fail' in s.lower() or 'pass' in s.lower():
+            if s in self.regions:
                 return s
-        return 'Region not identified'
+        return 'dummy'
+        sys.exit('Region not identified')
+
+    def getYearFromBin(self, bin):
+        split = bin.split('-')
+        for s in split:
+            if s in self.years:
+                return s
+        return 'dummy'
+        sys.exit('Year not identified')
+
+    def getPtBinFromBin(self, bin):
+        split = bin.split('-')
+        for s in split:
+            if s in self.pt_bin_names:
+                return s
+        return 'dummy'
+        sys.exit('PtBin not identified')
 
     def doParametersOfInterest(self):
         '''Create POI and other parameters, and define the POI set.'''
         pois = []
-        #________________________________
-        # Get the expected ('prefit') yields of signal processes
-        exp_pass = dict()
-        exp_fail = dict()
-        exp_passW = dict()
-        exp_failW = dict()
-        # expected_yields = dict()
-        print self.DC.bins
+
+        expected_yields = {}
         for bin in self.DC.bins:
-            task = self.getTaskFromBin(bin)
-            if self.getRegionFromBin(bin) == 'Pass':
-                exp_pass[task] = dict()
-            elif self.getRegionFromBin(bin) == 'Fail':
-                exp_fail[task] = dict()
-            elif self.getRegionFromBin(bin) == 'PassW':
-                exp_passW[task] = dict()
-            elif self.getRegionFromBin(bin) == 'FailW':
-                exp_failW[task] = dict()
-            # expected_yields[bin] = dict()
             for process in self.DC.exp.get(bin).keys():
-                # expected_yields[bin][process] = self.DC.exp.get(bin).get(process)
-                cat = self.getProcessCategory(process)
-                if self.getRegionFromBin(bin) == 'Pass':
-                    exp_pass[task][cat] = self.DC.exp.get(bin).get(process)
-                elif self.getRegionFromBin(bin) == 'Fail':
-                    exp_fail[task][cat] = self.DC.exp.get(bin).get(process)
-                elif self.getRegionFromBin(bin) == 'PassW':
-                    exp_passW[task][cat] = self.DC.exp.get(bin).get(process)
-                elif self.getRegionFromBin(bin) == 'FailW':
-                    exp_failW[task][cat] = self.DC.exp.get(bin).get(process)
-        print 'exp_pass:', exp_pass
-        print 'exp_fail:', exp_fail
-        print 'exp_passW:', exp_passW
-        print 'exp_failW:', exp_failW
-        if self.tasks:
-            for task in self.tasks:
-                #________________________________
-                # Overall ttbar rate
-                # r_name = 'r_overall_'+task
-                # r_range = '[1,0,5]'
-                # self.modelBuilder.doVar(r_name+r_range)
-                # pois.append(r_name)
-                #________________________________
-                for cat in self.ttbar_categories:
-                    #________________________________
-                    # Tagging scale factor (pass region)
-                    sf_name = self.sf_name_prefix+cat+'_'+task
-                    sf_range = '[1,0.2,2.0]'
+                expected_yields.setdefault(bin, {})[process] = self.DC.exp.get(bin).get(process)
+
+        # get sum of pass/fail expected yields for TTbar/ST for each combine_channel/msc combo
+        expected_yields_top = {}
+        for msc in self.merge_scenarios.keys():
+            for year in self.years:
+                for pt_bin_name in self.pt_bin_names:
+                    for region in self.regions:
+                        for bin in self.DC.bins:
+                            if not year == self.getYearFromBin(bin): continue
+                            if not pt_bin_name == self.getPtBinFromBin(bin): continue
+                            if not region == self.getRegionFromBin(bin): continue
+                            for process in self.DC.exp.get(bin).keys():
+                                if not msc == self.getMergeScenarioFromProcess(process): continue
+                                expected_yields_top.setdefault(msc, {}).setdefault(year, {}).setdefault(pt_bin_name, {}).setdefault(region, 0)
+                                expected_yields_top[msc][year][pt_bin_name][region] += self.DC.exp.get(bin).get(process)
+
+        print(expected_yields_top)
+
+        self.sf_naming_scheme = '__'.join(['SF', r'{msc}', r'{year}', r'{pt_bin_name}'])
+
+        for msc, use_TagAndProbe in self.merge_scenarios.items():
+            for year in self.years:
+                for pt_bin_name in self.pt_bin_names:
+                    # Tagging scale factors (pass region)
+                    sf_name = self.sf_naming_scheme.format(msc=msc, year=year, pt_bin_name=pt_bin_name)
+                    sf_range = self.sf_range
                     self.modelBuilder.doVar(sf_name+sf_range)
                     pois.append(sf_name)
-                    # r_pass_name = 'r_pass_%s_%s' % (task, cat)
-                    # self.modelBuilder.factory_(
-                    #     'expr::{r_pass_name}("@0*@1", {sf_name}, {r_name})'.format(r_pass_name=r_pass_name, sf_name=sf_name, r_name=r_name)
-                    # )
-                    # pois.append(r_pass_name)
-                    #________________________________
-                    # Anti-tagging scale factor (fail region)
-                    antisf_name = self.antisf_name_prefix+cat+'_'+task
-                    self.modelBuilder.factory_(
-                        # 'expr::{antisf_name}("max(0.,1.+(1.-@0)*{N_pass}/{N_fail})", {sf_name})'.format(antisf_name=antisf_name, N_pass=exp_pass.get(cat), N_fail=exp_fail.get(cat), sf_name=sf_name)
-                        'expr::{antisf_name}("max(0.,1.+(1.-@0)*{N_pass}/{N_fail})", {sf_name})'.format(antisf_name=antisf_name, N_pass=exp_pass.get(task).get(cat), N_fail=exp_fail.get(task).get(cat), sf_name=sf_name)
-                        # 'expr::{antisf_name}("max(0.,1.+(1.-@0)*{N_pass}/{N_fail})", {sf_name})'.format(antisf_name=antisf_name, N_pass=exp_pass.get(task).get(cat), N_fail=exp_passW.get(task).get(cat)+exp_failW.get(task).get(cat), sf_name=sf_name)
-                    ) # FIXME: This could probably crash in the unlikely case that N_fail = 0 (division by zero)
-                    # pois.append(antisf_name)
-                    # r_fail_name = 'r_fail_%s_%s' % (task, cat)
-                    # self.modelBuilder.factory_(
-                    #     'expr::{r_fail_name}("@0*@1", {antisf_name}, {r_name})'.format(r_fail_name=r_fail_name, antisf_name=antisf_name, r_name=r_name)
-                    # )
-                    # pois.append(r_fail_name)
-        else:
-            #________________________________
-            # Overall ttbar rate
-            # r_name = 'r_overall'
-            # r_range = '[1,0,5]'
-            # self.modelBuilder.doVar(r_name+r_range)
-            # pois.append(r_name)
-            #________________________________
-            for cat in self.ttbar_categories:
-                #________________________________
-                # Tagging scale factor (pass region)
-                sf_name = self.sf_name_prefix+cat
-                sf_range = '[1,0.2,2.0]'
-                self.modelBuilder.doVar(sf_name+sf_range)
-                pois.append(sf_name)
-                # r_pass_name = 'r_pass_%s' % cat
-                # self.modelBuilder.factory_(
-                #     'expr::{r_pass_name}("@0*@1", {sf_name}, {r_name})'.format(r_pass_name=r_pass_name, sf_name=sf_name, r_name=r_name)
-                # )
-                # pois.append(r_pass_name)
-                #________________________________
-                # Anti-tagging scale factor (fail region)
-                antisf_name = self.antisf_name_prefix+cat
-                self.modelBuilder.factory_(
-                    # 'expr::{antisf_name}("max(0.,1.+(1.-@0)*{N_pass}/{N_fail})", {sf_name})'.format(antisf_name=antisf_name, N_pass=exp_pass.get('dummy').get(cat), N_fail=exp_fail.get('dummy').get(cat), sf_name=sf_name)
-                    'expr::{antisf_name}("max(0.,1.+(1.-@0)*{N_pass}/{N_fail})", {sf_name})'.format(antisf_name=antisf_name, N_pass=exp_pass.get('dummy').get(cat), N_fail=exp_passW.get('dummy').get(cat)+exp_failW.get('dummy').get(cat), sf_name=sf_name)
-                ) # FIXME: This could probably crash in the unlikely case that N_fail = 0 (division by zero)
-                # pois.append(antisf_name)
-                # r_fail_name = 'r_fail_%s' % cat
-                # self.modelBuilder.factory_(
-                #     'expr::{r_fail_name}("@0*@1", {antisf_name}, {r_name})'.format(r_fail_name=r_fail_name, antisf_name=antisf_name, r_name=r_name)
-                # )
-                # pois.append(r_fail_name)
+                    if use_TagAndProbe: # do not create the antisf variable if not needed
+                        # Anti-tagging scale factors (fail region)
+                        antisf_name = sf_name.replace('SF_', 'AntiSF_')
+                        self.modelBuilder.factory_(
+                            # 'expr::{antisf_name}("max(0.,1.+(1.-@0)*{N_pass}/{N_fail})", {sf_name})'.format(antisf_name=antisf_name, N_pass=exp_pass.get(task).get(cat), N_fail=exp_fail.get(task).get(cat), sf_name=sf_name)
+                            'expr::{antisf_name}("max(0.,1.+(1.-@0)*{N_pass}/{N_fail})", {sf_name})'.format(antisf_name=antisf_name, N_pass=expected_yields_top[msc][year][pt_bin_name]['Fail'], N_fail=expected_yields_top[msc][year][pt_bin_name]['Fail'], sf_name=sf_name)
+                        ) # FIXME: This could probably crash in the unlikely case that N_fail = 0 (division by zero)
+
         #________________________________
         self.modelBuilder.doSet("POI", ','.join(pois))
 
     def getYieldScale(self, bin, process):
         '''Return the name of a RooAbsReal to scale this yield by, or the two special values 1 and 0 (don't scale, and set to zero).'''
-        task = self.getTaskFromBin(bin)
         if self.DC.isSignal.get(process):
-            cat = self.getProcessCategory(process)
-            if self.getRegionFromBin(bin) == 'Pass':
-                if self.tasks:
-                    # return 'r_pass_%s_%s' % (task, cat)
-                    return self.sf_name_prefix+cat+'_'+task
+            msc = self.getMergeScenarioFromProcess(process)
+            use_TagAndProbe = self.merge_scenarios.get(msc)
+            year = self.getYearFromBin(bin)
+            pt_bin_name = self.getPtBinFromBin(bin)
+            region = self.getRegionFromBin(bin)
+            sf_name = self.sf_naming_scheme.format(msc=msc, year=year, pt_bin_name=pt_bin_name)
+            if use_TagAndProbe:
+                if region == 'Pass':
+                    return sf_name
+                elif region == 'Fail':
+                    return sf_name.replace('SF_', 'AntiSF_')
                 else:
-                    # return 'r_pass_%s' % cat
-                    return self.sf_name_prefix+cat
-            # elif 'fail' in bin.lower():
-            elif self.getRegionFromBin(bin) == 'Fail' or self.getRegionFromBin(bin) == 'PassW' or self.getRegionFromBin(bin) == 'FailW':
-                if self.tasks:
-                    # return 'r_fail_%s_%s' % (task, cat)
-                    return self.antisf_name_prefix+cat+'_'+task
-                else:
-                    # return 'r_fail_%s' % cat
-                    return self.antisf_name_prefix+cat
+                    return 1
             else:
-                return 1
+                return sf_name
         else:
             return 1
 
