@@ -28,6 +28,19 @@ Channel extract_channel(const Context & ctx) {
 }
 
 //____________________________________________________________________________________________________
+string extract_dataset(const Context & ctx, const int fixed_length, const char fill_char) {
+  string result = ctx.get("dataset_version");
+  const Year year = extract_year(ctx);
+  result.resize(result.size() - 1 - kYears.at(year).name.size()); // -1 for the underscore
+  const size_t cutoff = result.find("__");
+  if (cutoff != string::npos)
+    result.resize(cutoff);
+  if (fixed_length >= 0)
+    result.resize(fixed_length, fill_char);
+  return result;
+}
+
+//____________________________________________________________________________________________________
 float rapidity(const Particle & p) {
   return p.v4().Rapidity();
 }

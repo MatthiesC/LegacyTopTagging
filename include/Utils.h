@@ -21,6 +21,9 @@ namespace uhh2 { namespace ltt {
 Channel extract_channel(const uhh2::Context & ctx);
 
 //____________________________________________________________________________________________________
+std::string extract_dataset(const uhh2::Context & ctx, const int fixed_length = -1, const char fill_char = ' ');
+
+//____________________________________________________________________________________________________
 template<typename T>
 const T * match(const Particle & p, const std::vector<T> & objects, const boost::optional<double> dr_max = boost::none) {
   const T *closest = closestParticle(p, objects);
