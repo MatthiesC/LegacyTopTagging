@@ -31,14 +31,15 @@ channels = [
 ]
 prepostfits = [
 'prefitRaw',
-# 'postfitCombine',
+'prefitCombine',
+'postfitCombine',
 ]
 taggers = [
 'ak8_t__tau',
 'ak8_t_btagDJet__tau',
-'ak8_t_btagDCSV__tau',
-'hotvr_t__tau',
-'ak8_w__partnet',
+# 'ak8_t_btagDCSV__tau',
+# 'hotvr_t__tau',
+# 'ak8_w__partnet',
 'ak8_t__MDdeepak8',
 ]
 taggers = {k: _TAGGERS[k] for k in taggers}
@@ -98,7 +99,7 @@ class SlideCreator():
 
         self.tex_file_dir = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel/combine', self.tagger.name, 'plots')
         os.system('mkdir -p '+self.tex_file_dir)
-        self.tex_file_name = 'slides-{}-{}.tex'.format(self.tagger.name, self.mscSplitting)
+        self.tex_file_name = 'slides-{}-{}-{}.tex'.format(self.tagger.name, self.mscSplitting, '_'.join(prepostfits))
         self.tex_file_path = os.path.join(self.tex_file_dir, self.tex_file_name)
 
     def create_tex_file(self):
@@ -167,11 +168,17 @@ class SlideCreator():
                 write_line(tex_file, r'''\end{frame}''')
                 for year in self.years:
                     for prepostfit in prepostfits:
+                        # if wp.name != 'BkgEff0p001' and prepostfit != 'prefitRaw': continue # HACK
                         write_line(tex_file, r'''\begin{frame}[fragile]{\small{}\textbf{Tagger: '''+escape_string_tex_style(self.tagger.name)+r', WP: '+escape_string_tex_style(wp.name)+r'''},\\ \textcolor{orange}{'''+year+r'''} \bgroup\small(Summer20 MiniAODv2/NanoAODv9)\egroup}''')
                         write_line(tex_file, r'''\begin{center}''')
                         write_line(tex_file, r'''\scalebox{0.7}{%''')
                         write_line(tex_file, r'''\begin{tabular}{c'''+r'c'*(len(sorted_pt_bins))+r'''|c}''')
-                        write_line(tex_file, r'''\textcolor{blue}{\bfseries{}'''+(r'pre-fit' if prepostfit.lower().startswith('prefit') else r'post-fit')+r'''} & \multicolumn{'''+str(len(sorted_pt_bins))+r'''}{c|}{\textcolor{black}{\textit{lower} \quad{} $\longleftarrow$ \quad{} Probe jet $p_\text{T}$ [GeV] \quad{} $\longrightarrow$ \quad{} \textit{higher}}} & \textit{Total range}\\[.2cm]''')
+                        # write_line(tex_file, r'''\textcolor{blue}{\bfseries{}'''+(r'pre-fit' if prepostfit.lower().startswith('prefit') else r'post-fit')+r'''} & \multicolumn{'''+str(len(sorted_pt_bins))+r'''}{c|}{\textcolor{black}{\textit{lower} \quad{} $\longleftarrow$ \quad{} Probe jet $p_\text{T}$ [GeV] \quad{} $\longrightarrow$ \quad{} \textit{higher}}} & \textit{Total range}\\[.2cm]''')
+                        if prepostfit.lower().startswith('postfit'):
+                            write_line(tex_file, r'''\textcolor{red}{\bfseries{}\makebox[2cm][c]{postfit}}''')
+                        else:
+                            write_line(tex_file, r'''\textcolor{blue}{\bfseries{}\makebox[2cm][c]{prefit}}''')
+                        write_line(tex_file, r'''& \multicolumn{'''+str(len(sorted_pt_bins))+r'''}{c|}{\textcolor{black}{\textit{lower} \quad{} $\longleftarrow$ \quad{} Probe jet $p_\text{T}$ [GeV] \quad{} $\longrightarrow$ \quad{} \textit{higher}}} & \textit{Total range}\\[.2cm]''')
                         write_line(tex_file, r'''& '''+r'''& '''.join([pt_bin.get_interval_tex() for pt_bin in sorted_pt_bins]+[self.pt_bin_total_range.get_interval_tex()])+r'\\[.2cm]')
                         for region in self.regions:
                             for channel in self.channels:
@@ -182,7 +189,26 @@ class SlideCreator():
                                     substring = '-'.join([self.tagger.name, wp.name, pt_bin.name, year, self.tagger.fit_variable])
                                     region_string = '_'.join(['Main', region, channel])
                                     pdf_file_name = '-'.join(['Plot', prepostfit, substring, region_string, self.mscSplitting, 'withLeg'])+'.pdf'
-                                    pdf_file_path = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel', year, 'combine', self.tagger.name, substring, 'plots', pdf_file_name)
+                                    pdf_file_found = False
+                                    if prepostfit == 'postfitCombine' or prepostfit == 'prefitCombine':
+                                        # combine_task_name_suffix = ''
+
+                                        # combine_task_name_suffix = '-'.join([('PtTotal' if pt_bin.total_range else 'PtSplit'), 'Run2']) # original
+                                        combine_task_name_suffix = '-'.join([('PtTotal' if pt_bin.total_range else pt_bin.name), year]) # HACK
+
+                                        combine_task_name = '-'.join(['combineTask', self.tagger.name, wp.name]) + ('-'+combine_task_name_suffix if len(combine_task_name_suffix) else '')
+                                        pdf_file_path = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel/combine', self.tagger.name, 'workdirs', combine_task_name, 'plots_templates', pdf_file_name)
+                                        pdf_file_found = os.path.isfile(pdf_file_path)
+                                        if not pdf_file_found:
+                                            print('Plot not found:', pdf_file_path, '\nFallback to prefitRaw plot.')
+                                    if prepostfit == 'prefitRaw' or (not pdf_file_found):
+                                        pdf_file_path = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel', year, 'combine', self.tagger.name, substring, 'plots', pdf_file_name)
+                                        pdf_file_path = pdf_file_path.replace('prefitCombine', 'prefitRaw').replace('postfitCombine', 'prefitRaw') # the replace is a bit HACKy
+                                        # print(pdf_file_path)
+                                        pdf_file_found = os.path.isfile(pdf_file_path)
+                                    if not pdf_file_found:
+                                        print('Plot not found:', pdf_file_path, '\nPrefer to exit.')
+                                        sys.exit()
                                     write_line(tex_file, r'''& \includegraphics[height=1.8cm]{{'''+pdf_file_path+r'''}}''')
                                 write_line(tex_file, r'''\\''')
                         write_line(tex_file, r'''\end{tabular}%''')
@@ -207,7 +233,8 @@ class SlideCreator():
 
 if __name__=='__main__':
 
-    # sc = SlideCreator('hotvr_t__tau')
+    # # sc = SlideCreator('hotvr_t__tau')
+    # sc = SlideCreator('ak8_t__tau')
     # sc.create_tex_file()
     # sc.compile_tex()
 

@@ -8,6 +8,7 @@ from subprocess import call
 import ROOT as root
 from copy import deepcopy
 from collections import OrderedDict
+import numpy as np
 
 import sys
 sys.path.append(os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/Analysis'))
@@ -15,8 +16,8 @@ from constants import Systematics, _BANDS, _TAGGERS, _PT_INTERVALS_TANDP_AK8_T, 
 
 # systematics = Systematics(blacklist=['sfelec', 'sfmu_iso'])
 # systematics = Systematics(blacklist=['sfmu_iso'])
-# systematics = Systematics(blacklist=['sfelec_trigger', 'sfmu_iso'])
-systematics = Systematics(include_jes_splits=False, blacklist=['sfelec_trigger', 'sfmu_iso'])
+systematics = Systematics(blacklist=['sfelec_trigger', 'sfmu_iso'])
+# systematics = Systematics(include_jes_splits=False, blacklist=['sfelec_trigger', 'sfmu_iso'])
 systs = systematics.base
 
 sys.path.append(os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/NicePlots/python'))
@@ -24,20 +25,25 @@ from plotter import NiceStackWithRatio, Process, human_format
 
 from parallel_threading import run_with_pool
 
+
+# def deepcopy(x):
+#     return x
+
+
 all_years = [
-'UL16preVFP',
-'UL16postVFP',
+# 'UL16preVFP',
+# 'UL16postVFP',
 'UL17',
 'UL18',
 ]
 
 taggers = [
-'ak8_t__tau',
-'ak8_t_btagDJet__tau',
-'ak8_t_btagDCSV__tau',
-'hotvr_t__tau',
+# 'ak8_t__tau', #naf11 tmux5
+# 'ak8_t_btagDJet__tau', #naf11 tmux6
+# 'ak8_t_btagDCSV__tau',#naf11 tmux7
+# 'hotvr_t__tau', #naf11 tmux8
 'ak8_w__partnet',
-'ak8_t__MDdeepak8',
+# 'ak8_t__MDdeepak8',
 ]
 taggers = {k: _TAGGERS[k] for k in taggers}
 
@@ -95,12 +101,14 @@ processes = [
 do_histograms = False
 
 ### only relevant for plots:
-# do_legend = True
-do_legend = False
+do_plotting = True
+# do_plotting = False
+do_legend = True
+# do_legend = False
 # mscSplitting = 'mscNone'
-mscSplitting = 'mscTop2'
+# mscSplitting = 'mscTop2'
 # mscSplitting = 'mscTop3'
-# mscSplitting = 'mscW3'
+mscSplitting = 'mscW3'
 
 processes_Plotter = None
 
@@ -171,7 +179,7 @@ elif mscSplitting == 'mscW3':
 processes_Plotter_temp = OrderedDict()
 for index, proc in enumerate(processes_Plotter):
     proc.index = index
-    processes_Plotter_temp[p.name] = proc
+    processes_Plotter_temp[proc.name] = proc
 processes_Plotter = processes_Plotter_temp
 
 systs_Plotter = []
@@ -192,12 +200,165 @@ channels = [
 bands = _BANDS
 
 
-def hist_preprocessing(hist):
+class DummyTH1():
+
+    '''
+    Saves the crucial information of a TH1 without the need to save a TH1 object directly.
+    Can recreate a TH1 with the saved properties.
+
+    This helper class is needed because PyROOT has some nice features called Segmentation Violations which will appear out of nowhere if too many TH1 instances are in memory at once...
+    '''
+
+    def __init__(self, th1, new_name=None, delete_orig=False):
+
+        self.name = new_name or th1.GetName()
+        self.title = new_name or th1.GetTitle()
+        self.n_bins = th1.GetNbinsX()
+        self.binning = np.array([], np.float32)
+        self.bin_contents = np.array([], np.float32)
+        self.bin_errors = np.array([], np.float32)
+
+        for i_bin in range(1, self.n_bins + 1):
+            self.binning = np.append(self.binning, [ th1.GetXaxis().GetBinLowEdge(i_bin) ])
+        self.binning = np.append(self.binning, [ th1.GetXaxis().GetBinUpEdge(self.n_bins) ])
+        for i_bin in range(0, self.n_bins + 2):
+            self.bin_contents = np.append(self.bin_contents, [ th1.GetBinContent(i_bin) ])
+            self.bin_errors = np.append(self.bin_errors, [ th1.GetBinError(i_bin) ])
+
+        if delete_orig:
+            th1.Delete()
+
+    def recreate_th1(self):
+
+        hnew = root.TH1F(self.name, self.title, self.n_bins, self.binning)
+        for i_bin in range(0, self.n_bins + 2):
+            hnew.SetBinContent(i_bin, self.bin_contents[i_bin])
+            hnew.SetBinError(i_bin, self.bin_errors[i_bin])
+
+        return hnew
+
+
+def hist_preprocessing(hist, binning=None):
+    if binning is not None:
+        hist = hist.Rebin(len(binning)-1, 'hnew', binning)
     for i in range(hist.GetNbinsX()+2):
         if hist.GetBinContent(i) < 0:
             hist.SetBinContent(i, 0)
             hist.SetBinError(i, 0)
     return hist
+
+
+def rebin_to_remove_empty_bins(hists_to_write, also_check_data=False):
+    '''
+    If one histogram in this dict has a bin with zero MC, we will rebin all hists such that this is not the case anymore.\n
+    Actually, we only need to check the nominal hists and data_obs for zero bins, but of course then rebin all hists in the dict.
+    param: also_check_data: Whether to adjust the binning also if data is zero in a bin (should be fine not to do this; only really important that total MC prediction is > 0 in each bin)
+    '''
+
+    # create total MC stack
+    hists_nominal = OrderedDict()
+    hist_data_obs = None
+    for hist_name, hist in hists_to_write.items():
+        if hist_name != 'data_obs' and not (hist_name.endswith('Up') or hist_name.endswith('Down') or '__MSc_' in hist_name):
+            # hists_nominal[hist_name] = hist.Clone(hist_name+'_cloned')
+            hists_nominal[hist_name] = hist.recreate_th1()
+        if hist_name == 'data_obs':
+            hist_data_obs = hist.recreate_th1()
+    hist_total_stack_nominal = None
+    for hist_name, hist in hists_nominal.items():
+        if hist_total_stack_nominal is None:
+            hist_total_stack_nominal = hist.Clone('hist_total_stack_nominal')
+        else:
+            hist_total_stack_nominal.Add(hist)
+        hist.Delete()
+
+    # get original binning and find indices of empty bins
+    # hist_data_obs = hists_to_write['data_obs']
+    binning = np.array([], dtype=np.float32)
+    bin_contents_mc = np.array([], dtype=np.float32)
+    bin_contents_data = np.array([], dtype=np.float32)
+    empty_bins = []
+    n_bins = hist_data_obs.GetNbinsX()
+    for i_bin in range(1, n_bins + 1):
+        binning = np.append(binning, [ hist_data_obs.GetXaxis().GetBinLowEdge(i_bin) ])
+        bin_content_mc = hist_total_stack_nominal.GetBinContent(i_bin)
+        bin_contents_mc = np.append(bin_contents_mc, [ bin_content_mc ])
+        empty = bin_content_mc <= 0
+        if also_check_data:
+            bin_content_data = hist_data_obs.GetBinContent(i_bin)
+            bin_contents_data = np.append(bin_contents_data, [ bin_content_data ])
+            empty = empty and bin_content_data <= 0
+        if empty:
+            empty_bins.append(i_bin)
+    binning = np.append(binning, [ hist_data_obs.GetXaxis().GetBinUpEdge(n_bins) ])
+    # print('binning before:', binning)
+    # print('bin contents MC:', bin_contents_mc)
+    # if also_check_data:
+    #     print('bin contents data:', bin_contents_data)
+    # print('empty bins:', empty_bins)
+
+    # remove bins with zero content by popping bin edges
+    if len(empty_bins) and empty_bins[-1] == len(binning) - 1:
+        empty_bins = empty_bins[:-1] # remove last element since we don't want to remove upper bin edge of last bin
+    binning = np.delete(binning, empty_bins) # pop upper edges of each empty bin (except if last bin was empty)
+    # print(binning)
+
+    # rebin
+    hist_total_stack_nominal_rebin = hist_total_stack_nominal.Rebin(len(binning)-1, hist_total_stack_nominal.GetTitle()+'_rebin', binning)
+    hist_total_stack_nominal = deepcopy(hist_total_stack_nominal_rebin)
+    hist_total_stack_nominal_rebin.Delete()
+    hist_data_obs_rebin = hist_data_obs.Rebin(len(binning)-1, hist_data_obs.GetTitle()+'_rebin', binning)
+    hist_data_obs = deepcopy(hist_data_obs_rebin)
+    hist_data_obs_rebin.Delete()
+    last_bin_empty = hist_total_stack_nominal.GetBinContent(len(binning)-1) <= 0
+    if also_check_data:
+        last_bin_empty = last_bin_empty and hist_data_obs.GetBinContent(len(binning)-1) <= 0
+    if last_bin_empty and len(binning) > 2:
+        binning = np.delete(binning, len(binning)-2)
+    # print(binning)
+
+    # rebin again
+    # hist_total_stack_nominal = hist_total_stack_nominal.Rebin(len(binning)-1, hist_total_stack_nominal.GetTitle(), binning)
+    # hist_data_obs = hist_data_obs.Rebin(len(binning)-1, hist_data_obs.GetTitle(), binning)
+    hist_total_stack_nominal_rebin = hist_total_stack_nominal.Rebin(len(binning)-1, hist_total_stack_nominal.GetTitle()+'_rebin', binning)
+    hist_total_stack_nominal = deepcopy(hist_total_stack_nominal_rebin)
+    hist_total_stack_nominal_rebin.Delete()
+    hist_data_obs_rebin = hist_data_obs.Rebin(len(binning)-1, hist_data_obs.GetTitle()+'_rebin', binning)
+    hist_data_obs = deepcopy(hist_data_obs_rebin)
+    hist_data_obs_rebin.Delete()
+    # sanity check if all bins are non-empty
+    for i_bin in range(1, hist_data_obs.GetNbinsX() + 1):
+        empty_mc = hist_total_stack_nominal.GetBinContent(i_bin) <= 0
+        empty_data = hist_data_obs.GetBinContent(i_bin) <= 0
+        if empty_mc:
+            sys.exit('Rebinning to remove empty bins did not succeed for MC')
+        if empty_data and also_check_data:
+            sys.exit('Rebinning to remove empty bins did not succeed for data')
+
+    # rebin everything in the original dict
+    # result = OrderedDict()
+    # for hist_name, hist in hists_to_write.items():
+    #     # result[hist_name] = hist.Rebin(len(binning)-1, hist.GetTitle(), binning)
+    #     result[hist_name] = DummyTH1(hist.recreate_th1().Rebin(len(binning)-1, hist_name, binning))
+
+
+    for hist_name, hist in hists_to_write.items():
+        th1 = hist.recreate_th1()
+        th1_rebinned = th1.Rebin(len(binning)-1, hist_name+'_rebinned', binning)
+        th1.Delete()
+        hist = DummyTH1(th1_rebinned)
+        th1_rebinned.Delete()
+
+    # for hist in hists_nominal.values():
+    #     hist.Delete()
+    hist_total_stack_nominal.Delete()
+    hist_data_obs.Delete()
+
+    # return result
+    # print('binning after:', binning)
+    return binning
+
+
 
 
 def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, do_hists=True):
@@ -224,7 +385,6 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
 
             for channel in channels:
 
-
                 inFolderName = '/'.join([band.name, region, channel])
                 outFolderName = '_'.join([band.name, region, channel])
                 outFolderNames.append(outFolderName)
@@ -235,15 +395,27 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
                     continue
                 outFolder = outFile.mkdir(outFolderName)
 
+                # hists_to_write = OrderedDict()
+                # hists_to_write = []
+                # histnames_to_write = []
+                hists_nominal = OrderedDict()
+
                 # data
                 inFileName_nominal = '-'.join(['BasicHists', tagger.name, wp.name, pt_bin.name, year, 'nominal', variable])+'.root'
                 inFilePath_nominal = os.path.join(inDir, inFileName_nominal)
                 inFile_nominal = root.TFile.Open(inFilePath_nominal, 'READ')
                 inHistPath_data = os.path.join(inFolderName, 'DATA__nominal')
                 inHist_data = inFile_nominal.Get(inHistPath_data)
-                inHist_data = hist_preprocessing(inHist_data)
-                outFolder.cd()
-                inHist_data.Write('data_obs')
+                # inHist_data.SetDirectory(0)
+                # inHist_data = hist_preprocessing(inHist_data)
+                # outFolder.cd()
+                # inHist_data.Write('data_obs')
+                # hists_to_write['data_obs'] = deepcopy(inHist_data)
+                # hists_to_write['data_obs'] = inHist_data.Clone('data_obs')
+                # hists_to_write['data_obs'] = DummyTH1(inHist_data, 'data_obs')
+                # histnames_to_write.append('data_obs')
+                # hists_to_write.append(inHist_data.Clone("clone"))
+                hists_nominal['data_obs'] = DummyTH1(inHist_data)
 
                 # MC
                 for process in processes:
@@ -251,14 +423,39 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
                     # nominal
                     inHistPath_nominal = os.path.join(inFolderName, process+'__nominal')
                     inHist_nominal = inFile_nominal.Get(inHistPath_nominal)
+                    hists_nominal[process] = DummyTH1(inHist_nominal)
+
+                if tagger.fit_variable == variable:
+                    rebinning_scheme = rebin_to_remove_empty_bins(hists_nominal) # HACK: Avoid this, only leads to bugs over bugs over bugs ....!!!!!
+                    # rebinning_scheme = None
+                else:
+                    rebinning_scheme = None
+
+                inHist_data = hist_preprocessing(inHist_data, binning=rebinning_scheme)
+                outFolder.cd()
+                inHist_data.Write('data_obs')
+
+                for process in processes:
+
+                    # nominal
+                    inHistPath_nominal = os.path.join(inFolderName, process+'__nominal')
+                    inHist_nominal = inFile_nominal.Get(inHistPath_nominal)
+                    # inHist_nominal.SetDirectory(0)
                     print(inHistPath_nominal)
-                    inHist_nominal = hist_preprocessing(inHist_nominal)
+                    inHist_nominal = hist_preprocessing(inHist_nominal, binning=rebinning_scheme)
                     outFolder.cd()
                     inHist_nominal.Write(process)
+                    # hists_to_write[process] = deepcopy(inHist_nominal)
+                    # hists_to_write[process] = inHist_nominal.Clone(process)
+                    # hists_to_write[process] = DummyTH1(inHist_nominal, process)
+                    # histnames_to_write.append(process)
+                    # hists_to_write.append(inHist_nominal.Clone("clone"))
 
                     # systematics which do not need special treatment
                     for syst_k in sorted(systs.keys()):
                         syst = systs[syst_k]
+
+                        # print(syst_k) #######
 
                         if syst.name in ['cr', 'murmuf']: continue
 
@@ -273,7 +470,8 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
                             inFile_variation = root.TFile.Open(inFilePath_variation, 'READ')
                             inHistPath_variation = os.path.join(inFolderName, process+'__'+variation.name)
                             inHist_variation = inFile_variation.Get(inHistPath_variation)
-                            inHist_variation = hist_preprocessing(inHist_variation)
+                            # inHist_variation.SetDirectory(0)
+                            inHist_variation = hist_preprocessing(inHist_variation, binning=rebinning_scheme)
                             if inHist_variation.Integral() <= 0:
                                 at_least_one_integral_is_zero = True
                             if variation.short_name in ['up', 'mtop173p5']:
@@ -290,8 +488,18 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
                         for outHistName_variation, inHist_variation in inHists_variations.items():
                             if at_least_one_integral_is_zero:
                                 inHist_nominal.Write(outHistName_variation)
+                                # hists_to_write[outHistName_variation] = deepcopy(inHist_nominal)
+                                # hists_to_write[outHistName_variation] = inHist_nominal.Clone(outHistName_variation)
+                                # hists_to_write[outHistName_variation] = DummyTH1(inHist_nominal, outHistName_variation)
+                                # histnames_to_write.append(outHistName_variation)
+                                # hists_to_write.append(inHist_nominal.Clone("clone"))
                             else:
                                 inHist_variation.Write(outHistName_variation)
+                                # hists_to_write[outHistName_variation] = deepcopy(inHist_variation)
+                                # hists_to_write[outHistName_variation] = inHist_variation.Clone(outHistName_variation)
+                                # hists_to_write[outHistName_variation] = DummyTH1(inHist_variation, outHistName_variation)
+                                # histnames_to_write.append(outHistName_variation)
+                                # hists_to_write.append(inHist_variation.Clone("clone"))
 
                     # scale variation (muR/muF) and color reconnection
                      ## create envelope of all available variations and nominal
@@ -307,7 +515,8 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
                             inFile_variation = root.TFile.Open(inFilePath_variation, 'READ')
                             inHistPath_variation = os.path.join(inFolderName, process+'__'+variation.name)
                             inHist_variation = inFile_variation.Get(inHistPath_variation)
-                            inHist_variation = hist_preprocessing(inHist_variation)
+                            # inHist_variation.SetDirectory(0)
+                            inHist_variation = hist_preprocessing(inHist_variation, binning=rebinning_scheme)
                             inHists_variations[variation.name] = deepcopy(inHist_variation)
 
                         outHist_up = deepcopy(inHist_nominal)
@@ -324,8 +533,34 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
                         outFolder.cd()
                         outHist_up.Write(process+'_'+syst.combine_name+'Up')
                         outHist_down.Write(process+'_'+syst.combine_name+'Down')
+                        # hists_to_write[process+'_'+syst.combine_name+'Up'] = deepcopy(outHist_up)
+                        # hists_to_write[process+'_'+syst.combine_name+'Down'] = deepcopy(outHist_down)
+                        # hists_to_write[process+'_'+syst.combine_name+'Up'] = outHist_up.Clone(process+'_'+syst.combine_name+'Up')
+                        # hists_to_write[process+'_'+syst.combine_name+'Down'] = outHist_down.Clone(process+'_'+syst.combine_name+'Down')
+                        # hists_to_write[process+'_'+syst.combine_name+'Up'] = DummyTH1(outHist_up, process+'_'+syst.combine_name+'Up')
+                        # hists_to_write[process+'_'+syst.combine_name+'Down'] = DummyTH1(outHist_up, process+'_'+syst.combine_name+'Down')
+                        # histnames_to_write.append(process+'_'+syst.combine_name+'Up')
+                        # hists_to_write.append(outHist_up.Clone("clone"))
+                        # histnames_to_write.append(process+'_'+syst.combine_name+'Down')
+                        # hists_to_write.append(outHist_down.Clone("clone"))
+
+                # if tagger.fit_variable == variable:
+                #     # hists_to_write = rebin_to_remove_empty_bins(hists_to_write)
+                #     rebin_to_remove_empty_bins(hists_to_write)
+                # outFolder.cd()
+                # for hist_name, hist in hists_to_write.items():
+                #     # hist.Write(hist_name)
+                #     th1 = hist.recreate_th1()
+                #     th1.Write(hist_name)
+                #     th1.Delete()
+                #
+                # # hists_to_write = rebin_to_remove_empty_bins(hists_to_write, histnames_to_write)
+                # # outFolder.cd()
+                # # for i in range(len(hists_to_write)):
+                # #     hists_to_write[i].Write(histnames_to_write[i])
 
                 inFile_nominal.Close()
+
 
     if do_hists:
         outFile.Close()
@@ -529,8 +764,10 @@ if __name__=='__main__':
             for wp in the_tagger.get_wp(year=year):
                 print('Working on', wp.name)
                 for pt_bin in the_tagger.var_intervals.values():
+                    # if pt_bin.name != 'pt_300to400': continue # HACK
                     print('Working on', pt_bin.name)
-                    create_rearranged_hists(the_tagger.fit_variable, the_tagger, year, wp, pt_bin, do_plot=True, do_hists=do_histograms)
+                    create_rearranged_hists(the_tagger.fit_variable, the_tagger, year, wp, pt_bin, do_plot=do_plotting, do_hists=do_histograms)
+                # break # HACK
 
     # #__________________________________________________
     # # Code to create plots of other variables (e.g. substructure)
@@ -581,4 +818,4 @@ if __name__=='__main__':
     #                 if not pt_bin.total_range:
     #                     continue
     #                 print('Working on', pt_bin.name)
-    #                 create_rearranged_hists(var, the_tagger, year, wp, pt_bin, do_plot=True, do_hists=do_histograms)
+    #                 create_rearranged_hists(var, the_tagger, year, wp, pt_bin, do_plot=do_plotting, do_hists=do_histograms)

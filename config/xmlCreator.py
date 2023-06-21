@@ -165,7 +165,7 @@ class configContainer:
          for k, v in samplesDict.items():
             use_me = v.get('years') == None or year in v.get('years', [])
             use_me = use_me and (v.get('analysis') == None or 'sf' in v.get('analysis'))
-            # use_me = use_me and 'QCD_HT' in k # HACK
+            # use_me = use_me and 'ST_tW' in k # HACK
             if extra_syst:
                use_me = use_me and (v.get('extra_systs') != None and extra_syst in v.get('extra_systs').keys())
             if use_me:
@@ -533,7 +533,7 @@ if __name__=='__main__':
    parser.add_argument('-x', '--extra-systs', action='store_true', help='Create XML files for special systematics which require different MC samples (e.g. hdamp variations).')
    parser.add_argument('-s', '--selections', choices=selections, nargs='*', default=[])
    parser.add_argument('-y', '--years', choices=years, nargs='*', default=[])
-   parser.add_argument('-c', '--channels', choices=channels, nargs='*', default=['muo'])
+   parser.add_argument('-c', '--channels', choices=channels, nargs='*', default=['muo, ele'])
    parser.add_argument('-a', '--auto-complete', action='store_true', help='Auto-complete arguments if not all arguments for selections and years are given.')
    args = parser.parse_args(sys.argv[1:])
 

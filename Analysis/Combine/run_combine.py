@@ -18,14 +18,15 @@ import sys
 sys.path.append(os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/Analysis'))
 from constants import Systematics, _BANDS, _TAGGERS, _PT_INTERVALS_TANDP_AK8_T, _PT_INTERVALS_TANDP_AK8_W, _PT_INTERVALS_TANDP_HOTVR, _YEARS, get_variable_binning_xlabel_xunit, Primes
 
-systematics = Systematics(include_jes_splits=False, blacklist=['sfelec_trigger', 'sfmu_iso'])
+systematics = Systematics(blacklist=['sfelec_trigger', 'sfmu_iso'])
+# systematics = Systematics(include_jes_splits=False, blacklist=['sfelec_trigger', 'sfmu_iso'])
 systs = systematics.base
 
 sys.path.append(os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/NicePlots/python'))
 from plotter import NiceStackWithRatio, Process, human_format
 
 
-years = [
+all_years = [
 'UL16preVFP',
 'UL16postVFP',
 'UL17',
@@ -66,9 +67,10 @@ def get_binning(th1):
         binning = np.append(binning, th1.GetXaxis().GetBinUpEdge(ibin))
     return binning
 
-def return_rebinned(th1, binning):
-    if th1.GetNbinsX() != len(binning)-1:
-        warnings.warn('Cannot rebin TH1: given binning scheme does not match number of bins of TH1')
+def return_rebinned(th1, binning, sanity_check=False):
+    if sanity_check and th1.GetNbinsX() != len(binning)-1:
+        # warnings.warn('Cannot rebin TH1: given binning scheme does not match number of bins of TH1')
+        print('Cannot rebin TH1: given binning scheme does not match number of bins of TH1')
         return th1
     th1_new = root.TH1F(th1.GetName(), th1.GetTitle(), len(binning)-1, binning)
     for ibin in range(len(th1)+2):
@@ -77,8 +79,21 @@ def return_rebinned(th1, binning):
     return th1_new
 
 def empty_histogram(binning, name="some_histogram", title="some_title"):
+    # print('the binning:', binning)
     th1_new = root.TH1F(name, title, len(binning)-1, binning)
     return th1_new
+
+
+class BaseProcess():
+
+    def __init__(self,
+        name,
+        xsec_uncert = None,
+        qcdewk = None,
+    ):
+        self.name = name
+        self.xsec_uncert = xsec_uncert
+        self.qcdewk = qcdewk
 
 
 class ScaleFactorFits():
@@ -89,7 +104,10 @@ class ScaleFactorFits():
         mode='TagAndProbe',
         mscSplitting = 'mscTop3',
         total_range = False,
+        pt_index = None,
+        years = None, # either list of strings or single string (will be converted to list with one string element)
         task_name_suffix = '',
+        robust_hesse = False,
     ):
 
         print('Hello World from ScaleFactorFits! :-)')
@@ -100,10 +118,17 @@ class ScaleFactorFits():
 
         self.primes = Primes()
 
-        self.years = years
+        self.years = years or all_years
+        if isinstance(self.years, str):
+            if not self.years in all_years:
+                raise ValueError('Invalid year')
+            self.years = [self.years]
+
         self.regions = regions
         self.channels = channels
         self.task_name_suffix = ''
+
+        self.robust_hesse = robust_hesse # errors will be symmetric
 
         self.mscSplitting = mscSplitting
         if self.mscSplitting == 'mscTop2':
@@ -192,7 +217,17 @@ class ScaleFactorFits():
             self.pt_bins = OrderedDict([(self.pt_bin_total_range.name, self.pt_bin_total_range)])
             self.task_name_suffix += 'PtTotal'
         else:
-            self.task_name_suffix += 'PtSplit'
+            if pt_index is None:
+                self.task_name_suffix += 'PtSplit'
+            else:
+                if isinstance(pt_index, int):
+                    pt_bin = list(self.pt_bins.values())[pt_index]
+                elif isinstance(pt_index, str):
+                    pt_bin = self.pt_bins[pt_index]
+                else:
+                    sys.exit('Cannot determine pt bin')
+                self.pt_bins = OrderedDict([(pt_bin.name, pt_bin)])
+                self.task_name_suffix += pt_bin.name
 
         if len(self.years) == 4:
             self.task_name_suffix += '-Run2'
@@ -227,6 +262,10 @@ class ScaleFactorFits():
         command = "mkdir -p {}".format(self.control_plots_dir)
         p = subprocess.Popen((command), shell=True)
         p.wait()
+        self.impact_plots_dir = os.path.join(self.workdir, 'plots_impacts')
+        command = "mkdir -p {}".format(self.impact_plots_dir)
+        p = subprocess.Popen((command), shell=True)
+        p.wait()
 
         self.combine_channels = OrderedDict()
         for year in self.years:
@@ -259,13 +298,36 @@ class ScaleFactorFits():
                     ])
                     self.pois.setdefault(poi_name, poi_dict)
 
-        # numbers are the assumed xsec uncertainty
-        self.base_processes = OrderedDict([
-            ('TTbar', 0.05),
-            ('ST', 0.5),
-            ('VJetsAndVV', 0.5),
-            ('QCD', 1.00),
-        ])
+        # # numbers are the assumed xsec uncertainty
+        # self.base_processes = OrderedDict([
+        #     ('TTbar', 0.05),
+        #     ('ST', 0.5),
+        #     ('VJetsAndVV', 0.5),
+        #     ('QCD', 1.00),
+        # ])
+
+        self.base_processes = []
+        self.base_processes.append(BaseProcess(
+            name='TTbar',
+            xsec_uncert=0.3,
+            qcdewk='qcd',
+        ))
+        self.base_processes.append(BaseProcess(
+            name='ST',
+            xsec_uncert=0.5,
+            qcdewk='ewk',
+        ))
+        self.base_processes.append(BaseProcess(
+            name='VJetsAndVV',
+            xsec_uncert=0.5,
+            qcdewk='ewk',
+        ))
+        self.base_processes.append(BaseProcess(
+            name='QCD',
+            xsec_uncert=1.00,
+            qcdewk='qcd',
+        ))
+        self.base_processes = OrderedDict([(proc.name, proc) for proc in self.base_processes])
 
         self.processes = OrderedDict()
         for tt_or_st in ['TTbar', 'ST']:
@@ -306,12 +368,28 @@ class ScaleFactorFits():
                 self.systs[syst.name] = syst
 
 
+        #_____________
+        sf_file_path = os.path.join(self.workdir, 'scale_factors_{expobs}.root')
+        self.sf_file_path_exp = sf_file_path.format(expobs='exp')
+        self.sf_file_path_obs = sf_file_path.format(expobs='obs')
+
+
     def get_fit_name(self, process, combine_channel):
 
         '''helper function'''
 
         return process['fit_name_base'].format(year=combine_channel['year'], pt_bin=combine_channel['pt_bin'].name)
 
+    # def get_all_fit_names(self):
+    #
+    #     '''helper function'''
+    #
+    #     result = set()
+    #     for combine_channel in self.combine_channels.values():
+    #         for process in self.processes.values():
+    #             result.add(self.get_fit_name(process, combine_channel))
+    #
+    #     return result
 
     def get_process_id(self, process, combine_channel):
 
@@ -425,7 +503,33 @@ class ScaleFactorFits():
             file.write(newline4+'\n')
             file.write('-'*42+'\n')
             #________________________________
-            # Luminosity
+            era_correlated_systs = []
+            # #________________________________
+            # # Luminosity with era-correlations
+            # all_lumi_uncerts = set()
+            # for year in self.years:
+            #     for key in _YEARS.get(year).get('lumi_unc_detailed').keys():
+            #         all_lumi_uncerts.add(key)
+            # all_lumi_uncerts = sorted(list(all_lumi_uncerts))
+            # for lumi_uncert in all_lumi_uncerts:
+            #     lumi_uncert_combine_name = 'lumi'+lumi_uncert
+            #     if lumi_uncert.startswith('Correlated'):
+            #         era_correlated_systs.append(lumi_uncert_combine_name)
+            #     newline_lumi = lumi_uncert_combine_name+' lnN'
+            #     for combine_channel in self.combine_channels.values():
+            #         year = combine_channel['year']
+            #         for process in self.processes.values():
+            #             if combine_channel['skip'][process['name']] == True:
+            #                 continue
+            #             newline_lumi += ' '
+            #             lumi_uncert_value = _YEARS.get(year).get('lumi_unc_detailed').get(lumi_uncert)
+            #             if lumi_uncert_value is not None:
+            #                 newline_lumi += str(1+lumi_uncert_value)
+            #             else:
+            #                 newline_lumi += '-'
+            #     file.write(newline_lumi+'\n')
+            #________________________________
+            # Luminosity simple
             for year in self.years:
                 newline_lumi = 'lumi_'+year+' lnN'
                 for combine_channel in self.combine_channels.values():
@@ -440,25 +544,132 @@ class ScaleFactorFits():
                 file.write(newline_lumi+'\n')
             #________________________________
             # Cross sections / normalization uncertainty
-            for base_process, xsec_uncert in self.base_processes.items():
-                newline_xsec = 'xsec_'+base_process+' lnN'
+            for base_process in self.base_processes.values():
+                xsec_uncert_name = 'xsec_'+base_process.name
+                era_correlated_systs.append(xsec_uncert_name)
+                newline_xsec = xsec_uncert_name+' lnN'
                 for combine_channel in self.combine_channels.values():
                     for process in self.processes.values():
                         if combine_channel['skip'][process['name']] == True:
                             continue
                         newline_xsec += ' '
-                        if base_process == process['base_process']:
-                            newline_xsec += str(1+xsec_uncert)
+                        if base_process.name == process['base_process']:
+                            newline_xsec += str(1+base_process.xsec_uncert)
                         else:
                             newline_xsec += '-'
                 file.write(newline_xsec+'\n')
+            # #________________________________
+            # # Cross sections / normalization uncertainty (rateParam approach)
+            # for base_process in self.base_processes.values():
+            #     xsec_uncert_name = 'xsec_'+base_process.name
+            #     era_correlated_systs.append(xsec_uncert_name)
+            #     newline_xsec = xsec_uncert_name+' rateParam * '+base_process.name+'* 1.0'
+            #     file.write(newline_xsec+'\n')
             #________________________________
             # Other systematics
+            for syst in self.systs.values():
+                newline_syst = syst.combine_name+' shape'
+                for combine_channel in self.combine_channels.values():
+                    for process in self.processes.values():
+                        if combine_channel['skip'][process['name']] == True:
+                            continue
+                        newline_syst += ' '
+                        if (syst.combine_name == 'topptA' or syst.combine_name == 'topptB') and not (process['base_process'] == 'TTbar'):
+                            newline_syst += '-'
+                        elif (syst.combine_name.startswith('FSR') or syst.combine_name.startswith('ISR')) and not (process['base_process'] in ['TTbar', 'ST', 'VJetsAndVV']): # QCD samples don't have proper ISR/FSR weights I guess; not sure about Diboson, too
+                            newline_syst += '-'
+                        else:
+                            newline_syst += '1.0'
+                file.write(newline_syst+'\n')
+
+            # era_correlated_systs += ['Scale_TTbar', 'Scale_ST', 'Scale_VJetsAndVV', 'Scale_QCD'] # Scale_QCD actually won't have any effect since the Mu/EM/bcToE samples don't include muRmuF weights
+            for syst in self.systs.values():
+                era_correlated = (syst.correlation_eras > 0) # == 1.0
+                proc_correlated = syst.correlation_procs == 'shared'
+
+                if not era_correlated and proc_correlated:
+                    for year in self.years:
+                        new_syst_name = syst.combine_name+'_'+year
+                        for combine_channel in self.combine_channels.values():
+                            if year != combine_channel['year']:
+                                continue
+                            if syst.combine_name.startswith('jesTotal') or syst.combine_name.startswith('jer'): # HACK: decorrelate total JES between channels to avoid overconstrain
+                                new_syst_name_extension = '_'+combine_channel['name']
+                            else:
+                                new_syst_name_extension = ''
+                            # nuisance edit rename process channel oldname newname [options]
+                            file.write('nuisance edit rename * {channel} {oldname} {newname}\n'.format(channel=combine_channel['name'], oldname=syst.combine_name, newname=new_syst_name+new_syst_name_extension))
+
+                if era_correlated and proc_correlated:
+                    era_correlated_systs.append(syst.combine_name)
+
+                if era_correlated and not proc_correlated:
+                    process_already_visited = set()
+                    for base_process in self.base_processes.values():
+                        if base_process.name == 'QCD' and syst.combine_name.startswith('ISR'):
+                            continue # HACK: We don't want ISR uncerts on QCD samples
+                        # if base_process.name == 'QCD' and syst.combine_name.startswith('Scale'):
+                        #     continue # HACK: We don't want QCD scale uncerts on QCD samples
+                        new_syst_name = syst.combine_name+'_'+base_process.name
+                        new_syst_name_actually_used = False
+                        for combine_channel in self.combine_channels.values():
+                            for process in self.processes.values():
+                                if base_process.name != process['base_process']:
+                                    continue
+                                fit_name = self.get_fit_name(process, combine_channel)
+                                if fit_name in process_already_visited:
+                                    continue
+                                # nuisance edit rename process channel oldname newname [options]
+                                file.write('nuisance edit rename {process} * {oldname} {newname} ifexists\n'.format(process=fit_name, oldname=syst.combine_name, newname=new_syst_name))
+                                process_already_visited.add(fit_name)
+                                new_syst_name_actually_used = True
+                        if new_syst_name_actually_used:
+                            era_correlated_systs.append(new_syst_name)
+
+                if not era_correlated and not proc_correlated:
+                    sys.exit('Not implemented')
+
+            # # drop QCD scale uncert since not given in ntuples
+            # file.write('nuisance edit drop * * Scale_QCD ifexists\n')
+
+
+
+                # if not era_correlated:
+                #     for year in self.years:
+                #         new_syst_name = syst.combine_name+'_'+year
+                #         for combine_channel in self.combine_channels.values():
+                #             if year != combine_channel['year']:
+                #                 continue
+                #             # nuisance edit rename process channel oldname newname [options]
+                #             file.write('nuisance edit rename * {channel} {oldname} {newname}\n'.format(channel=combine_channel['name'], oldname=syst.combine_name, newname=new_syst_name))
+                # else:
+                #     if syst.name != 'murmuf': # skip murmurf since we already manually added it above as Scale_*
+                #         era_correlated_systs.append(syst.combine_name)
+                #
+                # process_already_visited = set()
+                # if not proc_correlated:
+                #     for base_process in self.base_processes.values():
+                #         new_syst_name = syst.combine_name+'_'+base_process.name
+                #         for combine_channel in self.combine_channels.values():
+                #             for process in self.processes.values():
+                #                 if base_process.name != process['base_process']:
+                #                     continue
+                #                 fit_name = self.get_fit_name(process, combine_channel)
+                #                 if fit_name in process_already_visited:
+                #                     continue
+                #                 # nuisance edit rename process channel oldname newname [options]
+                #                 file.write('nuisance edit rename {process} * {oldname} {newname} ifexists\n'.format(process=fit_name, oldname=syst.combine_name, newname=new_syst_name))
+                #                 process_already_visited.add(fit_name)
+
+
 
             #________________________________
             # MC statistics
             # https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/part2/bin-wise-stats.html
             file.write('* autoMCStats 0 1 1\n') # event-threshold=0, include-signal=1, hist-mode=1
+            #________________________________
+            # Nuisance groups
+            file.write('uncertsEraCorrelated group = '+' '.join(era_correlated_systs)+'\n')
         print('Wrote', self.datacard_path)
         return self.datacard_path
 
@@ -488,7 +699,7 @@ class ScaleFactorFits():
         command += '-o '+self.workspace_path+' \\'
         command += '-P HiggsAnalysis.CombinedLimit.my_combine_physics_model:lttModel \\'
         command += '--PO sf_naming_scheme='+self.sf_naming_scheme+' \\'
-        command += '--PO sf_range=[1,0.2,2.0] \\'
+        command += '--PO sf_range=[1,0.0,5.0] \\'
         # command += '--PO merge_scenarios='+','.join(self.merge_scenarios.keys())+' \\'
         command += '--PO merge_scenarios='+','.join([k+':'+v for k,v in self.merge_scenarios.items()])+' \\'
         command += '--PO years='+','.join(self.years)+' \\'
@@ -510,35 +721,49 @@ class ScaleFactorFits():
 
 
 
-    def multidimfit(self, observed=False, freezeSyst=False, run=True):
-        print('Performing maximum-likelihood fit (MultiDimFit):', expobs(observed, False), ('with frozen systematics' if freezeSyst else ''))
+    def multidimfit(self, observed=False, freezeSyst=False, freezeEraCorrelated=False, run=True):
+        if freezeSyst and freezeEraCorrelated:
+            sys.exit('Cannot freeze total systematics and only correlated part at once.')
+        print('Performing maximum-likelihood fit (MultiDimFit):', expobs(observed, False), ('with frozen systematics' if freezeSyst else ('with frozen era-correlated uncertainties' if freezeEraCorrelated else '')))
         command = 'combine -M MultiDimFit \\'
         command += '-v 2 \\' # more verbosity
-        command += '--cminSingleNuisFit \\'
-        command += '--cminFallbackAlgo Minuit2,Simplex,0:0.1 \\' # fallback algorithm if default fails; see https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/part3/runningthetool/#generic-minimizer-options
-        if freezeSyst:
+        # command += '--cminSingleNuisFit \\'
+        # command += '--cminFallbackAlgo Minuit2,Simplex,0:0.1 \\' # fallback algorithm if default fails; see https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/part3/runningthetool/#generic-minimizer-options
+        if freezeSyst or freezeEraCorrelated:
             datacard_path = os.path.join(self.workdir, 'higgsCombine_'+expobs(observed)+'.MultiDimFit.mH120.root')
         else:
             datacard_path = self.workspace_path
         if not os.path.isfile(datacard_path):
             print('Warning in CombineTask.multidimfit():', datacard_path, 'does not exist')
         command += '--datacard '+datacard_path+' \\'
-        command += '-n _'+expobs(observed)+('_freezeSyst' if freezeSyst else '')+' \\'
+        command += '-n _'+expobs(observed)+('_freezeSyst' if freezeSyst else ('_freezeEraCorrelated' if freezeEraCorrelated else ''))+' \\'
         if not observed:
             command += '-t -1 \\'
             command += '--toysFile '+os.path.join(self.workdir, 'higgsCombine_toy.GenerateOnly.mH120.123456.root')+' \\'
         command += '--algo singles \\'
         if freezeSyst:
             command += '--freezeParameters allConstrainedNuisances --snapshotName MultiDimFit \\'
+        elif freezeEraCorrelated:
+            # sys.exit('Fix me! Freezing of era-correlated uncerts not yet implemented.')
+            command += '--freezeNuisanceGroups uncertsEraCorrelated --snapshotName MultiDimFit \\'
         command += '--saveFitResult \\'
         command += '--saveWorkspace \\'
+        command += '--setParameters '+','.join([x+'=1.' for x in self.pois.keys()])+' \\'
         # command += '--fastScan \\'
         # command += '--robustFit=1 \\'
-        # command += '--robustHesse=1 \\'
+        if self.robust_hesse:
+            command += '--robustHesse=1 \\' # produces covariance matrix of nuisance parameters
         task_name = '_'.join(['multidimfit', expobs(observed)])
         if freezeSyst:
             task_name += '_freezeSyst'
+        elif freezeEraCorrelated:
+            task_name += '_freezeEraCorrelated'
         return self.combine_task(task_name, command, run)
+
+
+
+    def prepostfitshapes_parallelized(self):
+        pass
 
 
 
@@ -551,7 +776,7 @@ class ScaleFactorFits():
         command += '--postfit \\'
         command += '--sampling \\'
         command += '--print \\'
-        command += '--total-shapes \\'
+        command += '--total-shapes=0 \\' # HACK: does not make sense to have these histograms if n_bins unequal for the different combine channels
         command += '--covariance \\'
         task_name = '_'.join(['prepostfitshapes', expobs(observed)])
         return self.combine_task(task_name, command, run)
@@ -567,18 +792,26 @@ class ScaleFactorFits():
             outfile_paths.append(outfile_path)
             outfile = root.TFile.Open(outfile_path, 'RECREATE')
             for combine_channel_name, combine_channel in self.combine_channels.items():
+                # print(combine_channel_name)
+                # print('target binning', combine_channel.get('binning'))
                 target_folder = outfile.mkdir(combine_channel_name)
                 target_folder.cd()
                 infile_folder = '_'.join([combine_channel_name, prepost])
                 #________________________________
                 # Data
                 data_obs_raw = infile.Get(infile_folder+'/data_obs')
+                # print('data_obs')
+                # print(get_binning(data_obs_raw))
                 data_obs = return_rebinned(data_obs_raw, combine_channel.get('binning'))
+                # print(get_binning(data_obs))
                 data_obs.Write('data_obs')
                 #________________________________
                 # Total prediction stack with full uncertainty
                 full_stack_raw = infile.Get(infile_folder+'/TotalProcs')
+                # print('TotalProcs')
+                # print(get_binning(full_stack_raw))
                 full_stack = return_rebinned(full_stack_raw, combine_channel.get('binning'))
+                # print(get_binning(full_stack))
                 full_stack.Write('TotalProcs')
                 #________________________________
                 # Individual processes with full uncertainties
@@ -603,7 +836,7 @@ class ScaleFactorFits():
 
         '''prepostfit is either "prefitCombine" or "postfitCombine"'''
 
-        print('Plotting pre- and post-fit distributions:', expobs(observed, False))
+        print('Plotting distributions:', prepostfit, expobs(observed, False))
 
         if self.tagger.name.startswith('ak8_'):
             probejetalgo = 'AK8'
@@ -758,16 +991,20 @@ class ScaleFactorFits():
         # https://github.com/cms-analysis/HiggsAnalysis-CombinedLimit/blob/102x/src/MultiDimFit.cc#L434
         mdf_file = root.TFile.Open(os.path.join(self.workdir, 'multidimfit_'+expobs(observed)+'.root'), 'READ')
         mdf_file_stat = root.TFile.Open(os.path.join(self.workdir, 'multidimfit_'+expobs(observed)+'_freezeSyst.root'), 'READ')
+        mdf_file_uncorr = root.TFile.Open(os.path.join(self.workdir, 'multidimfit_'+expobs(observed)+'_freezeEraCorrelated.root'), 'READ')
         fit_result = mdf_file.Get('fit_mdf') # RooFitResult
         fit_result_stat = mdf_file_stat.Get('fit_mdf') # RooFitResult
+        fit_result_uncorr = mdf_file_uncorr.Get('fit_mdf') # RooFitResult
         for poi_name in self.pois.keys():
             rf = fit_result.floatParsFinal().find(poi_name)
             rf_stat = fit_result_stat.floatParsFinal().find(poi_name)
+            rf_uncorr = fit_result_uncorr.floatParsFinal().find(poi_name)
             bestFitVal = rf.getVal()
-            if abs(bestFitVal - rf_stat.getVal()) > 0.01: # check if first fit and syst-frozen fit lead to approximately same central value
+            if abs(bestFitVal - rf_stat.getVal()) > 0.01 or abs(bestFitVal - rf_uncorr.getVal()) > 0.01: # check if first fit and syst-frozen fit lead to approximately same central value
                 print('bestFitVal regular:', bestFitVal)
                 print('bestFitVal frozenSyst:', rf_stat.getVal())
-                print('difference:', bestFitVal - rf_stat.getVal())
+                print('bestFitVal frozenEraCorrelated:', rf_uncorr.getVal())
+                # print('difference:', bestFitVal - rf_stat.getVal())
                 print('Warning: best-fit scale factor central values of regular fit and fit with frozen systematics differ from each other')
             #________________________________
             hiErr = +(rf.getMax('err68') - bestFitVal if rf.hasRange('err68') else rf.getAsymErrorHi())
@@ -776,27 +1013,41 @@ class ScaleFactorFits():
             if abs(hiErr) < 0.001*maxError:
                 # print " Warning - No valid high-error found, will report difference to maximum of range for : ", rf.GetName()
                 # hiErr = -bestFitVal + rf.getMax()
-                print('Warning: no valid asymmetric high-error found, will use getError() result')
+                if not self.robust_hesse: print('Warning: no valid asymmetric high-error found, will use getError() result')
                 hiErr = rf.getError()
             if abs(loErr) < 0.001*maxError:
                 # print " Warning - No valid low-error found, will report difference to minimum of range for : ", rf.GetName()
                 # loErr = +bestFitVal - rf.getMin()
-                print('Warning: no valid asymmetric low-error found, will use getError() result')
+                if not self.robust_hesse: print('Warning: no valid asymmetric low-error found, will use getError() result')
                 loErr = rf.getError()
             #________________________________
             hiErr_stat = +(rf_stat.getMax('err68') - bestFitVal if rf_stat.hasRange('err68') else rf_stat.getAsymErrorHi())
             loErr_stat = -(rf_stat.getMin('err68') - bestFitVal if rf_stat.hasRange('err68') else rf_stat.getAsymErrorLo())
             maxError_stat = max(max(hiErr_stat, loErr_stat), rf_stat.getError())
             if abs(hiErr_stat) < 0.001*maxError_stat:
-                # print " Warning - No valid high-error found, will report difference to maximum of range for : ", rf.GetName()
+                # print " Warning - No valid high-error found, will report difference to maximum of range for : ", rf_stat.GetName()
                 # hiErr_stat = -bestFitVal + rf_stat.getMax()
-                print('Warning: no valid asymmetric high-error found, will use getError() result')
-                hiErr_stat = rf.getError()
+                if not self.robust_hesse: print('Warning: no valid asymmetric high-error found, will use getError() result')
+                hiErr_stat = rf_stat.getError()
             if abs(loErr_stat) < 0.001*maxError_stat:
-                # print " Warning - No valid low-error found, will report difference to minimum of range for : ", rf.GetName()
+                # print " Warning - No valid low-error found, will report difference to minimum of range for : ", rf_stat.GetName()
                 # loErr_stat = +bestFitVal - rf_stat.getMin()
-                print('Warning: no valid asymmetric low-error found, will use getError() result')
-                loErr_stat = rf.getError()
+                loErr_stat = rf_stat.getError()
+                if not self.robust_hesse: print('Warning: no valid asymmetric low-error found, will use getError() result')
+            #________________________________
+            hiErr_uncorr = +(rf_uncorr.getMax('err68') - bestFitVal if rf_uncorr.hasRange('err68') else rf_uncorr.getAsymErrorHi())
+            loErr_uncorr = -(rf_uncorr.getMin('err68') - bestFitVal if rf_uncorr.hasRange('err68') else rf_uncorr.getAsymErrorLo())
+            maxError_uncorr = max(max(hiErr_uncorr, loErr_uncorr), rf_uncorr.getError())
+            if abs(hiErr_uncorr) < 0.001*maxError_uncorr:
+                # print " Warning - No valid high-error found, will report difference to maximum of range for : ", rf_uncorr.GetName()
+                # hiErr_uncorr = -bestFitVal + rf_uncorr.getMax()
+                if not self.robust_hesse: print('Warning: no valid asymmetric high-error found, will use getError() result')
+                hiErr_uncorr = rf_uncorr.getError()
+            if abs(loErr_uncorr) < 0.001*maxError_uncorr:
+                # print " Warning - No valid low-error found, will report difference to minimum of range for : ", rf_uncorr.GetName()
+                # loErr_uncorr = +bestFitVal - rf_uncorr.getMin()
+                if not self.robust_hesse: print('Warning: no valid asymmetric low-error found, will use getError() result')
+                loErr_uncorr = rf_uncorr.getError()
             #________________________________
             self.pois.get(poi_name)[expobs(observed)] = OrderedDict()
             self.pois.get(poi_name).get(expobs(observed))['bestFitVal'] = bestFitVal
@@ -804,6 +1055,9 @@ class ScaleFactorFits():
             self.pois.get(poi_name).get(expobs(observed))['hiErr'] = hiErr
             self.pois.get(poi_name).get(expobs(observed))['loErr_stat'] = loErr_stat
             self.pois.get(poi_name).get(expobs(observed))['hiErr_stat'] = hiErr_stat
+            self.pois.get(poi_name).get(expobs(observed))['loErr_uncorr'] = loErr_uncorr
+            self.pois.get(poi_name).get(expobs(observed))['hiErr_uncorr'] = hiErr_uncorr
+            #________________________________
             loErr_syst = loErr*loErr - loErr_stat*loErr_stat
             if loErr_syst >= 0:
                 loErr_syst = root.TMath.Sqrt(loErr_syst)
@@ -818,12 +1072,33 @@ class ScaleFactorFits():
                 hiErr_syst = 0
             self.pois.get(poi_name).get(expobs(observed))['loErr_syst'] = loErr_syst
             self.pois.get(poi_name).get(expobs(observed))['hiErr_syst'] = hiErr_syst
-            print("  {:55s}:  {:.3f}  -{:.3f} / +{:.3f} (tot.)  [ -{:.3f} / +{:.3f} (stat.)  |  -{:.3f} / +{:.3f} (syst.) ]".format(poi_name, bestFitVal, loErr, hiErr, loErr_stat, hiErr_stat, loErr_syst, hiErr_syst))
-        sf_file_path = os.path.join(self.workdir, 'scale_factors_'+expobs(observed)+'.root')
+            #________________________________
+            loErr_corr = loErr*loErr - loErr_uncorr*loErr_uncorr
+            if loErr_corr >= 0:
+                loErr_corr = root.TMath.Sqrt(loErr_corr)
+            else:
+                print('Warning: lower total error smaller than lower uncorrelated component; something went wrong! Lower correlated component set to zero')
+                loErr_corr = 0
+            hiErr_corr = hiErr*hiErr - hiErr_uncorr*hiErr_uncorr
+            if hiErr_corr >= 0:
+                hiErr_corr = root.TMath.Sqrt(hiErr_corr)
+            else:
+                print('Warning: upper total error smaller than upper uncorrelated component; something went wrong! Upper correlated component set to zero')
+                hiErr_corr = 0
+            self.pois.get(poi_name).get(expobs(observed))['loErr_corr'] = loErr_corr
+            self.pois.get(poi_name).get(expobs(observed))['hiErr_corr'] = hiErr_corr
+            #________________________________
+            # print("  {:55s}:  {:.3f}  -{:.3f} / +{:.3f} (tot.)  [ -{:.3f} / +{:.3f} (stat.)  |  -{:.3f} / +{:.3f} (syst.) ]".format(poi_name, bestFitVal, loErr, hiErr, loErr_stat, hiErr_stat, loErr_syst, hiErr_syst))
+            print("  {:55s}:  {:.3f}  -{:.3f} / +{:.3f} (tot.)  [ -{:.3f} / +{:.3f} (stat.)  |  -{:.3f} / +{:.3f} (syst.) ]  [ -{:.3f} / +{:.3f} (uncorr.)  |  -{:.3f} / +{:.3f} (corr.) ]".format(poi_name, bestFitVal, loErr, hiErr, loErr_stat, hiErr_stat, loErr_syst, hiErr_syst, loErr_uncorr, hiErr_uncorr, loErr_corr, hiErr_corr))
+        # sf_file_path = os.path.join(self.workdir, 'scale_factors_'+expobs(observed)+'.root')
+        # if observed:
+        #     self.sf_file_path_obs = sf_file_path
+        # else:
+        #     self.sf_file_path_exp = sf_file_path
         if observed:
-            self.sf_file_path_obs = sf_file_path
+            sf_file_path = self.sf_file_path_obs
         else:
-            self.sf_file_path_exp = sf_file_path
+            sf_file_path = self.sf_file_path_exp
         sf_file = root.TFile.Open(sf_file_path, 'RECREATE')
         sf_file.cd()
         for year in self.years:
@@ -838,6 +1113,10 @@ class ScaleFactorFits():
                 eyh_stat = []
                 eyl_syst = []
                 eyh_syst = []
+                eyl_uncorr = []
+                eyh_uncorr = []
+                eyl_corr = []
+                eyh_corr = []
                 for poi_name, poi_info in self.pois.items():
                     # if msc not in poi_name:
                     if msc != poi_info['msc']:
@@ -861,27 +1140,152 @@ class ScaleFactorFits():
                     eyh_stat.append(poi_info.get(expobs(observed))['hiErr_stat'])
                     eyl_syst.append(poi_info.get(expobs(observed))['loErr_syst'])
                     eyh_syst.append(poi_info.get(expobs(observed))['hiErr_syst'])
+                    eyl_uncorr.append(poi_info.get(expobs(observed))['loErr_uncorr'])
+                    eyh_uncorr.append(poi_info.get(expobs(observed))['hiErr_uncorr'])
+                    eyl_corr.append(poi_info.get(expobs(observed))['loErr_corr'])
+                    eyh_corr.append(poi_info.get(expobs(observed))['hiErr_corr'])
                 sf_graph = root.TGraphAsymmErrors(len(x), np.array(x), np.array(y), np.array(exl), np.array(exh), np.array(eyl), np.array(eyh))
                 sf_graph_stat = root.TGraphAsymmErrors(len(x), np.array(x), np.array(y), np.array(exl), np.array(exh), np.array(eyl_stat), np.array(eyh_stat))
                 sf_graph_syst = root.TGraphAsymmErrors(len(x), np.array(x), np.array(y), np.array(exl), np.array(exh), np.array(eyl_syst), np.array(eyh_syst))
+                sf_graph_uncorr = root.TGraphAsymmErrors(len(x), np.array(x), np.array(y), np.array(exl), np.array(exh), np.array(eyl_uncorr), np.array(eyh_uncorr))
+                sf_graph_corr = root.TGraphAsymmErrors(len(x), np.array(x), np.array(y), np.array(exl), np.array(exh), np.array(eyl_corr), np.array(eyh_corr))
                 sf_graph.Write(msc+'_'+year+'_tot')
                 sf_graph_stat.Write(msc+'_'+year+'_stat')
                 sf_graph_syst.Write(msc+'_'+year+'_syst')
+                sf_graph_uncorr.Write(msc+'_'+year+'_uncorr')
+                sf_graph_corr.Write(msc+'_'+year+'_corr')
         print('Wrote', sf_file_path)
 
 
+
+    def impacts(self, observed=False, run=True, parallel=True):
+        print('Calculating nuisance parameter impacts:', expobs(observed, False))
+        results = OrderedDict()
+        #________________________________
+        print('Performing an initial fit for the signal strength and its uncertainty')
+        command1 = 'combineTool.py -M Impacts \\'
+        command1 += '-m 0 \\' # required argument
+        command1 += '-d '+self.workspace_path+' \\'
+        command1 += '--doInitialFit \\'
+        command1 += '--robustFit 1 \\'
+        if self.robust_hesse:
+            command1 += '--robustHesse=1 \\' # produces covariance matrix of nuisance parameters
+        if not observed:
+            command1 += '-t -1 \\'
+            command1 += '--toysFile '+os.path.join(self.workdir, 'higgsCombine_toy.GenerateOnly.mH120.123456.root')+' \\'
+        task_name1 = '_'.join(['impacts', expobs(observed), 'command1'])
+        results[task_name1] = self.combine_task(task_name1, command1, run)
+        #________________________________
+        print('Calculating impacts for all nuisance parameters')
+        command2 = command1.replace('--doInitialFit', '--doFits')
+        if parallel:
+            command2 += '--parallel 16 \\' # spawn 6 parallel jobs
+        task_name2 = '_'.join(['impacts', expobs(observed), 'command2'])
+        results[task_name2] = self.combine_task(task_name2, command2, run)
+        #________________________________
+        print('Collecting output, converting to .json format')
+        impactsJsonPath = os.path.join(self.workdir, 'impacts_'+expobs(observed)+'.json')
+        command3 = 'combineTool.py -M Impacts \\'
+        command3 += '-m 0 \\' # required argument
+        command3 += '-d '+self.workspace_path+' \\'
+        command3 += '-o '+impactsJsonPath+' \\'
+        task_name3 = '_'.join(['impacts', expobs(observed), 'command3'])
+        results[task_name3] = self.combine_task(task_name3, command3, run)
+        #________________________________
+        os.system('mkdir -p '+self.impact_plots_dir)
+        plot_command_base = 'plotImpacts.py \\'
+        plot_command_base += '-i '+impactsJsonPath+' \\'
+        plot_command_base += '--POI {0} \\'
+        plot_command_base += '-o {1} \\'
+        # plot_command_base += '-t '+globalRenameJsonFile+' \\' # rename parameters
+        for signal_rate_param in self.pois.keys():
+            print('Plotting impacts for parameter:', signal_rate_param)
+            plot_path = os.path.join(self.workdir, impactsJsonPath.replace('.json', '_'+signal_rate_param))
+            plot_command = plot_command_base.format(signal_rate_param, os.path.join(os.path.basename(self.impact_plots_dir), os.path.basename(plot_path))) # need to use basename, else combine will try to save pdf to ./{plot_path} --> error
+            # self.ImpactPlotPaths.append(plot_path+'.pdf')
+            plot_task_name = '_'.join(['plot_impacts', expobs(observed), signal_rate_param])
+            results[plot_task_name] = self.combine_task(plot_task_name, plot_command, run)
+        return results
+
+
+
+
+# class ScaleFactorPlots():
+#
+#     def __init__(self,
+#         list_of_fits, # list of ScaleFactorFits objects
+#         # tagger_name,
+#         # wp,
+#         # # mode='TagAndProbe',
+#         # mscSplitting = 'mscTop3',
+#         # include_total_range = False,
+#         # # years = None, # either list of strings or single string (will be converted to list with one string element)
+#         # # task_name_suffix = '',
+#     ):
+#
+#         pass
+#
+#         self.tagger = list_of_fits[0].tagger
+#         self.wp = list_of_fits[0].wp
+#         self.pt_bins = list_of_fits[0].pt_bins
+#         self.years = [fit.year for fit in list_of_fits]
+#
+#         self.outDir = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel/combine', self.tagger.name, 'scale_factor_plots')
+#         self.outFileName =
+#
+#
+#     def read_scale_factors(self):
+#
+#         pass
 
 
 
 
 if __name__=='__main__':
 
+    import argparse
+
+    if not sys.argv[1:]: sys.exit('No arguments provided. Exit.')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-t', '--tagger', choices=taggers.keys())
+    parser.add_argument('-w', '--wp') # integer indices of wps, following the indexing given at the top of this python script
+    parser.add_argument('-p', '--pt-index') # integer indices of wps, following the indexing given at the top of this python script
+    parser.add_argument('-y', '--year', choices=all_years)
+    args = parser.parse_args(sys.argv[1:])
+
+    # for tagger in taggers.values():
+
+    # for pt_index in range(0,3):
+    # for year in all_years:
+
     x = ScaleFactorFits(
-        tagger_name = 'ak8_t__tau',
-        wp = 0,
-        total_range = True,
+        tagger_name = args.tagger,
+        # tagger_name = 'ak8_t__tau', # naf-cms11 tmux 1-5
+        # tagger_name = 'ak8_t_btagDJet__tau', # naf-cms12 tmux 1-5
+        # tagger_name = 'ak8_t_btagDCSV__tau', # naf-cms13 tmux 1-5
+        # tagger_name = 'hotvr_t__tau', # naf-cms11 tmux 0
+        # tagger_name = 'ak8_w__partnet', # naf-cms11 tmux 6
+        # tagger_name = 'ak8_t__MDdeepak8', # naf-cms13 tmux 0
+        # tagger_name = tagger.name,
+        wp = int(args.wp),
+        # wp = 1,
+        # total_range = True,
+        # pt_index = pt_index,
+        pt_index = int(args.pt_index),
+        # pt_index = 3,
+        # years = all_years,
+        years = args.year,
+        # years = year,
         # mode='Hybrid',
+        # mscSplitting = 'mscW3',
+        # mscSplitting = 'mscTop3',
+        robust_hesse = True,
     )
+
+    # x.write_rootfile()
+    # x.write_datacard()
+    # x.impacts(observed=False)
+    # x.impacts(observed=True)
 
     # Need to run this always:
     x.write_rootfile()
@@ -891,16 +1295,20 @@ if __name__=='__main__':
     # Expected:
     # x.generate_toys()
     # x.multidimfit(observed=False)
+    # x.multidimfit(observed=False, freezeEraCorrelated=True)
     # x.multidimfit(observed=False, freezeSyst=True)
     # x.write_scale_factor_file(observed=False)
     # x.prepostfitshapes(observed=False)
     # x.prepostfitshapes_for_plots(observed=False)
+    # x.impacts(observed=False)
 
     # Observed:
-    # x.multidimfit(observed=True)
-    # x.multidimfit(observed=True, freezeSyst=True)
-    # x.write_scale_factor_file(observed=True)
-    # x.prepostfitshapes(observed=True)
-    # x.prepostfitshapes_for_plots(observed=True)
+    x.multidimfit(observed=True)
+    x.multidimfit(observed=True, freezeEraCorrelated=True)
+    x.multidimfit(observed=True, freezeSyst=True)
+    x.write_scale_factor_file(observed=True)
+    x.prepostfitshapes(observed=True)
+    x.prepostfitshapes_for_plots(observed=True)
     x.plot_prepostfitshapes(observed=True, prepostfit='prefitCombine')
     x.plot_prepostfitshapes(observed=True, prepostfit='postfitCombine')
+    x.impacts(observed=True)

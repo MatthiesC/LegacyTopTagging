@@ -123,7 +123,7 @@ class NiceStackWithRatio():
         # self.maximum_main = -np.inf
         self.syst_names = syst_names # list of strings
         self.lumi_unc = lumi_unc or 0.
-        self.show_bin_width_on_data = False
+        self.show_bin_width_on_data = True
         self.max_ratio_data_outliers = 3
         self.nostack = nostack
 

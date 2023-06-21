@@ -4,10 +4,15 @@ import sys
 from collections import OrderedDict
 import numpy as np
 import sympy
+import os
+import pandas as pd
+import glob
+import json
 
 
 # Source: https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopSystematics#Luminosity
 # See also: https://twiki.cern.ch/twiki/bin/view/CMS/TWikiLUM#SummaryTable (includes links to CMS publications which you can cite)
+# For correlations, see: https://twiki.cern.ch/twiki/bin/view/CMS/LumiRecommendationsRun2#Combination_and_correlations
 _YEARS = OrderedDict([
     ('UL16', {
         'short_name': 'UL16',
@@ -16,6 +21,10 @@ _YEARS = OrderedDict([
         'lumi_fb': 36.333, # TopSystematics source and my own brilcalc give the same results (36.333380073.916976929 with PHYSICS normtag)
         'lumi_pb': 36333.,
         'lumi_unc': 0.012,
+        'lumi_unc_detailed': {
+            'Uncorrelated16': 0.01,
+            'Correlated161718': 0.006,
+        },
         'lumi_fb_display': '36.3',
     }),
     ('UL16preVFP', {
@@ -27,7 +36,12 @@ _YEARS = OrderedDict([
         'lumi_fb': 19.536, # brilcalc gives 19.536411965198516846 with PHYSICS normtag
         'lumi_pb': 19536.,
         'lumi_unc': 0.012,
+        'lumi_unc_detailed': {
+            'Uncorrelated16': 0.01,
+            'Correlated161718': 0.006,
+        },
         'lumi_fb_display': '19.5',
+        'index': 1, # same as in LegacyTopTagging/include/Constants.h
     }),
     ('UL16postVFP', {
         'short_name': 'UL16postVFP',
@@ -38,7 +52,12 @@ _YEARS = OrderedDict([
         'lumi_fb': 16.797, # brilcalc gives 16.796968109 with PHYSICS normtag
         'lumi_pb': 16797.,
         'lumi_unc': 0.012,
+        'lumi_unc_detailed': {
+            'Uncorrelated16': 0.01,
+            'Correlated161718': 0.006,
+        },
         'lumi_fb_display': '16.8',
+        'index': 2, # same as in LegacyTopTagging/include/Constants.h
     }),
     ('UL17', {
         'short_name': 'UL17',
@@ -47,7 +66,13 @@ _YEARS = OrderedDict([
         'lumi_fb': 41.480, # TopSystematics source and my own brilcalc give the same results (41.4796805287616 with PHYSICS normtag)
         'lumi_pb': 41480.,
         'lumi_unc': 0.023,
+        'lumi_unc_detailed': {
+            'Uncorrelated17': 0.02,
+            'Correlated161718': 0.009,
+            'Correlated1718': 0.006,
+        },
         'lumi_fb_display': '41.5',
+        'index': 3, # same as in LegacyTopTagging/include/Constants.h
     }),
     ('UL18', {
         'short_name': 'UL18',
@@ -56,7 +81,13 @@ _YEARS = OrderedDict([
         'lumi_fb': 59.832, # TopSystematics source and my own brilcalc give the same results (59.8324753390886 with PHYSICS normtag)
         'lumi_pb': 59832.,
         'lumi_unc': 0.025,
+        'lumi_unc_detailed': {
+            'Uncorrelated18': 0.015,
+            'Correlated161718': 0.02,
+            'Correlated1718': 0.002,
+        },
         'lumi_fb_display': '59.8',
+        'index': 4, # same as in LegacyTopTagging/include/Constants.h
     }),
     ('run2', {
         'short_name': 'ULRunII',
@@ -141,6 +172,7 @@ class VarInterval:
 _PT_INTERVALS = [
     VarInterval('pt', 200),
     VarInterval('pt', 200, 250),
+    VarInterval('pt', 200, 300),
     VarInterval('pt', 250),
     VarInterval('pt', 250, 300),
     VarInterval('pt', 300),
@@ -205,16 +237,17 @@ _PT_INTERVALS_TANDP_AK8_T = [
         total_range=True,
     ),
     VarInterval('pt', 300, 350,
-        fit=True,
+        # fit=True,
     ),
     VarInterval('pt', 350, 400,
-        fit=True,
+        # fit=True,
     ),
     VarInterval('pt', 300, 400,
-        # fit=True,
+        fit=True,
     ),
     VarInterval('pt', 400,
         # fit=True,
+        # total_range=True,
     ),
     VarInterval('pt', 400, 480,
         fit=True,
@@ -236,6 +269,9 @@ _PT_INTERVALS_TANDP_AK8_W = [
     VarInterval('pt', 200, 250,
         fit=True,
     ),
+    # VarInterval('pt', 200, 300,
+    #     fit=True,
+    # ),
     VarInterval('pt', 250, 300,
         fit=True,
     ),
@@ -269,11 +305,13 @@ _PT_INTERVALS_TANDP_AK8_W = {pt_interval.name: pt_interval for pt_interval in _P
 
 class WorkingPoint:
 
-    def __init__(self, bkg_eff, cut_value, name=None, null=False):
+    def __init__(self, bkg_eff, cut_value, name=None, null=False, alt_name=None, alt_name_short=None):
         self.bkg_eff = bkg_eff
         self.cut_value = cut_value # can be float or dict (key=year, value=float)
         self.name = name or 'BkgEff' + '{:.3f}'.format(bkg_eff).replace('.', 'p')
         self.null = null
+        self.alt_name = alt_name
+        self.alt_name_short = alt_name_short
 
     def get_cut_value(self, year=None):
         '''
@@ -360,7 +398,8 @@ class Tagger:
 
     def get_tandp_rule(self, wp_index, year=None):
         replaces = {}
-        replaces['WP_VALUE'] = self.get_wp(wp_index, year).cut_value
+        # replaces['WP_VALUE'] = self.get_wp(wp_index, year).cut_value
+        replaces['WP_VALUE'] = self.get_wp(wp_index, year).get_cut_value(year)
         if year:
             replaces['DEEPCSV_SCORE'] = '{:.5f}'.format(_DEEPCSV_WPS[year]['loose'])
             replaces['DEEPJET_SCORE'] = '{:.5f}'.format(_DEEPJET_WPS[year]['loose'])
@@ -463,11 +502,11 @@ _TAGGERS = [
         ['msd > 105', 'msd < 210'],
         tandp_rule='(output_probejet_AK8_tau32 < {WP_VALUE})',
         wps=[
-            WorkingPoint(0.001, 0.38),
-            WorkingPoint(0.005, 0.47),
-            WorkingPoint(0.010, 0.52),
-            WorkingPoint(0.025, 0.61),
-            WorkingPoint(0.050, 0.69),
+            WorkingPoint(0.001, 0.38, alt_name='very tight', alt_name_short='vt'),
+            WorkingPoint(0.005, 0.47, alt_name='tight', alt_name_short='t'),
+            WorkingPoint(0.010, 0.52, alt_name='medium', alt_name_short='m'),
+            WorkingPoint(0.025, 0.61, alt_name='loose', alt_name_short='l'),
+            WorkingPoint(0.050, 0.69, alt_name='very loose', alt_name_short='vl'),
         ],
         label='#tau_{3}/#tau_{2} < {WP_VALUE}',
     ),
@@ -477,11 +516,11 @@ _TAGGERS = [
         ['msd > 105', 'msd < 210', 'subdeepjet > {DEEPJET_SCORE}'],
         tandp_rule='(output_probejet_AK8_maxDeepJet > {DEEPJET_SCORE}) & (output_probejet_AK8_tau32 < {WP_VALUE})',
         wps=[
-            WorkingPoint(0.001, 0.38),
-            WorkingPoint(0.005, 0.47),
-            WorkingPoint(0.010, 0.52),
-            WorkingPoint(0.025, 0.61),
-            WorkingPoint(0.050, 0.69),
+            WorkingPoint(0.001, 0.38, alt_name='very tight', alt_name_short='vt'),
+            WorkingPoint(0.005, 0.47, alt_name='tight', alt_name_short='t'),
+            WorkingPoint(0.010, 0.52, alt_name='medium', alt_name_short='m'),
+            WorkingPoint(0.025, 0.61, alt_name='loose', alt_name_short='l'),
+            WorkingPoint(0.050, 0.69, alt_name='very loose', alt_name_short='vl'),
         ],
         label='#tau_{3}/#tau_{2} < {WP_VALUE} + loose DeepJet subjet b tag',
     ),
@@ -491,11 +530,11 @@ _TAGGERS = [
         ['msd > 105', 'msd < 210', 'subdeepcsv > {DEEPCSV_SCORE}'],
         tandp_rule='(output_probejet_AK8_maxDeepCSV > {DEEPCSV_SCORE}) & (output_probejet_AK8_tau32 < {WP_VALUE})',
         wps=[
-            WorkingPoint(0.001, 0.38),
-            WorkingPoint(0.005, 0.47),
-            WorkingPoint(0.010, 0.52),
-            WorkingPoint(0.025, 0.61),
-            WorkingPoint(0.050, 0.69),
+            WorkingPoint(0.001, 0.38, alt_name='very tight', alt_name_short='vt'),
+            WorkingPoint(0.005, 0.47, alt_name='tight', alt_name_short='t'),
+            WorkingPoint(0.010, 0.52, alt_name='medium', alt_name_short='m'),
+            WorkingPoint(0.025, 0.61, alt_name='loose', alt_name_short='l'),
+            WorkingPoint(0.050, 0.69, alt_name='very loose', alt_name_short='vl'),
         ],
         label='#tau_{3}/#tau_{2} < {WP_VALUE} + loose DeepCSV subjet b tag',
     ),
@@ -663,6 +702,58 @@ _TCOLORS = {
 # This spreadsheet is linked here: https://twiki.cern.ch/twiki/bin/view/CMS/JECUncertaintySources#Run2_JEC_uncertainty_correlation
 # keys are the source names, compatible with the names given in the JEC textFiles. Values are the correlations between RunII years
 # 0.5 are the optimal values; can be simplified to 1.0 if necessary
+
+class JECSmearSource():
+
+    def __init__(self, name, era_correlation, is_split_full, is_split_reduced):
+        self.name = name
+        self.era_correlation = era_correlation
+        self.is_split_full = is_split_full
+        self.is_split_reduced = is_split_reduced
+
+    def get_name(year=None):
+        if year is None or not ('year' in self.name):
+            return self.name
+        else:
+            return self.name.format(year=year)
+
+
+class JECSmearSources():
+
+    def __init__(self):
+        self.base = [
+            JECSmearSource('AbsoluteMPFBias', 1.0, True, False),
+            JECSmearSource('AbsoluteScale', 1.0, True, False),
+            JECSmearSource('AbsoluteStat', 0.0, True, False),
+            JECSmearSource('FlavorQCD', 1.0, True, False),
+            JECSmearSource('Fragmentation', 1.0, True, False),
+            JECSmearSource('PileUpDataMC', 0.5, True, False),
+            JECSmearSource('PileUpPtBB', 0.5, True, False),
+            JECSmearSource('PileUpPtEC1', 0.5, True, False),
+            JECSmearSource('PileUpPtEC2', 0.5, True, False),
+            JECSmearSource('PileUpPtHF', 0.5, True, False),
+            JECSmearSource('PileUpPtRef', 0.5, True, False),
+            JECSmearSource('RelativeFSR', 0.5, True, False),
+            JECSmearSource('RelativeJEREC1', 0.0, True, False),
+            JECSmearSource('RelativeJEREC2', 0.0, True, False),
+            JECSmearSource('RelativeJERHF', 0.5, True, False),
+            JECSmearSource('RelativePtBB', 0.5, True, False),
+            JECSmearSource('RelativePtEC1', 0.0, True, False),
+            JECSmearSource('RelativePtEC2', 0.0, True, False),
+            JECSmearSource('RelativePtHF', 0.5, True, False),
+            JECSmearSource('RelativeBal', 0.5, True, False),
+            JECSmearSource('RelativeSample', 0.0, True, False),
+            JECSmearSource('RelativeStatEC', 0.0, True, False),
+            JECSmearSource('RelativeStatFSR', 0.0, True, False),
+            JECSmearSource('RelativeStatHF', 0.0, True, False),
+            JECSmearSource('SinglePionECAL', 1.0, True, False),
+            JECSmearSource('SinglePionHCAL', 1.0, True, False),
+            JECSmearSource('TimePtEta', 0.0, True, False),
+        ]
+
+
+
+
 _JECSMEAR_SOURCES = {
     'AbsoluteMPFBias': 1.0,
     'AbsoluteScale': 1.0,
@@ -1041,14 +1132,16 @@ class Variation:
 
 class Systematic:
 
-    def __init__(self, name, variations, correlation_eras=None, combine_name=None, tandp=False):
+    def __init__(self, name, variations, correlation_eras=None, correlation_procs=None, combine_name=None, tandp=False, symmetrize=False):
         self.name = name
         self.variations = {k: Variation(k, v) for k, v in variations.items()}
         for k in self.variations.keys():
             self.variations[k].name = self.name+'_'+self.variations[k].short_name
-        self.correlation_eras = correlation_eras # correlation between years (1.0 = 100%)
+        self.correlation_eras = 1.0 if correlation_eras is None else correlation_eras # correlation between years (1.0 = 100%)
+        self.correlation_procs = 'shared' if correlation_procs is None else correlation_procs # options: None/'shared' (uncertainty is shared between all processes), 'qcdewk' (differentiate between QCD-induced and EWK-induced processes), 'allprocs' (differentiate between all base processes)
         self.combine_name = combine_name or self.name # in combine, systematics cannot have underscores in their names; in case self.name has an underscore, we need to provide a new name here to be used in the combine framework
         self.tandp = tandp # decide whether to use this systematic in the final combine fits (and for prefit plotting)
+        self.symmetrize = symmetrize # whether or not to symmetrize the uncertainty # NOT implemented yet #FIXME
 
 class Systematics:
 
@@ -1062,64 +1155,77 @@ class Systematics:
                 'down': 'weight / weight_btag_central * weight_btag_bc_down',
                 'up': 'weight / weight_btag_central * weight_btag_bc_up',
                 },
+                correlation_eras=0.0,
                 combine_name='btagBC',
             ),
             Systematic('btag_bc_correlated', {
                 'down': 'weight / weight_btag_central * weight_btag_bc_down_correlated',
                 'up': 'weight / weight_btag_central * weight_btag_bc_up_correlated',
                 },
-                1.0,
+                correlation_eras=1.0,
+                correlation_procs=None,
                 combine_name='btagBCCorrelated',
-                tandp=True,
+                # tandp=True,
             ),
             Systematic('btag_bc_jes', {
                 'down': 'weight / weight_btag_central * weight_btag_bc_down_jes',
                 'up': 'weight / weight_btag_central * weight_btag_bc_up_jes',
                 },
-                1.0,
+                correlation_eras=1.0,
+                correlation_procs=None,
                 combine_name='btagBCJES',
+                tandp=True,
             ),
             Systematic('btag_bc_pileup', {
                 'down': 'weight / weight_btag_central * weight_btag_bc_down_pileup',
                 'up': 'weight / weight_btag_central * weight_btag_bc_up_pileup',
                 },
-                1.0,
+                correlation_eras=1.0,
+                correlation_procs=None,
                 combine_name='btagBCPileup',
+                tandp=True,
             ),
             Systematic('btag_bc_statistic', {
                 'down': 'weight / weight_btag_central * weight_btag_bc_down_statistic',
                 'up': 'weight / weight_btag_central * weight_btag_bc_up_statistic',
                 },
-                0.0,
+                correlation_eras=0.0,
+                correlation_procs=None,
                 combine_name='btagBCStatistic',
+                tandp=True,
             ),
             Systematic('btag_bc_type3', {
                 'down': 'weight / weight_btag_central * weight_btag_bc_down_type3',
                 'up': 'weight / weight_btag_central * weight_btag_bc_up_type3',
                 },
-                1.0,
+                correlation_eras=1.0,
+                correlation_procs=None,
                 combine_name='btagBCType3',
+                tandp=True,
             ),
             Systematic('btag_bc_uncorrelated', {
                 'down': 'weight / weight_btag_central * weight_btag_bc_down_uncorrelated',
                 'up': 'weight / weight_btag_central * weight_btag_bc_up_uncorrelated',
                 },
-                0.0,
+                correlation_eras=0.0,
+                correlation_procs=None,
                 combine_name='btagBCUncorrelated',
-                tandp=True,
+                # tandp=True,
             ),
             #________________________________________
             Systematic('btag_light', {
                 'down': 'weight / weight_btag_central * weight_btag_light_down',
                 'up': 'weight / weight_btag_central * weight_btag_light_up',
                 },
+                correlation_eras=0.0,
                 combine_name='btagLight',
             ),
             Systematic('btag_light_correlated', {
                 'down': 'weight / weight_btag_central * weight_btag_light_down_correlated',
                 'up': 'weight / weight_btag_central * weight_btag_light_up_correlated',
                 },
-                1.0,
+                correlation_eras=1.0,
+                correlation_procs=None,
                 combine_name='btagLightCorrelated',
                 tandp=True,
             ),
@@ -1127,7 +1233,8 @@ class Systematics:
                 'down': 'weight / weight_btag_central * weight_btag_light_down_uncorrelated',
                 'up': 'weight / weight_btag_central * weight_btag_light_up_uncorrelated',
                 },
-                0.0,
+                correlation_eras=0.0,
+                correlation_procs=None,
                 combine_name='btagLightUncorrelated',
                 tandp=True,
             ),
@@ -1140,7 +1247,9 @@ class Systematics:
                 'upnone': 'weight * weight_murmuf_upnone',
                 'upup': 'weight * weight_murmuf_upup',
                 },
-                1.0,
+                correlation_eras=1.0,
+                # correlation_procs='allprocs',
+                correlation_procs='split',
                 combine_name='Scale',
                 tandp=True,
             ),
@@ -1150,6 +1259,8 @@ class Systematics:
                 'up': 'weight * weight_fsr_2_up',
                 },
                 combine_name='FSR2',
+                correlation_eras=1.0,
+                # correlation_procs='qcdewk',
                 tandp=True,
             ),
             Systematic('fsr_g2gg_mur', {
@@ -1157,6 +1268,7 @@ class Systematics:
                 'up': 'weight * weight_fsr_g2gg_mur_up',
                 },
                 combine_name='FSRg2ggMuR',
+                correlation_eras=1.0,
                 # tandp=True,
             ),
             Systematic('fsr_g2qq_mur', {
@@ -1164,6 +1276,7 @@ class Systematics:
                 'up': 'weight * weight_fsr_g2qq_mur_up',
                 },
                 combine_name='FSRg2qqMuR',
+                correlation_eras=1.0,
                 # tandp=True,
             ),
             Systematic('fsr_q2qg_mur', {
@@ -1171,6 +1284,7 @@ class Systematics:
                 'up': 'weight * weight_fsr_q2qg_mur_up',
                 },
                 combine_name='FSRq2qgMuR',
+                correlation_eras=1.0,
                 # tandp=True,
             ),
             Systematic('fsr_x2xg_mur', {
@@ -1178,6 +1292,7 @@ class Systematics:
                 'up': 'weight * weight_fsr_x2xg_mur_up',
                 },
                 combine_name='FSRx2xgMuR',
+                correlation_eras=1.0,
                 # tandp=True,
             ),
             Systematic('fsr_g2gg_cns', {
@@ -1185,6 +1300,7 @@ class Systematics:
                 'up': 'weight * weight_fsr_g2gg_cns_up',
                 },
                 combine_name='FSRg2ggCNS',
+                correlation_eras=1.0,
                 # tandp=True,
             ),
             Systematic('fsr_g2qq_cns', {
@@ -1192,6 +1308,7 @@ class Systematics:
                 'up': 'weight * weight_fsr_g2qq_cns_up',
                 },
                 combine_name='FSRg2qqCNS',
+                correlation_eras=1.0,
                 # tandp=True,
             ),
             Systematic('fsr_q2qg_cns', {
@@ -1199,6 +1316,7 @@ class Systematics:
                 'up': 'weight * weight_fsr_q2qg_cns_up',
                 },
                 combine_name='FSRq2qgCNS',
+                correlation_eras=1.0,
                 # tandp=True,
             ),
             Systematic('fsr_x2xg_cns', {
@@ -1206,6 +1324,7 @@ class Systematics:
                 'up': 'weight * weight_fsr_x2xg_cns_up',
                 },
                 combine_name='FSRx2xgCNS',
+                correlation_eras=1.0,
                 # tandp=True,
             ),
             #________________________________________
@@ -1214,13 +1333,17 @@ class Systematics:
                 'up': 'weight * weight_isr_2_up',
                 },
                 combine_name='ISR2',
-                tandp=True,
+                correlation_eras=1.0,
+                correlation_procs='split',
+                # tandp=True,
             ),
             Systematic('isr_g2gg_mur', {
                 'down': 'weight * weight_isr_g2gg_mur_down',
                 'up': 'weight * weight_isr_g2gg_mur_up',
                 },
                 combine_name='ISRg2ggMuR',
+                correlation_eras=1.0,
+                correlation_procs='split',
                 # tandp=True,
             ),
             Systematic('isr_g2qq_mur', {
@@ -1228,6 +1351,8 @@ class Systematics:
                 'up': 'weight * weight_isr_g2qq_mur_up',
                 },
                 combine_name='ISRg2qqMuR',
+                correlation_eras=1.0,
+                correlation_procs='split',
                 # tandp=True,
             ),
             Systematic('isr_q2qg_mur', {
@@ -1235,6 +1360,8 @@ class Systematics:
                 'up': 'weight * weight_isr_q2qg_mur_up',
                 },
                 combine_name='ISRq2qgMuR',
+                correlation_eras=1.0,
+                correlation_procs='split',
                 # tandp=True,
             ),
             Systematic('isr_x2xg_mur', {
@@ -1242,6 +1369,8 @@ class Systematics:
                 'up': 'weight * weight_isr_x2xg_mur_up',
                 },
                 combine_name='ISRx2xgMuR',
+                correlation_eras=1.0,
+                correlation_procs='split',
                 # tandp=True,
             ),
             Systematic('isr_g2gg_cns', {
@@ -1249,6 +1378,8 @@ class Systematics:
                 'up': 'weight * weight_isr_g2gg_cns_up',
                 },
                 combine_name='ISRg2ggCNS',
+                correlation_eras=1.0,
+                correlation_procs='split',
                 # tandp=True,
             ),
             Systematic('isr_g2qq_cns', {
@@ -1256,6 +1387,8 @@ class Systematics:
                 'up': 'weight * weight_isr_g2qq_cns_up',
                 },
                 combine_name='ISRg2qqCNS',
+                correlation_eras=1.0,
+                correlation_procs='split',
                 # tandp=True,
             ),
             Systematic('isr_q2qg_cns', {
@@ -1263,6 +1396,8 @@ class Systematics:
                 'up': 'weight * weight_isr_q2qg_cns_up',
                 },
                 combine_name='ISRq2qgCNS',
+                correlation_eras=1.0,
+                correlation_procs='split',
                 # tandp=True,
             ),
             Systematic('isr_x2xg_cns', {
@@ -1270,6 +1405,8 @@ class Systematics:
                 'up': 'weight * weight_isr_x2xg_cns_up',
                 },
                 combine_name='ISRx2xgCNS',
+                correlation_eras=1.0,
+                correlation_procs='split',
                 # tandp=True,
             ),
             #________________________________________
@@ -1284,7 +1421,7 @@ class Systematics:
                 'down': 'weight / weight_pu * weight_pu_down',
                 'up': 'weight / weight_pu * weight_pu_up',
                 },
-                1.0,
+                correlation_eras=1.0,
                 tandp=True,
             ),
             #________________________________________
@@ -1333,24 +1470,25 @@ class Systematics:
                 'down': 'weight / weight_toppt_applied * weight_toppt_a_down',
                 'up': 'weight / weight_toppt_applied * weight_toppt_a_up',
                 },
-                1.0,
+                correlation_eras=1.0,
                 combine_name='topptA',
-                tandp=True,
+                # tandp=True, # it's only a constant normalization uncertainty... should not be varied
             ),
             Systematic('toppt_b', {
                 'down': 'weight / weight_toppt_applied * weight_toppt_b_down',
                 'up': 'weight / weight_toppt_applied * weight_toppt_b_up',
                 },
-                1.0,
+                correlation_eras=1.0,
                 combine_name='topptB',
-                tandp=True,
+                # tandp=True,
             ),
             #________________________________________
             Systematic('jesTotal', {
                 'down': None,
                 'up': None,
                 },
-                0.0,
+                correlation_eras=0.0,
+                correlation_procs=None,
                 tandp=True,
             ),
             #________________________________________
@@ -1358,7 +1496,8 @@ class Systematics:
                 'down': None,
                 'up': None,
                 },
-                0.0,
+                correlation_eras=0.0,
+                correlation_procs=None,
                 tandp=True,
             ),
             #________________________________________
@@ -1366,15 +1505,17 @@ class Systematics:
                 'mtop171p5': None,
                 'mtop173p5': None,
                 },
-                1.0,
-                tandp=True,
+                correlation_eras=1.0,
+                correlation_procs=None,
+                # tandp=True,
             ),
             #________________________________________
             Systematic('tune', {
                 'down': None,
                 'up': None,
                 },
-                1.0,
+                correlation_eras=1.0,
+                correlation_procs=None,
                 # tandp=True,
             ),
             #________________________________________
@@ -1382,7 +1523,8 @@ class Systematics:
                 'down': None,
                 'up': None,
                 },
-                1.0,
+                correlation_eras=1.0,
+                correlation_procs=None,
                 # tandp=True,
             ),
             #________________________________________
@@ -1391,7 +1533,8 @@ class Systematics:
                 'cr2': None,
                 'erdon': None,
                 },
-                1.0,
+                correlation_eras=1.0,
+                correlation_procs=None,
                 # tandp=True,
             ),
         ]
@@ -1401,8 +1544,9 @@ class Systematics:
                     'down': None,
                     'up': None,
                     },
-                    corr_eras,
-                    tandp=True,
+                    correlation_eras=corr_eras,
+                    correlation_procs=None,
+                    # tandp=True,
                 ))
         self.base = {syst.name: syst for syst in self.base}
 
@@ -1539,3 +1683,55 @@ class Primes():
     def get_next_prime(self):
         self.calls_to_get_next_prime += 1
         return sympy.prime(self.calls_to_get_next_prime)
+
+
+class NormFactsQCD():
+
+    def __init__(self, years=None):
+
+        possible_years = ['UL16preVFP', 'UL16postVFP', 'UL17', 'UL18']
+        if years is None:
+            self.years = possible_years
+        elif isinstance(years, list):
+            self.years = years
+        elif isinstance(years, str) and years in possible_years:
+            self.years = years
+        else:
+            sys.exit('Check years argument')
+
+        variations = [
+            'murmuf_upup',
+            'murmuf_upnone',
+            'murmuf_noneup',
+            'murmuf_downdown',
+            'murmuf_downnone',
+            'murmuf_nonedown',
+        ]
+
+        self.base_path_to_json_files = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/HighPtSingleTop/output/Analysis/normFacts/')
+        self.qcd_norm_dict = {
+            'dataset': [],
+        }
+        for variation in variations:
+            self.qcd_norm_dict[variation] = []
+
+        for year in self.years:
+
+            json_path = os.path.join(self.base_path_to_json_files, year, 'norm_facts/*_norm.json')
+            json_list = glob.glob(json_path)
+
+            for json_file_path in json_list:
+                dataset_name = os.path.basename(json_file_path).replace('_norm.json', '')
+                with open(json_file_path) as json_file:
+                    json_dict = json.load(json_file)
+                    self.qcd_norm_dict['dataset'].append(dataset_name)
+                    for variation in variations:
+                        self.qcd_norm_dict[variation].append(json_dict['QCD'][variation])
+        self.qcd_norm_df = pd.DataFrame(self.qcd_norm_dict)
+        # print(self.qcd_norm_df)
+
+normFactsQCD = NormFactsQCD()
+
+# if __name__ == '__main__':
+#
+#     n = NormFactsQCD()

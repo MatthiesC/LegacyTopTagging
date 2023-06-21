@@ -14,6 +14,7 @@ import hist
 sys.path.append(os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/Analysis'))
 # from constants import WorkingPoint, _TAGGERS, _DEEPCSV_WPS, _DEEPJET_WPS, _BANDS, _SYSTEMATICS, _PT_INTERVALS_TANDP_HOTVR, _PT_INTERVALS_TANDP_AK8_T, _PT_INTERVALS_TANDP_AK8_W
 from constants import WorkingPoint, _TAGGERS, _BANDS, _PT_INTERVALS_TANDP_HOTVR, _PT_INTERVALS_TANDP_AK8_T, _PT_INTERVALS_TANDP_AK8_W, Systematics, get_variable_binning_xlabel_xunit, _NULL_WP
+from constants import normFactsQCD
 
 # systematics = Systematics(blacklist=['sfelec', 'sfmu_iso'])
 # systematics = Systematics(blacklist=['sfmu_iso'])
@@ -117,7 +118,7 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
     elif tagger.name.startswith('hotvr'):
         probejetalgo = 'HOTVR'
 
-    binning, _, _ = get_variable_binning_xlabel_xunit(variable_name=variable.split('_'+probejetalgo+'_')[-1], tagger_name=tagger.name, fit_variable=arg_fit_variable)
+    binning, _, _, _, _, _ = get_variable_binning_xlabel_xunit(variable_name=variable.split('_'+probejetalgo+'_')[-1], tagger_name=tagger.name, fit_variable=arg_fit_variable)
 
     # # binning = None # FIXME: other variables than mSD and mass use other binning than the following one...
     # if variable.endswith('_mSD') or variable.endswith('_mass'):
@@ -210,6 +211,8 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
 
         for syst, syst_v in ({arg_syst.name: arg_syst}.items() if arg_syst else _SYSTEMATICS.items()):
 
+            is_murmuf = syst.startswith('murmuf')
+
             print('Working on systematic:', syst)
 
             for band_k, band in ({arg_band.name: arg_band}.items() if arg_band else bands.items()):
@@ -239,6 +242,8 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
                         print('Working on channel:', channel)
 
                         for process in processes:
+
+                            is_data = (process == 'DATA')
 
                             print('Working on process:', process)
 
@@ -280,11 +285,16 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
                             expressions = [
                                 # variable,
                                 'the_weight',
+                                # 'dataset',
                                 'output_has_probejet_{}'.format(probejetalgo),
                                 'band',
                                 'output_probejet_{}_pt'.format(probejetalgo),
                                 'output_merge_scenario_{}'.format(probejetalgo),
                             ]
+
+                            if is_murmuf:
+                                expressions.append('dataset')
+
                             if variable not in expressions: # avoid error due to having same variable twice in expressions list
                                 expressions.append(variable)
 
@@ -294,6 +304,12 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
                                     expressions.append(var_string)
 
                             for batch in tqdm(uproot.iterate(batches[band_k][region][channel][process][syst], expressions=expressions, aliases={'the_weight': weight_alias}, cut=cut_rule, library='pd')):
+
+                                if is_murmuf and not is_data: # no murmuf norm factors available for data
+                                    batch['dataset'] = batch['dataset'].apply(lambda dataset: dataset.replace('__AllMergeScenarios', '')) # get rid of __AllMergeScenarios in the dataset names
+                                    batch = batch.merge(normFactsQCD.qcd_norm_df, on='dataset')
+                                    norm_factor_name = syst
+                                    batch['the_weight'] = batch['the_weight'] * batch[norm_factor_name]
 
                                 arr_weight = batch['the_weight'].to_numpy()
                                 arr_variable = batch[variable].to_numpy()

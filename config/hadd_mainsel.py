@@ -25,8 +25,6 @@ channels = [
 possible_systs = [
 'nominal',
 
-# 'jes_up',
-# 'jes_down',
 'jesTotal_up',
 'jesTotal_down',
 'jer_up',

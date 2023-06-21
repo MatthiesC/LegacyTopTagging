@@ -44,6 +44,9 @@ private:
   const bool debug;
   unsigned long long i_event = 0;
   const Channel fChannel;
+  const Year fYear;
+  const string fDatasetVersion;
+  const string fDatasetVersion_without_year_suffix;
 
   /*
   Kinematic variables:
@@ -177,14 +180,19 @@ private:
   unique_ptr<AnalysisModule> merge_scenarios_ak8;
   unique_ptr<AnalysisModule> main_output;
 
-  Event::Handle<int> fHandle_band;
   Event::Handle<float> fHandle_weight;
+  Event::Handle<int> fHandle_band;
+  Event::Handle<int> fHandle_year;
+  Event::Handle<string> fHandle_dataset;
 };
 
 
 TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx):
   debug(string2bool(ctx.get("debug"))),
-  fChannel(extract_channel(ctx))
+  fChannel(extract_channel(ctx)),
+  fYear(extract_year(ctx)),
+  fDatasetVersion(ctx.get("dataset_version")),
+  fDatasetVersion_without_year_suffix(extract_dataset(ctx))
 {
   ctx.undeclare_all_event_output(); // throw away all output trees (jet collections etc.) which are not needed in further steps of the analysis
   // empty_output_tree = string2bool(ctx.get("EmptyOutputTree")); // handy to not have output trees for systematics files, reduces root file size
@@ -192,9 +200,10 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx):
 
   // unsigned int i_hist(0);
 
-  const string dataset_version = ctx.get("dataset_version");
+  cout << "This is the input dataset: \"" << fDatasetVersion_without_year_suffix.c_str() << "\"\n";
+
   fHandle_bool_reco_sel = ctx.get_handle<bool>("btw_bool_reco_sel"); // kHandleName_bool_reco_sel // I really should have merged HighPtSingleTop and LegacyTopTagging into one repo...
-  is_tW = dataset_version.find("ST_tW") == 0;
+  is_tW = fDatasetVersion.find("ST_tW") == 0;
   prod_SingleTopGen_tWch.reset(new ltt::SingleTopGen_tWchProducer(ctx, kHandleName_SingleTopGen_tWch));
 
   if(string2bool(ctx.get("extra_syst"))) is_syst = true;
@@ -219,7 +228,7 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx):
   scale_variation.reset(new MCScaleVariation(ctx));
   // ps_variation.reset(new ltt::PartonShowerVariation(ctx));
   bool has_ps_weights = true;
-  if(dataset_version.find("QCD") == 0) has_ps_weights = false;
+  if(fDatasetVersion.find("QCD") == 0) has_ps_weights = false;
   ps_variation.reset(new PSWeights(ctx, true, !has_ps_weights));
   sf_lumi.reset(new MCLumiWeight(ctx));
   sf_pileup.reset(new MCPileupReweight(ctx, ctx.get("SystDirection_Pileup", "nominal")));
@@ -301,8 +310,10 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx):
   merge_scenarios_ak8.reset(new ltt::MergeScenarioHandleSetter(ctx, ProbeJetAlgo::isAK8, kHandleName_SingleTopGen_tWch));
   main_output.reset(new ltt::MainOutputSetter(ctx));
 
-  fHandle_band = ctx.declare_event_output<int>("band");
   fHandle_weight = ctx.declare_event_output<float>("weight");
+  fHandle_band = ctx.declare_event_output<int>("band");
+  fHandle_year = ctx.declare_event_output<int>("year");
+  fHandle_dataset = ctx.declare_event_output<string>("dataset");
 }
 
 
@@ -464,6 +475,9 @@ bool TagAndProbeMainSelectionModule::process(Event & event) {
   if(debug) cout << "End of MainSelectionModule. Event passed" << endl;
   event.set(fHandle_weight, event.weight);
   event.set(fHandle_band, kBands.at(band).index);
+  event.set(fHandle_year, kYears.at(fYear).index);
+  // event.set(fHandle_dataset, fDatasetVersion_without_year_suffix);
+  event.set(fHandle_dataset, fDatasetVersion); // with year suffix
 
   return true;
 }

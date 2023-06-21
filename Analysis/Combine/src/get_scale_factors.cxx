@@ -156,6 +156,8 @@ const std::map<PtBin, PtBinInfo> kPtBins = {
   {PtBin::Pt200to250, PtBinInfo{"Pt200to250", 200, 250}},
   {PtBin::Pt250to300, PtBinInfo{"Pt250to300", 250, 300}},
   {PtBin::Pt300to400, PtBinInfo{"Pt300to400", 300, 400}},
+  {PtBin::Pt300to350, PtBinInfo{"Pt300to350", 300, 350}},
+  {PtBin::Pt350to400, PtBinInfo{"Pt350to400", 350, 400}},
   {PtBin::Pt400to480, PtBinInfo{"Pt400to480", 400, 480}},
   {PtBin::Pt480to600, PtBinInfo{"Pt480to600", 480, 600}},
   {PtBin::Pt600toInf, PtBinInfo{"Pt600toInf", 600}},
@@ -167,7 +169,9 @@ const std::map<PtBin, PtBinInfo> kPtBins = {
 const std::vector<PtBin> kPtBinsHOTVR = {
   PtBin::Pt200to250,
   PtBin::Pt250to300,
-  PtBin::Pt300to400,
+  // PtBin::Pt300to400,
+  PtBin::Pt300to350,
+  PtBin::Pt350to400,
   PtBin::Pt400to480,
   PtBin::Pt480to600,
   PtBin::Pt600toInf,
@@ -179,12 +183,12 @@ const std::vector<PtBin> kPtBinsHOTVR = {
 
 const std::vector<PtBin> kPtBinsAK8 = {
   PtBin::Pt300to400,
-  // PtBin::Pt400to480,
-  // PtBin::Pt480to600,
-  // PtBin::Pt600toInf,
+  PtBin::Pt400to480,
+  PtBin::Pt480to600,
+  PtBin::Pt600toInf,
   // only used for control distributions etc.:
   // PtBin::Pt300toInf,
-  PtBin::Pt400toInf,
+  // PtBin::Pt400toInf,
 };
 
 enum class WorkingPoint {

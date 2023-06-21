@@ -1,3 +1,5 @@
+from sympy import prime
+
 samplesDict = {
     #_________________________________________________
     'DATA_SingleMuon_A': {
@@ -150,6 +152,7 @@ samplesDict = {
             'cr_cr2': 'TTTo2L2Nu_CR2',
             'cr_erdon': 'TTTo2L2Nu_erdON',
         },
+        'id': prime(11),
     },
     'TTbarToSemiLeptonic': {
         'db_name': 'TTToSemiLeptonic',
@@ -164,6 +167,7 @@ samplesDict = {
             'cr_cr2': 'TTToSemiLeptonic_CR2',
             'cr_erdon': 'TTToSemiLeptonic_erdON',
         },
+        'id': prime(12),
     },
     'TTbarToHadronic': {
         'db_name': 'TTToHadronic',
@@ -179,80 +183,133 @@ samplesDict = {
             'cr_cr2': 'TTToHadronic_CR2',
             'cr_erdon': 'TTToHadronic_erdON',
         },
+        'id': prime(13),
     },
     #_________________________________________________
     'TTbarMtt700to1000': {
         'db_name': 'TT_Mtt-700to1000',
         # 'analysis': ['tw'],
         'corr': True,
+        'id': prime(14),
     },
     'TTbarMtt1000toInf': {
         'db_name': 'TT_Mtt-1000toInf',
         # 'analysis': ['tw'],
         'corr': True,
+        'id': prime(15),
     },
     #_________________________________________________
     'ST_tW_DR_inclusiveDecays_T': {
         'db_name': 'ST_tW_top_5f_inclusiveDecays',
+        'extra_systs': {  # in this case, only fully had events are selected
+            'mtop_mtop171p5': 'ST_tW_top_5f_inclusiveDecays',
+            'mtop_mtop173p5': 'ST_tW_top_5f_inclusiveDecays',
+        },
+        'id': prime(31),
     },
     'ST_tW_DR_inclusiveDecays_Tbar': {
         'db_name': 'ST_tW_antitop_5f_inclusiveDecays',
+        'extra_systs': {  # in this case, only fully had events are selected
+            'mtop_mtop171p5': 'ST_tW_antitop_5f_inclusiveDecays',
+            'mtop_mtop173p5': 'ST_tW_antitop_5f_inclusiveDecays',
+        },
+        'id': prime(32),
     },
+    #_________________________________________________
     'ST_tW_DR_NoFullyHadronic_T': {
         'db_name': 'ST_tW_top_5f_NoFullyHadronicDecays',
+        'extra_systs': {
+            'mtop_mtop171p5': 'ST_tW_top_5f_NoFullyHadronicDecays_mtop1715',
+            'mtop_mtop173p5': 'ST_tW_top_5f_NoFullyHadronicDecays_mtop1735',
+        },
+        'id': prime(33),
     },
     'ST_tW_DR_NoFullyHadronic_Tbar': {
         'db_name': 'ST_tW_antitop_5f_NoFullyHadronicDecays',
+        'extra_systs': {
+            'mtop_mtop171p5': 'ST_tW_antitop_5f_NoFullyHadronicDecays_mtop1715',
+            'mtop_mtop173p5': 'ST_tW_antitop_5f_NoFullyHadronicDecays_mtop1735',
+        },
+        'id': prime(34),
     },
+    #_________________________________________________
     'ST_tW_DR_NoFullyHadronic_PDFWeights_T': {
         'db_name': 'ST_tW_top_5f_NoFullyHadronicDecays_PDFWeights',
+        'id': prime(35),
     },
     'ST_tW_DR_NoFullyHadronic_PDFWeights_Tbar': {
         'db_name': 'ST_tW_antitop_5f_NoFullyHadronicDecays_PDFWeights',
+        'id': prime(36),
     },
+    #_________________________________________________
     'ST_tW_DS_NoFullyHadronic_T': {
         'db_name': 'ST_tW_top_5f_DS_NoFullyHadronicDecays',
         'analysis': ['tw'],
+        'id': prime(37),
     },
     'ST_tW_DS_NoFullyHadronic_Tbar': {
         'db_name': 'ST_tW_antitop_5f_DS_NoFullyHadronicDecays',
         'analysis': ['tw'],
+        'id': prime(38),
     },
     #_________________________________________________
     'ST_tChannel_T': {
         'db_name': 'ST_t-channel_top_4f_InclusiveDecays',
+        # 'extra_systs': {
+        #     'mtop_mtop171p5': 'ST_t-channel_top_4f_InclusiveDecays',
+        #     'mtop_mtop173p5': 'ST_t-channel_top_4f_InclusiveDecays',
+        # },
+        'id': prime(51),
     },
     'ST_tChannel_Tbar': {
         'db_name': 'ST_t-channel_antitop_4f_InclusiveDecays',
+        # 'extra_systs': {
+        #     'mtop_mtop171p5': 'ST_t-channel_antitop_4f_InclusiveDecays',
+        #     'mtop_mtop173p5': 'ST_t-channel_antitop_4f_InclusiveDecays',
+        # },
+        'id': prime(52),
     },
     #_________________________________________________
     'ST_sChannel_leptonDecays': {
         'db_name': 'ST_s-channel_4f_leptonDecays',
+        # 'extra_systs': {
+        #     'mtop_mtop171p5': 'ST_s-channel_4f_leptonDecays',
+        #     'mtop_mtop173p5': 'ST_s-channel_4f_leptonDecays',
+        # },
+        'id': prime(71),
     },
     #_________________________________________________
     'WJetsToLNu_HT70to100': {
         'db_name': 'WJetsToLNu_HT-70to100',
+        'id': prime(91),
     },
     'WJetsToLNu_HT100to200': {
         'db_name': 'WJetsToLNu_HT-100to200',
+        'id': prime(92),
     },
     'WJetsToLNu_HT200to400': {
         'db_name': 'WJetsToLNu_HT-200to400',
+        'id': prime(93),
     },
     'WJetsToLNu_HT400to600': {
         'db_name': 'WJetsToLNu_HT-400to600',
+        'id': prime(94),
     },
     'WJetsToLNu_HT600to800': {
         'db_name': 'WJetsToLNu_HT-600to800',
+        'id': prime(95),
     },
     'WJetsToLNu_HT800to1200': {
         'db_name': 'WJetsToLNu_HT-800to1200',
+        'id': prime(96),
     },
     'WJetsToLNu_HT1200to2500': {
         'db_name': 'WJetsToLNu_HT-1200to2500',
+        'id': prime(97),
     },
     'WJetsToLNu_HT2500toInf': {
         'db_name': 'WJetsToLNu_HT-2500toInf',
+        'id': prime(98),
     },
     #_________________________________________________
     'DYJetsToLL_HT70to100': {
