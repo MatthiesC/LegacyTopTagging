@@ -31,16 +31,16 @@ channels = [
 ]
 prepostfits = [
 'prefitRaw',
-'prefitCombine',
+# 'prefitCombine',
 'postfitCombine',
 ]
 taggers = [
 'ak8_t__tau',
-'ak8_t_btagDJet__tau',
+# 'ak8_t_btagDJet__tau',
 # 'ak8_t_btagDCSV__tau',
 # 'hotvr_t__tau',
 # 'ak8_w__partnet',
-'ak8_t__MDdeepak8',
+# 'ak8_t__MDdeepak8',
 ]
 taggers = {k: _TAGGERS[k] for k in taggers}
 

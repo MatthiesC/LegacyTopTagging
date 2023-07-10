@@ -15,7 +15,7 @@ from CrossSectionHelper import MCSampleValuesHelper
 helper = MCSampleValuesHelper()
 
 sys.path.append(os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/Analysis'))
-from constants import _YEARS, _JECSMEAR_SOURCES
+from constants import _YEARS, _JECSMEAR_SOURCES, JECSmearSource
 
 # sys.path.append(os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/config'))
 from database import samplesDict
@@ -268,10 +268,15 @@ class systEntity:
       self.ctxName = ctxName
       self.defaultValue = defaultValue
       self.directions = directions
-      self.jecsmear_sources = ['Total']
+      # self.jecsmear_sources = ['Total']
+      # if self.shortName == 'jes':
+      #    for k in _JECSMEAR_SOURCES.keys():
+      #       self.jecsmear_sources.append(k)
+      totalSource = JECSmearSource(name='Total', era_correlation=0.0)
+      self.jecsmear_sources = [totalSource]
       if self.shortName == 'jes':
-         for k in _JECSMEAR_SOURCES.keys():
-            self.jecsmear_sources.append(k)
+         for jes_source in _JECSMEAR_SOURCES.base.values():
+            self.jecsmear_sources.append(jes_source)
 
 
 class xmlCreator:
@@ -447,7 +452,7 @@ class xmlCreator:
 
       for direction in syst.directions:
          for jecsmear_source in syst.jecsmear_sources:
-            shortNameModified = syst.shortName if syst.shortName != 'jes' else syst.shortName+jecsmear_source
+            shortNameModified = syst.shortName if syst.shortName != 'jes' else syst.shortName+jecsmear_source.name
             systXmlFilePath = self.xmlFilePath.replace('.xml', '_')+'_'.join(['syst', shortNameModified, direction])+'.xml'
             systWorkdirName = self.workdirName+'_'+'_'.join(['syst', shortNameModified, direction])
             infile = open(self.xmlFilePath, 'r')
@@ -471,7 +476,7 @@ class xmlCreator:
                   if syst.shortName == 'murmuf' and newline.startswith('<Item Name="ScaleVariationMu'):
                      newline = newline.replace(syst.defaultValue, direction)
                   if newline.startswith('<Item Name="jecsmear_source"'):
-                     newline = newline.replace('Total', jecsmear_source)
+                     newline = newline.replace('Total', jecsmear_source.get_origName(year=self.year))
                   outfile.write(newline)
             infile.close()
 

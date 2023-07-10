@@ -19,6 +19,8 @@ from constants import Systematics, _BANDS, _TAGGERS, _PT_INTERVALS_TANDP_AK8_T, 
 systematics = Systematics(blacklist=['sfelec_trigger', 'sfmu_iso'])
 # systematics = Systematics(include_jes_splits=False, blacklist=['sfelec_trigger', 'sfmu_iso'])
 systs = systematics.base
+# print(systs.keys())
+# sys.exit()
 
 sys.path.append(os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/NicePlots/python'))
 from plotter import NiceStackWithRatio, Process, human_format
@@ -31,19 +33,19 @@ from parallel_threading import run_with_pool
 
 
 all_years = [
-# 'UL16preVFP',
-# 'UL16postVFP',
-'UL17',
-'UL18',
+'UL16preVFP',
+'UL16postVFP',
+# 'UL17',
+# 'UL18',
 ]
 
 taggers = [
 # 'ak8_t__tau', #naf11 tmux5
 # 'ak8_t_btagDJet__tau', #naf11 tmux6
 # 'ak8_t_btagDCSV__tau',#naf11 tmux7
-# 'hotvr_t__tau', #naf11 tmux8
+'hotvr_t__tau', #naf11 tmux8
 'ak8_w__partnet',
-# 'ak8_t__MDdeepak8',
+'ak8_t__MDdeepak8',
 ]
 taggers = {k: _TAGGERS[k] for k in taggers}
 
@@ -97,12 +99,12 @@ processes = [
 'VJetsAndVV',
 ]
 
-# do_histograms = True
-do_histograms = False
+do_histograms = True
+# do_histograms = False
 
 ### only relevant for plots:
-do_plotting = True
-# do_plotting = False
+# do_plotting = True
+do_plotting = False
 do_legend = True
 # do_legend = False
 # mscSplitting = 'mscNone'

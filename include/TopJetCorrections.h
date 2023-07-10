@@ -28,9 +28,9 @@ private:
   bool debug;
 
   std::unique_ptr<YearSwitcher> tjet_corrector_MC, tjet_corrector_data, subjet_corrector_MC, subjet_corrector_data;
-  std::shared_ptr<RunSwitcher> jec_switcher_16_topjets, jec_switcher_16_subjets;
-  std::shared_ptr<RunSwitcher> jec_switcher_17_topjets, jec_switcher_17_subjets;
-  std::shared_ptr<RunSwitcher> jec_switcher_18_topjets, jec_switcher_18_subjets;
+  // std::shared_ptr<RunSwitcher> jec_switcher_16_topjets, jec_switcher_16_subjets;
+  // std::shared_ptr<RunSwitcher> jec_switcher_17_topjets, jec_switcher_17_subjets;
+  // std::shared_ptr<RunSwitcher> jec_switcher_18_topjets, jec_switcher_18_subjets;
   std::shared_ptr<RunSwitcher> jec_switcher_UL16preVFP_topjets, jec_switcher_UL16preVFP_subjets;
   std::shared_ptr<RunSwitcher> jec_switcher_UL16postVFP_topjets, jec_switcher_UL16postVFP_subjets;
   std::shared_ptr<RunSwitcher> jec_switcher_UL17_topjets, jec_switcher_UL17_subjets;

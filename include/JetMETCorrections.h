@@ -76,12 +76,12 @@ private:
   std::unique_ptr<YearSwitcher> jet_corrector_MC;
   std::unique_ptr<GenericJetResolutionSmearer> jet_resolution_smearer;
 
-  std::shared_ptr<RunSwitcher> jlc_switcher_16;
-  std::shared_ptr<RunSwitcher> jec_switcher_16;
-  std::shared_ptr<RunSwitcher> jlc_switcher_17;
-  std::shared_ptr<RunSwitcher> jec_switcher_17;
-  std::shared_ptr<RunSwitcher> jlc_switcher_18;
-  std::shared_ptr<RunSwitcher> jec_switcher_18;
+  // std::shared_ptr<RunSwitcher> jlc_switcher_16;
+  // std::shared_ptr<RunSwitcher> jec_switcher_16;
+  // std::shared_ptr<RunSwitcher> jlc_switcher_17;
+  // std::shared_ptr<RunSwitcher> jec_switcher_17;
+  // std::shared_ptr<RunSwitcher> jlc_switcher_18;
+  // std::shared_ptr<RunSwitcher> jec_switcher_18;
   std::shared_ptr<RunSwitcher> jlc_switcher_UL16preVFP;
   std::shared_ptr<RunSwitcher> jec_switcher_UL16preVFP;
   std::shared_ptr<RunSwitcher> jlc_switcher_UL16postVFP;

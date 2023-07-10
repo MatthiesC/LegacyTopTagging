@@ -389,71 +389,71 @@ if __name__ == '__main__':
     #                 create_input_hists(variable=var, tagger=the_tagger, arg_wp_index=wp_index, year=year, arg_syst=_SYSTEMATICS[syst])
 
 
-    #_______________________________________
-    ## For running individual jobs manually for non-WP plots
-
-    # create_input_hists(variable=the_tagger.fit_variable, tagger=the_tagger, arg_wp=the_tagger.wps[0], year='UL17', arg_syst=_SYSTEMATICS['nominal'])
-
-    # the_vars = [the_tagger.fit_variable]
-    the_vars = []
-    if the_tagger.name.startswith('ak8_t'):
-        the_vars = [
-            'output_probejet_AK8_tau32',
-            'output_probejet_AK8_maxDeepJet',
-            'output_probejet_AK8_maxDeepCSV',
-            'output_probejet_AK8_MDDeepAK8_TvsQCD',
-            'output_probejet_AK8_mSD',
-            'output_probejet_AK8_mass',
-            'output_probejet_AK8_pt',
-        ]
-    elif the_tagger.name.startswith('ak8_w'):
-        the_vars = [
-            'output_probejet_AK8_ParticleNet_WvsQCD',
-            'output_probejet_AK8_mSD',
-            'output_probejet_AK8_mass',
-            'output_probejet_AK8_pt',
-        ]
-    elif the_tagger.name.startswith('hotvr_t'):
-        the_vars = [
-            'output_probejet_HOTVR_tau32',
-            'output_probejet_HOTVR_nsub',
-            'output_probejet_HOTVR_fpt1',
-            'output_probejet_HOTVR_mpair',
-            'output_probejet_HOTVR_mass',
-            'output_probejet_HOTVR_pt',
-        ]
-    # if args.vars:
-    #     the_vars = args.vars
-
-    # the_wps = the_tagger.wps
-    # if args.wps:
-    #     the_wps = [the_tagger.wps[int(x)] for x in args.wps]
-
-    the_systs = args.systs
-
-    for var in the_vars:
-        for year in years:
-            for syst in the_systs:
-                create_input_hists(variable=var, tagger=the_tagger, arg_wp_index=-1, year=year, arg_syst=_SYSTEMATICS[syst], arg_fit_variable=False)
-
-
     # #_______________________________________
-    # ## code part for condor jobs
+    # ## For running individual jobs manually for non-WP plots
     #
-    # the_vars = [the_tagger.fit_variable]
-    # if args.vars:
-    #     the_vars = args.vars
+    # # create_input_hists(variable=the_tagger.fit_variable, tagger=the_tagger, arg_wp=the_tagger.wps[0], year='UL17', arg_syst=_SYSTEMATICS['nominal'])
+    #
+    # # the_vars = [the_tagger.fit_variable]
+    # the_vars = []
+    # if the_tagger.name.startswith('ak8_t'):
+    #     the_vars = [
+    #         'output_probejet_AK8_tau32',
+    #         'output_probejet_AK8_maxDeepJet',
+    #         'output_probejet_AK8_maxDeepCSV',
+    #         'output_probejet_AK8_MDDeepAK8_TvsQCD',
+    #         'output_probejet_AK8_mSD',
+    #         'output_probejet_AK8_mass',
+    #         'output_probejet_AK8_pt',
+    #     ]
+    # elif the_tagger.name.startswith('ak8_w'):
+    #     the_vars = [
+    #         'output_probejet_AK8_ParticleNet_WvsQCD',
+    #         'output_probejet_AK8_mSD',
+    #         'output_probejet_AK8_mass',
+    #         'output_probejet_AK8_pt',
+    #     ]
+    # elif the_tagger.name.startswith('hotvr_t'):
+    #     the_vars = [
+    #         'output_probejet_HOTVR_tau32',
+    #         'output_probejet_HOTVR_nsub',
+    #         'output_probejet_HOTVR_fpt1',
+    #         'output_probejet_HOTVR_mpair',
+    #         'output_probejet_HOTVR_mass',
+    #         'output_probejet_HOTVR_pt',
+    #     ]
+    # # if args.vars:
+    # #     the_vars = args.vars
+    #
+    # # the_wps = the_tagger.wps
+    # # if args.wps:
+    # #     the_wps = [the_tagger.wps[int(x)] for x in args.wps]
     #
     # the_systs = args.systs
     #
     # for var in the_vars:
     #     for year in years:
-    #
-    #         # the_wps = the_tagger.wps
-    #         the_wp_indices = range(0, len(the_tagger.get_wp(year=year)))
-    #         if args.wps:
-    #             the_wp_indices = [int(x) for x in args.wps]
-    #
-    #         for wp_index in the_wp_indices:
-    #             for syst in the_systs:
-    #                 create_input_hists(variable=var, tagger=the_tagger, arg_wp_index=wp_index, year=year, arg_syst=_SYSTEMATICS[syst])
+    #         for syst in the_systs:
+    #             create_input_hists(variable=var, tagger=the_tagger, arg_wp_index=-1, year=year, arg_syst=_SYSTEMATICS[syst], arg_fit_variable=False)
+
+
+    #_______________________________________
+    ## code part for condor jobs
+
+    the_vars = [the_tagger.fit_variable]
+    if args.vars:
+        the_vars = args.vars
+
+    the_systs = args.systs
+
+    for var in the_vars:
+        for year in years:
+
+            # the_wps = the_tagger.wps
+            the_wp_indices = range(0, len(the_tagger.get_wp(year=year)))
+            if args.wps:
+                the_wp_indices = [int(x) for x in args.wps]
+
+            for wp_index in the_wp_indices:
+                for syst in the_systs:
+                    create_input_hists(variable=var, tagger=the_tagger, arg_wp_index=wp_index, year=year, arg_syst=_SYSTEMATICS[syst])

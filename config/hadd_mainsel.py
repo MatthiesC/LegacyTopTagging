@@ -73,9 +73,13 @@ possible_systs = [
 # 'toppt_b_down',
 ]
 
-for k in _JECSMEAR_SOURCES.keys():
+# for k in _JECSMEAR_SOURCES.keys():
+#     for x in ['up', 'down']:
+#         possible_systs.append('jes'+k+'_'+x)
+
+for jes_source in _JECSMEAR_SOURCES.base.values():
     for x in ['up', 'down']:
-        possible_systs.append('jes'+k+'_'+x)
+        possible_systs.append('jes'+jes_source.name+'_'+x)
 
 
 dict_sourceFiles = {

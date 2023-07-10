@@ -10,6 +10,7 @@ from constants import Systematics
 systematics = Systematics(blacklist=['sfelec_trigger', 'sfmu_iso'])
 # systematics = Systematics(whitelist=['mtop'])
 # systematics = Systematics(whitelist=['murmuf'])
+# systematics = Systematics(whitelist=['jes'])
 _SYSTEMATICS = systematics.get_all_variations()
 # del _SYSTEMATICS['nominal']
 print(_SYSTEMATICS.keys())
@@ -78,11 +79,11 @@ if __name__=='__main__':
     # don't submit all at once! Will go over 5,000 jobs limit! (With all systs incl. all JES splits, FSR/ISR splits, one WP creates 146 jobs/year)
     taggers = {
         'ak8_t__tau': 5,
-        # 'ak8_t_btagDJet__tau': 5,
-        # 'ak8_t_btagDCSV__tau': 5,
-        # 'hotvr_t__tau': 1,
+        'ak8_t_btagDJet__tau': 5,
+        'ak8_t_btagDCSV__tau': 5,
+        'hotvr_t__tau': 1,
         # 'ak8_w__partnet': 1,
-        # 'ak8_t__MDdeepak8': 1,
+        'ak8_t__MDdeepak8': 1,
     }
 
     null_wp = False

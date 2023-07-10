@@ -593,8 +593,8 @@ class ScaleFactorFits():
                         for combine_channel in self.combine_channels.values():
                             if year != combine_channel['year']:
                                 continue
-                            if syst.combine_name.startswith('jesTotal') or syst.combine_name.startswith('jer'): # HACK: decorrelate total JES between channels to avoid overconstrain
-                                new_syst_name_extension = '_'+combine_channel['name']
+                            # if syst.combine_name.startswith('jesTotal') or syst.combine_name.startswith('jer'): # HACK: decorrelate total JES between channels to avoid overconstrain
+                            #     new_syst_name_extension = '_'+combine_channel['name']
                             else:
                                 new_syst_name_extension = ''
                             # nuisance edit rename process channel oldname newname [options]

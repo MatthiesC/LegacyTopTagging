@@ -121,22 +121,22 @@ void TopJetCorrections::init(Context & ctx) {
 
   if(is_mc) {
     tjet_corrector_MC.reset(new YearSwitcher(ctx));
-    tjet_corrector_MC->setup2016(make_shared<GenericTopJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_2016, jec_ver_2016, jec_tjet_coll), collection_rec));
-    tjet_corrector_MC->setup2017(make_shared<GenericTopJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_2017, jec_ver_2017, jec_tjet_coll), collection_rec));
-    tjet_corrector_MC->setup2018(make_shared<GenericTopJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_2018, jec_ver_2018, jec_tjet_coll), collection_rec));
-    tjet_corrector_MC->setupUL16preVFP(make_shared<GenericTopJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_UL16preVFP, jec_ver_UL16preVFP, jec_tjet_coll), collection_rec));
-    tjet_corrector_MC->setupUL16postVFP(make_shared<GenericTopJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_UL16postVFP, jec_ver_UL16postVFP, jec_tjet_coll), collection_rec));
-    tjet_corrector_MC->setupUL17(make_shared<GenericTopJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_UL17, jec_ver_UL17, jec_tjet_coll), collection_rec));
-    tjet_corrector_MC->setupUL18(make_shared<GenericTopJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_UL18, jec_ver_UL18, jec_tjet_coll), collection_rec));
+    // tjet_corrector_MC->setup2016(make_shared<GenericTopJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_2016, jec_ver_2016, jec_tjet_coll), collection_rec));
+    // tjet_corrector_MC->setup2017(make_shared<GenericTopJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_2017, jec_ver_2017, jec_tjet_coll), collection_rec));
+    // tjet_corrector_MC->setup2018(make_shared<GenericTopJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_2018, jec_ver_2018, jec_tjet_coll), collection_rec));
+    if(year == Year::isUL16preVFP) tjet_corrector_MC->setupUL16preVFP(make_shared<GenericTopJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_UL16preVFP, jec_ver_UL16preVFP, jec_tjet_coll), collection_rec));
+    if(year == Year::isUL16postVFP) tjet_corrector_MC->setupUL16postVFP(make_shared<GenericTopJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_UL16postVFP, jec_ver_UL16postVFP, jec_tjet_coll), collection_rec));
+    if(year == Year::isUL17) tjet_corrector_MC->setupUL17(make_shared<GenericTopJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_UL17, jec_ver_UL17, jec_tjet_coll), collection_rec));
+    if(year == Year::isUL18) tjet_corrector_MC->setupUL18(make_shared<GenericTopJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_UL18, jec_ver_UL18, jec_tjet_coll), collection_rec));
 
     subjet_corrector_MC.reset(new YearSwitcher(ctx));
-    subjet_corrector_MC->setup2016(make_shared<GenericSubJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_2016, jec_ver_2016, jec_subjet_coll), collection_rec));
-    subjet_corrector_MC->setup2017(make_shared<GenericSubJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_2017, jec_ver_2017, jec_subjet_coll), collection_rec));
-    subjet_corrector_MC->setup2018(make_shared<GenericSubJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_2018, jec_ver_2018, jec_subjet_coll), collection_rec));
-    subjet_corrector_MC->setupUL16preVFP(make_shared<GenericSubJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_UL16preVFP, jec_ver_UL16preVFP, jec_subjet_coll), collection_rec));
-    subjet_corrector_MC->setupUL16postVFP(make_shared<GenericSubJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_UL16postVFP, jec_ver_UL16postVFP, jec_subjet_coll), collection_rec));
-    subjet_corrector_MC->setupUL17(make_shared<GenericSubJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_UL17, jec_ver_UL17, jec_subjet_coll), collection_rec));
-    subjet_corrector_MC->setupUL18(make_shared<GenericSubJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_UL18, jec_ver_UL18, jec_subjet_coll), collection_rec));
+    // subjet_corrector_MC->setup2016(make_shared<GenericSubJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_2016, jec_ver_2016, jec_subjet_coll), collection_rec));
+    // subjet_corrector_MC->setup2017(make_shared<GenericSubJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_2017, jec_ver_2017, jec_subjet_coll), collection_rec));
+    // subjet_corrector_MC->setup2018(make_shared<GenericSubJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_2018, jec_ver_2018, jec_subjet_coll), collection_rec));
+    if(year == Year::isUL16preVFP) subjet_corrector_MC->setupUL16preVFP(make_shared<GenericSubJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_UL16preVFP, jec_ver_UL16preVFP, jec_subjet_coll), collection_rec));
+    if(year == Year::isUL16postVFP) subjet_corrector_MC->setupUL16postVFP(make_shared<GenericSubJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_UL16postVFP, jec_ver_UL16postVFP, jec_subjet_coll), collection_rec));
+    if(year == Year::isUL17) subjet_corrector_MC->setupUL17(make_shared<GenericSubJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_UL17, jec_ver_UL17, jec_subjet_coll), collection_rec));
+    if(year == Year::isUL18) subjet_corrector_MC->setupUL18(make_shared<GenericSubJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_UL18, jec_ver_UL18, jec_subjet_coll), collection_rec));
 
     string jer_tag = "";
     if(year == Year::is2016v2 || year == Year::is2016v3) {
@@ -168,72 +168,80 @@ void TopJetCorrections::init(Context & ctx) {
     subjet_resolution_smearer.reset(new GenericJetResolutionSmearer(ctx, subjets_handle_name, gensubjets_handle_name, JERFiles::JERPathStringMC(jer_tag, jec_subjet_coll, "SF"), JERFiles::JERPathStringMC(jer_tag, jec_subjet_coll, "PtResolution")));
   }
   else {
-    jec_switcher_16_topjets.reset(new RunSwitcher(ctx, "2016"));
-    jec_switcher_16_subjets.reset(new RunSwitcher(ctx, "2016"));
-    for(const auto & runItr : runPeriods2016) { // runPeriods defined in common/include/Utils.h
-      jec_switcher_16_topjets->setupRun(runItr, make_shared<GenericTopJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_2016, jec_ver_2016, jec_tjet_coll, runItr), collection_rec));
-      jec_switcher_16_subjets->setupRun(runItr, make_shared<GenericSubJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_2016, jec_ver_2016, jec_subjet_coll, runItr), collection_rec));
+    // jec_switcher_16_topjets.reset(new RunSwitcher(ctx, "2016"));
+    // jec_switcher_16_subjets.reset(new RunSwitcher(ctx, "2016"));
+    // for(const auto & runItr : runPeriods2016) { // runPeriods defined in common/include/Utils.h
+    //   jec_switcher_16_topjets->setupRun(runItr, make_shared<GenericTopJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_2016, jec_ver_2016, jec_tjet_coll, runItr), collection_rec));
+    //   jec_switcher_16_subjets->setupRun(runItr, make_shared<GenericSubJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_2016, jec_ver_2016, jec_subjet_coll, runItr), collection_rec));
+    // }
+    //
+    // jec_switcher_17_topjets.reset(new RunSwitcher(ctx, "2017"));
+    // jec_switcher_17_subjets.reset(new RunSwitcher(ctx, "2017"));
+    // for(const auto & runItr : runPeriods2017) {
+    //   jec_switcher_17_topjets->setupRun(runItr, make_shared<GenericTopJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_2017, jec_ver_2017, jec_tjet_coll, runItr), collection_rec));
+    //   jec_switcher_17_subjets->setupRun(runItr, make_shared<GenericSubJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_2017, jec_ver_2017, jec_subjet_coll, runItr), collection_rec));
+    // }
+    //
+    // jec_switcher_18_topjets.reset(new RunSwitcher(ctx, "2018"));
+    // jec_switcher_18_subjets.reset(new RunSwitcher(ctx, "2018"));
+    // for(const auto & runItr : runPeriods2018) {
+    //   jec_switcher_18_topjets->setupRun(runItr, make_shared<GenericTopJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_2018, jec_ver_2018, jec_tjet_coll, runItr), collection_rec));
+    //   jec_switcher_18_subjets->setupRun(runItr, make_shared<GenericSubJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_2018, jec_ver_2018, jec_subjet_coll, runItr), collection_rec));
+    // }
+
+    if(year == Year::isUL16preVFP) {
+      jec_switcher_UL16preVFP_topjets.reset(new RunSwitcher(ctx, "2016"));
+      jec_switcher_UL16preVFP_subjets.reset(new RunSwitcher(ctx, "2016"));
+      for(const auto & runItr : runPeriodsUL16preVFP) {
+        jec_switcher_UL16preVFP_topjets->setupRun(runItr, make_shared<GenericTopJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_UL16preVFP, jec_ver_UL16preVFP, jec_tjet_coll, runItr), collection_rec));
+        jec_switcher_UL16preVFP_subjets->setupRun(runItr, make_shared<GenericSubJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_UL16preVFP, jec_ver_UL16preVFP, jec_subjet_coll, runItr), collection_rec));
+      }
     }
 
-    jec_switcher_17_topjets.reset(new RunSwitcher(ctx, "2017"));
-    jec_switcher_17_subjets.reset(new RunSwitcher(ctx, "2017"));
-    for(const auto & runItr : runPeriods2017) {
-      jec_switcher_17_topjets->setupRun(runItr, make_shared<GenericTopJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_2017, jec_ver_2017, jec_tjet_coll, runItr), collection_rec));
-      jec_switcher_17_subjets->setupRun(runItr, make_shared<GenericSubJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_2017, jec_ver_2017, jec_subjet_coll, runItr), collection_rec));
+    if(year == Year::isUL16postVFP) {
+      jec_switcher_UL16postVFP_topjets.reset(new RunSwitcher(ctx, "2016"));
+      jec_switcher_UL16postVFP_subjets.reset(new RunSwitcher(ctx, "2016"));
+      for(const auto & runItr : runPeriodsUL16postVFP) {
+        jec_switcher_UL16postVFP_topjets->setupRun(runItr, make_shared<GenericTopJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_UL16postVFP, jec_ver_UL16postVFP, jec_tjet_coll, runItr), collection_rec));
+        jec_switcher_UL16postVFP_subjets->setupRun(runItr, make_shared<GenericSubJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_UL16postVFP, jec_ver_UL16postVFP, jec_subjet_coll, runItr), collection_rec));
+      }
     }
 
-    jec_switcher_18_topjets.reset(new RunSwitcher(ctx, "2018"));
-    jec_switcher_18_subjets.reset(new RunSwitcher(ctx, "2018"));
-    for(const auto & runItr : runPeriods2018) {
-      jec_switcher_18_topjets->setupRun(runItr, make_shared<GenericTopJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_2018, jec_ver_2018, jec_tjet_coll, runItr), collection_rec));
-      jec_switcher_18_subjets->setupRun(runItr, make_shared<GenericSubJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_2018, jec_ver_2018, jec_subjet_coll, runItr), collection_rec));
+    if(year == Year::isUL17) {
+      jec_switcher_UL17_topjets.reset(new RunSwitcher(ctx, "2017"));
+      jec_switcher_UL17_subjets.reset(new RunSwitcher(ctx, "2017"));
+      for(const auto & runItr : runPeriods2017) {
+        jec_switcher_UL17_topjets->setupRun(runItr, make_shared<GenericTopJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_UL17, jec_ver_UL17, jec_tjet_coll, runItr), collection_rec));
+        jec_switcher_UL17_subjets->setupRun(runItr, make_shared<GenericSubJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_UL17, jec_ver_UL17, jec_subjet_coll, runItr), collection_rec));
+      }
     }
 
-    jec_switcher_UL16preVFP_topjets.reset(new RunSwitcher(ctx, "2016"));
-    jec_switcher_UL16preVFP_subjets.reset(new RunSwitcher(ctx, "2016"));
-    for(const auto & runItr : runPeriodsUL16preVFP) {
-      jec_switcher_UL16preVFP_topjets->setupRun(runItr, make_shared<GenericTopJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_UL16preVFP, jec_ver_UL16preVFP, jec_tjet_coll, runItr), collection_rec));
-      jec_switcher_UL16preVFP_subjets->setupRun(runItr, make_shared<GenericSubJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_UL16preVFP, jec_ver_UL16preVFP, jec_subjet_coll, runItr), collection_rec));
-    }
-
-    jec_switcher_UL16postVFP_topjets.reset(new RunSwitcher(ctx, "2016"));
-    jec_switcher_UL16postVFP_subjets.reset(new RunSwitcher(ctx, "2016"));
-    for(const auto & runItr : runPeriodsUL16postVFP) {
-      jec_switcher_UL16postVFP_topjets->setupRun(runItr, make_shared<GenericTopJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_UL16postVFP, jec_ver_UL16postVFP, jec_tjet_coll, runItr), collection_rec));
-      jec_switcher_UL16postVFP_subjets->setupRun(runItr, make_shared<GenericSubJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_UL16postVFP, jec_ver_UL16postVFP, jec_subjet_coll, runItr), collection_rec));
-    }
-
-    jec_switcher_UL17_topjets.reset(new RunSwitcher(ctx, "2017"));
-    jec_switcher_UL17_subjets.reset(new RunSwitcher(ctx, "2017"));
-    for(const auto & runItr : runPeriods2017) {
-      jec_switcher_UL17_topjets->setupRun(runItr, make_shared<GenericTopJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_UL17, jec_ver_UL17, jec_tjet_coll, runItr), collection_rec));
-      jec_switcher_UL17_subjets->setupRun(runItr, make_shared<GenericSubJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_UL17, jec_ver_UL17, jec_subjet_coll, runItr), collection_rec));
-    }
-
-    jec_switcher_UL18_topjets.reset(new RunSwitcher(ctx, "2018"));
-    jec_switcher_UL18_subjets.reset(new RunSwitcher(ctx, "2018"));
-    for(const auto & runItr : runPeriods2018) {
-      jec_switcher_UL18_topjets->setupRun(runItr, make_shared<GenericTopJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_UL18, jec_ver_UL18, jec_tjet_coll, runItr), collection_rec));
-      jec_switcher_UL18_subjets->setupRun(runItr, make_shared<GenericSubJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_UL18, jec_ver_UL18, jec_subjet_coll, runItr), collection_rec));
+    if(year == Year::isUL18) {
+      jec_switcher_UL18_topjets.reset(new RunSwitcher(ctx, "2018"));
+      jec_switcher_UL18_subjets.reset(new RunSwitcher(ctx, "2018"));
+      for(const auto & runItr : runPeriods2018) {
+        jec_switcher_UL18_topjets->setupRun(runItr, make_shared<GenericTopJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_UL18, jec_ver_UL18, jec_tjet_coll, runItr), collection_rec));
+        jec_switcher_UL18_subjets->setupRun(runItr, make_shared<GenericSubJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_UL18, jec_ver_UL18, jec_subjet_coll, runItr), collection_rec));
+      }
     }
 
     tjet_corrector_data.reset(new YearSwitcher(ctx));
-    tjet_corrector_data->setup2016(jec_switcher_16_topjets);
-    tjet_corrector_data->setup2017(jec_switcher_17_topjets);
-    tjet_corrector_data->setup2018(jec_switcher_18_topjets);
-    tjet_corrector_data->setupUL16preVFP(jec_switcher_UL16preVFP_topjets);
-    tjet_corrector_data->setupUL16postVFP(jec_switcher_UL16postVFP_topjets);
-    tjet_corrector_data->setupUL17(jec_switcher_UL17_topjets);
-    tjet_corrector_data->setupUL18(jec_switcher_UL18_topjets);
+    // tjet_corrector_data->setup2016(jec_switcher_16_topjets);
+    // tjet_corrector_data->setup2017(jec_switcher_17_topjets);
+    // tjet_corrector_data->setup2018(jec_switcher_18_topjets);
+    if(year == Year::isUL16preVFP) tjet_corrector_data->setupUL16preVFP(jec_switcher_UL16preVFP_topjets);
+    if(year == Year::isUL16postVFP) tjet_corrector_data->setupUL16postVFP(jec_switcher_UL16postVFP_topjets);
+    if(year == Year::isUL17) tjet_corrector_data->setupUL17(jec_switcher_UL17_topjets);
+    if(year == Year::isUL18) tjet_corrector_data->setupUL18(jec_switcher_UL18_topjets);
 
     subjet_corrector_data.reset(new YearSwitcher(ctx));
-    subjet_corrector_data->setup2016(jec_switcher_16_subjets);
-    subjet_corrector_data->setup2017(jec_switcher_17_subjets);
-    subjet_corrector_data->setup2018(jec_switcher_18_subjets);
-    subjet_corrector_data->setupUL16preVFP(jec_switcher_UL16preVFP_subjets);
-    subjet_corrector_data->setupUL16postVFP(jec_switcher_UL16postVFP_subjets);
-    subjet_corrector_data->setupUL17(jec_switcher_UL17_subjets);
-    subjet_corrector_data->setupUL18(jec_switcher_UL18_subjets);
+    // subjet_corrector_data->setup2016(jec_switcher_16_subjets);
+    // subjet_corrector_data->setup2017(jec_switcher_17_subjets);
+    // subjet_corrector_data->setup2018(jec_switcher_18_subjets);
+    if(year == Year::isUL16preVFP) subjet_corrector_data->setupUL16preVFP(jec_switcher_UL16preVFP_subjets);
+    if(year == Year::isUL16postVFP) subjet_corrector_data->setupUL16postVFP(jec_switcher_UL16postVFP_subjets);
+    if(year == Year::isUL17) subjet_corrector_data->setupUL17(jec_switcher_UL17_subjets);
+    if(year == Year::isUL18) subjet_corrector_data->setupUL18(jec_switcher_UL18_subjets);
   }
 }
 

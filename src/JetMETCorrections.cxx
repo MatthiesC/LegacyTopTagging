@@ -181,22 +181,22 @@ void JetMETCorrections::init(Context & ctx) {
 
   if(is_mc) {
     jlc_MC.reset(new YearSwitcher(ctx));
-    jlc_MC->setup2016(make_shared<JetLeptonCleaner_by_KEYmatching>(ctx, JERFiles::JECFilesMC(jec_tag_2016, jec_ver_2016, jec_jet_coll), collection_rec));
-    jlc_MC->setup2017(make_shared<JetLeptonCleaner_by_KEYmatching>(ctx, JERFiles::JECFilesMC(jec_tag_2017, jec_ver_2017, jec_jet_coll), collection_rec));
-    jlc_MC->setup2018(make_shared<JetLeptonCleaner_by_KEYmatching>(ctx, JERFiles::JECFilesMC(jec_tag_2018, jec_ver_2018, jec_jet_coll), collection_rec));
-    jlc_MC->setupUL16preVFP(make_shared<JetLeptonCleaner_by_KEYmatching>(ctx, JERFiles::JECFilesMC(jec_tag_UL16preVFP, jec_ver_UL16preVFP, jec_jet_coll), collection_rec));
-    jlc_MC->setupUL16postVFP(make_shared<JetLeptonCleaner_by_KEYmatching>(ctx, JERFiles::JECFilesMC(jec_tag_UL16postVFP, jec_ver_UL16postVFP, jec_jet_coll), collection_rec));
-    jlc_MC->setupUL17(make_shared<JetLeptonCleaner_by_KEYmatching>(ctx, JERFiles::JECFilesMC(jec_tag_UL17, jec_ver_UL17, jec_jet_coll), collection_rec));
-    jlc_MC->setupUL18(make_shared<JetLeptonCleaner_by_KEYmatching>(ctx, JERFiles::JECFilesMC(jec_tag_UL18, jec_ver_UL18, jec_jet_coll), collection_rec));
+    // jlc_MC->setup2016(make_shared<JetLeptonCleaner_by_KEYmatching>(ctx, JERFiles::JECFilesMC(jec_tag_2016, jec_ver_2016, jec_jet_coll), collection_rec));
+    // jlc_MC->setup2017(make_shared<JetLeptonCleaner_by_KEYmatching>(ctx, JERFiles::JECFilesMC(jec_tag_2017, jec_ver_2017, jec_jet_coll), collection_rec));
+    // jlc_MC->setup2018(make_shared<JetLeptonCleaner_by_KEYmatching>(ctx, JERFiles::JECFilesMC(jec_tag_2018, jec_ver_2018, jec_jet_coll), collection_rec));
+    if(year == Year::isUL16preVFP) jlc_MC->setupUL16preVFP(make_shared<JetLeptonCleaner_by_KEYmatching>(ctx, JERFiles::JECFilesMC(jec_tag_UL16preVFP, jec_ver_UL16preVFP, jec_jet_coll), collection_rec));
+    if(year == Year::isUL16postVFP) jlc_MC->setupUL16postVFP(make_shared<JetLeptonCleaner_by_KEYmatching>(ctx, JERFiles::JECFilesMC(jec_tag_UL16postVFP, jec_ver_UL16postVFP, jec_jet_coll), collection_rec));
+    if(year == Year::isUL17) jlc_MC->setupUL17(make_shared<JetLeptonCleaner_by_KEYmatching>(ctx, JERFiles::JECFilesMC(jec_tag_UL17, jec_ver_UL17, jec_jet_coll), collection_rec));
+    if(year == Year::isUL18) jlc_MC->setupUL18(make_shared<JetLeptonCleaner_by_KEYmatching>(ctx, JERFiles::JECFilesMC(jec_tag_UL18, jec_ver_UL18, jec_jet_coll), collection_rec));
 
     jet_corrector_MC.reset(new YearSwitcher(ctx));
-    jet_corrector_MC->setup2016(make_shared<GenericJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_2016, jec_ver_2016, jec_jet_coll), collection_rec));
-    jet_corrector_MC->setup2017(make_shared<GenericJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_2017, jec_ver_2017, jec_jet_coll), collection_rec));
-    jet_corrector_MC->setup2018(make_shared<GenericJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_2018, jec_ver_2018, jec_jet_coll), collection_rec));
-    jet_corrector_MC->setupUL16preVFP(make_shared<GenericJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_UL16preVFP, jec_ver_UL16preVFP, jec_jet_coll), collection_rec));
-    jet_corrector_MC->setupUL16postVFP(make_shared<GenericJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_UL16postVFP, jec_ver_UL16postVFP, jec_jet_coll), collection_rec));
-    jet_corrector_MC->setupUL17(make_shared<GenericJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_UL17, jec_ver_UL17, jec_jet_coll), collection_rec));
-    jet_corrector_MC->setupUL18(make_shared<GenericJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_UL18, jec_ver_UL18, jec_jet_coll), collection_rec));
+    // jet_corrector_MC->setup2016(make_shared<GenericJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_2016, jec_ver_2016, jec_jet_coll), collection_rec));
+    // jet_corrector_MC->setup2017(make_shared<GenericJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_2017, jec_ver_2017, jec_jet_coll), collection_rec));
+    // jet_corrector_MC->setup2018(make_shared<GenericJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_2018, jec_ver_2018, jec_jet_coll), collection_rec));
+    if(year == Year::isUL16preVFP) jet_corrector_MC->setupUL16preVFP(make_shared<GenericJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_UL16preVFP, jec_ver_UL16preVFP, jec_jet_coll), collection_rec));
+    if(year == Year::isUL16postVFP) jet_corrector_MC->setupUL16postVFP(make_shared<GenericJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_UL16postVFP, jec_ver_UL16postVFP, jec_jet_coll), collection_rec));
+    if(year == Year::isUL17) jet_corrector_MC->setupUL17(make_shared<GenericJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_UL17, jec_ver_UL17, jec_jet_coll), collection_rec));
+    if(year == Year::isUL18) jet_corrector_MC->setupUL18(make_shared<GenericJetCorrector>(ctx, JERFiles::JECFilesMC(jec_tag_UL18, jec_ver_UL18, jec_jet_coll), collection_rec));
 
     string jer_tag = "";
     if(year == Year::is2016v2 || year == Year::is2016v3) {
@@ -227,72 +227,80 @@ void JetMETCorrections::init(Context & ctx) {
     jet_resolution_smearer.reset(new GenericJetResolutionSmearer(ctx, collection_rec, collection_gen, JERFiles::JERPathStringMC(jer_tag, jec_jet_coll, "SF"), JERFiles::JERPathStringMC(jer_tag, jec_jet_coll, "PtResolution")));
   }
   else {
-    jlc_switcher_16.reset(new RunSwitcher(ctx, "2016"));
-    jec_switcher_16.reset(new RunSwitcher(ctx, "2016"));
-    for(const auto & runItr : runPeriods2016) { // runPeriods defined in common/include/Utils.h
-      jlc_switcher_16->setupRun(runItr, make_shared<JetLeptonCleaner_by_KEYmatching>(ctx, JERFiles::JECFilesDATA(jec_tag_2016, jec_ver_2016, jec_jet_coll, runItr), collection_rec));
-      jec_switcher_16->setupRun(runItr, make_shared<GenericJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_2016, jec_ver_2016, jec_jet_coll, runItr), collection_rec));
+    // jlc_switcher_16.reset(new RunSwitcher(ctx, "2016"));
+    // jec_switcher_16.reset(new RunSwitcher(ctx, "2016"));
+    // for(const auto & runItr : runPeriods2016) { // runPeriods defined in common/include/Utils.h
+    //   jlc_switcher_16->setupRun(runItr, make_shared<JetLeptonCleaner_by_KEYmatching>(ctx, JERFiles::JECFilesDATA(jec_tag_2016, jec_ver_2016, jec_jet_coll, runItr), collection_rec));
+    //   jec_switcher_16->setupRun(runItr, make_shared<GenericJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_2016, jec_ver_2016, jec_jet_coll, runItr), collection_rec));
+    // }
+    //
+    // jlc_switcher_17.reset(new RunSwitcher(ctx, "2017"));
+    // jec_switcher_17.reset(new RunSwitcher(ctx, "2017"));
+    // for(const auto & runItr : runPeriods2017) {
+    //   jlc_switcher_17->setupRun(runItr, make_shared<JetLeptonCleaner_by_KEYmatching>(ctx, JERFiles::JECFilesDATA(jec_tag_2017, jec_ver_2017, jec_jet_coll, runItr), collection_rec));
+    //   jec_switcher_17->setupRun(runItr, make_shared<GenericJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_2017, jec_ver_2017, jec_jet_coll, runItr), collection_rec));
+    // }
+    //
+    // jlc_switcher_18.reset(new RunSwitcher(ctx, "2018"));
+    // jec_switcher_18.reset(new RunSwitcher(ctx, "2018"));
+    // for(const auto & runItr : runPeriods2018) {
+    //   jlc_switcher_18->setupRun(runItr, make_shared<JetLeptonCleaner_by_KEYmatching>(ctx, JERFiles::JECFilesDATA(jec_tag_2018, jec_ver_2018, jec_jet_coll, runItr), collection_rec));
+    //   jec_switcher_18->setupRun(runItr, make_shared<GenericJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_2018, jec_ver_2018, jec_jet_coll, runItr), collection_rec));
+    // }
+
+    if(year == Year::isUL16preVFP) {
+      jlc_switcher_UL16preVFP.reset(new RunSwitcher(ctx, "2016"));
+      jec_switcher_UL16preVFP.reset(new RunSwitcher(ctx, "2016"));
+      for(const auto & runItr : runPeriodsUL16preVFP) {
+        jlc_switcher_UL16preVFP->setupRun(runItr, make_shared<JetLeptonCleaner_by_KEYmatching>(ctx, JERFiles::JECFilesDATA(jec_tag_UL16preVFP, jec_ver_UL16preVFP, jec_jet_coll, runItr), collection_rec));
+        jec_switcher_UL16preVFP->setupRun(runItr, make_shared<GenericJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_UL16preVFP, jec_ver_UL16preVFP, jec_jet_coll, runItr), collection_rec));
+      }
     }
 
-    jlc_switcher_17.reset(new RunSwitcher(ctx, "2017"));
-    jec_switcher_17.reset(new RunSwitcher(ctx, "2017"));
-    for(const auto & runItr : runPeriods2017) {
-      jlc_switcher_17->setupRun(runItr, make_shared<JetLeptonCleaner_by_KEYmatching>(ctx, JERFiles::JECFilesDATA(jec_tag_2017, jec_ver_2017, jec_jet_coll, runItr), collection_rec));
-      jec_switcher_17->setupRun(runItr, make_shared<GenericJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_2017, jec_ver_2017, jec_jet_coll, runItr), collection_rec));
+    if(year == Year::isUL16postVFP) {
+      jlc_switcher_UL16postVFP.reset(new RunSwitcher(ctx, "2016"));
+      jec_switcher_UL16postVFP.reset(new RunSwitcher(ctx, "2016"));
+      for(const auto & runItr : runPeriodsUL16postVFP) {
+        jlc_switcher_UL16postVFP->setupRun(runItr, make_shared<JetLeptonCleaner_by_KEYmatching>(ctx, JERFiles::JECFilesDATA(jec_tag_UL16postVFP, jec_ver_UL16postVFP, jec_jet_coll, runItr), collection_rec));
+        jec_switcher_UL16postVFP->setupRun(runItr, make_shared<GenericJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_UL16postVFP, jec_ver_UL16postVFP, jec_jet_coll, runItr), collection_rec));
+      }
     }
 
-    jlc_switcher_18.reset(new RunSwitcher(ctx, "2018"));
-    jec_switcher_18.reset(new RunSwitcher(ctx, "2018"));
-    for(const auto & runItr : runPeriods2018) {
-      jlc_switcher_18->setupRun(runItr, make_shared<JetLeptonCleaner_by_KEYmatching>(ctx, JERFiles::JECFilesDATA(jec_tag_2018, jec_ver_2018, jec_jet_coll, runItr), collection_rec));
-      jec_switcher_18->setupRun(runItr, make_shared<GenericJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_2018, jec_ver_2018, jec_jet_coll, runItr), collection_rec));
+    if(year == Year::isUL17) {
+      jlc_switcher_UL17.reset(new RunSwitcher(ctx, "2017"));
+      jec_switcher_UL17.reset(new RunSwitcher(ctx, "2017"));
+      for(const auto & runItr : runPeriods2017) {
+        jlc_switcher_UL17->setupRun(runItr, make_shared<JetLeptonCleaner_by_KEYmatching>(ctx, JERFiles::JECFilesDATA(jec_tag_UL17, jec_ver_UL17, jec_jet_coll, runItr), collection_rec));
+        jec_switcher_UL17->setupRun(runItr, make_shared<GenericJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_UL17, jec_ver_UL17, jec_jet_coll, runItr), collection_rec));
+      }
     }
 
-    jlc_switcher_UL16preVFP.reset(new RunSwitcher(ctx, "2016"));
-    jec_switcher_UL16preVFP.reset(new RunSwitcher(ctx, "2016"));
-    for(const auto & runItr : runPeriodsUL16preVFP) {
-      jlc_switcher_UL16preVFP->setupRun(runItr, make_shared<JetLeptonCleaner_by_KEYmatching>(ctx, JERFiles::JECFilesDATA(jec_tag_UL16preVFP, jec_ver_UL16preVFP, jec_jet_coll, runItr), collection_rec));
-      jec_switcher_UL16preVFP->setupRun(runItr, make_shared<GenericJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_UL16preVFP, jec_ver_UL16preVFP, jec_jet_coll, runItr), collection_rec));
-    }
-
-    jlc_switcher_UL16postVFP.reset(new RunSwitcher(ctx, "2016"));
-    jec_switcher_UL16postVFP.reset(new RunSwitcher(ctx, "2016"));
-    for(const auto & runItr : runPeriodsUL16postVFP) {
-      jlc_switcher_UL16postVFP->setupRun(runItr, make_shared<JetLeptonCleaner_by_KEYmatching>(ctx, JERFiles::JECFilesDATA(jec_tag_UL16postVFP, jec_ver_UL16postVFP, jec_jet_coll, runItr), collection_rec));
-      jec_switcher_UL16postVFP->setupRun(runItr, make_shared<GenericJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_UL16postVFP, jec_ver_UL16postVFP, jec_jet_coll, runItr), collection_rec));
-    }
-
-    jlc_switcher_UL17.reset(new RunSwitcher(ctx, "2017"));
-    jec_switcher_UL17.reset(new RunSwitcher(ctx, "2017"));
-    for(const auto & runItr : runPeriods2017) {
-      jlc_switcher_UL17->setupRun(runItr, make_shared<JetLeptonCleaner_by_KEYmatching>(ctx, JERFiles::JECFilesDATA(jec_tag_UL17, jec_ver_UL17, jec_jet_coll, runItr), collection_rec));
-      jec_switcher_UL17->setupRun(runItr, make_shared<GenericJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_UL17, jec_ver_UL17, jec_jet_coll, runItr), collection_rec));
-    }
-
-    jlc_switcher_UL18.reset(new RunSwitcher(ctx, "2018"));
-    jec_switcher_UL18.reset(new RunSwitcher(ctx, "2018"));
-    for(const auto & runItr : runPeriods2018) {
-      jlc_switcher_UL18->setupRun(runItr, make_shared<JetLeptonCleaner_by_KEYmatching>(ctx, JERFiles::JECFilesDATA(jec_tag_UL18, jec_ver_UL18, jec_jet_coll, runItr), collection_rec));
-      jec_switcher_UL18->setupRun(runItr, make_shared<GenericJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_UL18, jec_ver_UL18, jec_jet_coll, runItr), collection_rec));
+    if(year == Year::isUL18) {
+      jlc_switcher_UL18.reset(new RunSwitcher(ctx, "2018"));
+      jec_switcher_UL18.reset(new RunSwitcher(ctx, "2018"));
+      for(const auto & runItr : runPeriods2018) {
+        jlc_switcher_UL18->setupRun(runItr, make_shared<JetLeptonCleaner_by_KEYmatching>(ctx, JERFiles::JECFilesDATA(jec_tag_UL18, jec_ver_UL18, jec_jet_coll, runItr), collection_rec));
+        jec_switcher_UL18->setupRun(runItr, make_shared<GenericJetCorrector>(ctx, JERFiles::JECFilesDATA(jec_tag_UL18, jec_ver_UL18, jec_jet_coll, runItr), collection_rec));
+      }
     }
 
     jlc_data.reset(new YearSwitcher(ctx));
-    jlc_data->setup2016(jlc_switcher_16);
-    jlc_data->setup2017(jlc_switcher_17);
-    jlc_data->setup2018(jlc_switcher_18);
-    jlc_data->setupUL16preVFP(jlc_switcher_UL16preVFP);
-    jlc_data->setupUL16postVFP(jlc_switcher_UL16postVFP);
-    jlc_data->setupUL17(jlc_switcher_UL17);
-    jlc_data->setupUL18(jlc_switcher_UL18);
+    // jlc_data->setup2016(jlc_switcher_16);
+    // jlc_data->setup2017(jlc_switcher_17);
+    // jlc_data->setup2018(jlc_switcher_18);
+    if(year == Year::isUL16preVFP) jlc_data->setupUL16preVFP(jlc_switcher_UL16preVFP);
+    if(year == Year::isUL16postVFP) jlc_data->setupUL16postVFP(jlc_switcher_UL16postVFP);
+    if(year == Year::isUL17) jlc_data->setupUL17(jlc_switcher_UL17);
+    if(year == Year::isUL18) jlc_data->setupUL18(jlc_switcher_UL18);
 
     jet_corrector_data.reset(new YearSwitcher(ctx));
-    jet_corrector_data->setup2016(jec_switcher_16);
-    jet_corrector_data->setup2017(jec_switcher_17);
-    jet_corrector_data->setup2018(jec_switcher_18);
-    jet_corrector_data->setupUL16preVFP(jec_switcher_UL16preVFP);
-    jet_corrector_data->setupUL16postVFP(jec_switcher_UL16postVFP);
-    jet_corrector_data->setupUL17(jec_switcher_UL17);
-    jet_corrector_data->setupUL18(jec_switcher_UL18);
+    // jet_corrector_data->setup2016(jec_switcher_16);
+    // jet_corrector_data->setup2017(jec_switcher_17);
+    // jet_corrector_data->setup2018(jec_switcher_18);
+    if(year == Year::isUL16preVFP) jet_corrector_data->setupUL16preVFP(jec_switcher_UL16preVFP);
+    if(year == Year::isUL16postVFP) jet_corrector_data->setupUL16postVFP(jec_switcher_UL16postVFP);
+    if(year == Year::isUL17) jet_corrector_data->setupUL17(jec_switcher_UL17);
+    if(year == Year::isUL18) jet_corrector_data->setupUL18(jec_switcher_UL18);
   }
 
   met_xy_correction.reset(new ltt::METXYCorrector(ctx, fMETName, !is_chs));

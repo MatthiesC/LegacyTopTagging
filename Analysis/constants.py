@@ -705,84 +705,112 @@ _TCOLORS = {
 
 class JECSmearSource():
 
-    def __init__(self, name, era_correlation, is_split_full, is_split_reduced):
+    # def __init__(self, name, era_correlation, is_split_full, is_split_reduced):
+    def __init__(self, name, era_correlation, origName=None):
         self.name = name
         self.era_correlation = era_correlation
-        self.is_split_full = is_split_full
-        self.is_split_reduced = is_split_reduced
+        # self.is_split_full = is_split_full
+        # self.is_split_reduced = is_split_reduced
+        self.origName = origName or name
 
-    def get_name(year=None):
-        if year is None or not ('year' in self.name):
-            return self.name
+    # def get_name(year=None):
+    #     if year is None or not ('year' in self.name):
+    #         return self.name
+    #     else:
+    #         return self.name.format(year=year)
+
+    def get_origName(self, year=None):
+        if isinstance(self.origName, str):
+            return self.origName
+        elif isinstance(self.origName, dict):
+            if year is None:
+                sys.exit('no year given')
+            else:
+                return self.origName[year]
         else:
-            return self.name.format(year=year)
+            sys.exit()
 
 
 class JECSmearSources():
 
-    def __init__(self):
-        self.base = [
-            JECSmearSource('AbsoluteMPFBias', 1.0, True, False),
-            JECSmearSource('AbsoluteScale', 1.0, True, False),
-            JECSmearSource('AbsoluteStat', 0.0, True, False),
-            JECSmearSource('FlavorQCD', 1.0, True, False),
-            JECSmearSource('Fragmentation', 1.0, True, False),
-            JECSmearSource('PileUpDataMC', 0.5, True, False),
-            JECSmearSource('PileUpPtBB', 0.5, True, False),
-            JECSmearSource('PileUpPtEC1', 0.5, True, False),
-            JECSmearSource('PileUpPtEC2', 0.5, True, False),
-            JECSmearSource('PileUpPtHF', 0.5, True, False),
-            JECSmearSource('PileUpPtRef', 0.5, True, False),
-            JECSmearSource('RelativeFSR', 0.5, True, False),
-            JECSmearSource('RelativeJEREC1', 0.0, True, False),
-            JECSmearSource('RelativeJEREC2', 0.0, True, False),
-            JECSmearSource('RelativeJERHF', 0.5, True, False),
-            JECSmearSource('RelativePtBB', 0.5, True, False),
-            JECSmearSource('RelativePtEC1', 0.0, True, False),
-            JECSmearSource('RelativePtEC2', 0.0, True, False),
-            JECSmearSource('RelativePtHF', 0.5, True, False),
-            JECSmearSource('RelativeBal', 0.5, True, False),
-            JECSmearSource('RelativeSample', 0.0, True, False),
-            JECSmearSource('RelativeStatEC', 0.0, True, False),
-            JECSmearSource('RelativeStatFSR', 0.0, True, False),
-            JECSmearSource('RelativeStatHF', 0.0, True, False),
-            JECSmearSource('SinglePionECAL', 1.0, True, False),
-            JECSmearSource('SinglePionHCAL', 1.0, True, False),
-            JECSmearSource('TimePtEta', 0.0, True, False),
+    def __init__(self, reduced=False):
+        self.reduced = reduced
+        self.base_full = [
+            JECSmearSource('AbsoluteMPFBias', 1.0),
+            JECSmearSource('AbsoluteScale', 1.0),
+            JECSmearSource('AbsoluteStat', 0.0),
+            JECSmearSource('FlavorQCD', 1.0),
+            JECSmearSource('Fragmentation', 1.0),
+            JECSmearSource('PileUpDataMC', 0.5),
+            JECSmearSource('PileUpPtBB', 0.5),
+            JECSmearSource('PileUpPtEC1', 0.5),
+            JECSmearSource('PileUpPtEC2', 0.5),
+            JECSmearSource('PileUpPtHF', 0.5),
+            JECSmearSource('PileUpPtRef', 0.5),
+            JECSmearSource('RelativeFSR', 0.5),
+            JECSmearSource('RelativeJEREC1', 0.0),
+            JECSmearSource('RelativeJEREC2', 0.0),
+            JECSmearSource('RelativeJERHF', 0.5),
+            JECSmearSource('RelativePtBB', 0.5),
+            JECSmearSource('RelativePtEC1', 0.0),
+            JECSmearSource('RelativePtEC2', 0.0),
+            JECSmearSource('RelativePtHF', 0.5),
+            JECSmearSource('RelativeBal', 0.5),
+            JECSmearSource('RelativeSample', 0.0),
+            JECSmearSource('RelativeStatEC', 0.0),
+            JECSmearSource('RelativeStatFSR', 0.0),
+            JECSmearSource('RelativeStatHF', 0.0),
+            JECSmearSource('SinglePionECAL', 1.0),
+            JECSmearSource('SinglePionHCAL', 1.0),
+            JECSmearSource('TimePtEta', 0.0),
         ]
+        self.base_reduced = [
+            JECSmearSource('ReducedAbsoluteCorrelated', 1.0, origName='Absolute'),
+            JECSmearSource('ReducedAbsoluteUncorrelated', 0.0, origName={'UL16preVFP': 'Absolute_2016', 'UL16postVFP': 'Absolute_2016', 'UL17': 'Absolute_2017', 'UL18': 'Absolute_2018'}),
+            JECSmearSource('ReducedBBEC1Correlated', 1.0, origName='BBEC1'),
+            JECSmearSource('ReducedBBEC1Uncorrelated', 0.0, origName={'UL16preVFP': 'BBEC1_2016', 'UL16postVFP': 'BBEC1_2016', 'UL17': 'BBEC1_2017', 'UL18': 'BBEC1_2018'}),
+            JECSmearSource('ReducedEC2Correlated', 1.0, origName='EC2'),
+            JECSmearSource('ReducedEC2Uncorrelated', 0.0, origName={'UL16preVFP': 'EC2_2016', 'UL16postVFP': 'EC2_2016', 'UL17': 'EC2_2017', 'UL18': 'EC2_2018'}),
+            JECSmearSource('ReducedFlavorQCD', 1.0, origName='FlavorQCD'),
+            JECSmearSource('ReducedHFCorrelated', 1.0, origName='HF'),
+            JECSmearSource('ReducedHFUncorrelated', 0.0, origName={'UL16preVFP': 'HF_2016', 'UL16postVFP': 'HF_2016', 'UL17': 'HF_2017', 'UL18': 'HF_2018'}),
+            JECSmearSource('ReducedRelativeBal', 1.0, origName='RelativeBal'),
+            JECSmearSource('ReducedRelativeSampleUncorrelated', 0.0, origName={'UL16preVFP': 'RelativeSample_2016', 'UL16postVFP': 'RelativeSample_2016', 'UL17': 'RelativeSample_2017', 'UL18': 'RelativeSample_2018'}),
+        ]
+        self.base = {jec.name: jec for jec in (self.base_reduced if self.reduced else self.base_full) }
 
+# _JECSMEAR_SOURCES = JECSmearSources(reduced=False)
+_JECSMEAR_SOURCES = JECSmearSources(reduced=True)
 
-
-
-_JECSMEAR_SOURCES = {
-    'AbsoluteMPFBias': 1.0,
-    'AbsoluteScale': 1.0,
-    'AbsoluteStat': 0.0,
-    'FlavorQCD': 1.0,
-    'Fragmentation': 1.0,
-    'PileUpDataMC': 0.5,
-    'PileUpPtBB': 0.5,
-    'PileUpPtEC1': 0.5,
-    'PileUpPtEC2': 0.5,
-    'PileUpPtHF': 0.5,
-    'PileUpPtRef': 0.5,
-    'RelativeFSR': 0.5,
-    'RelativeJEREC1': 0.0,
-    'RelativeJEREC2': 0.0,
-    'RelativeJERHF': 0.5,
-    'RelativePtBB': 0.5,
-    'RelativePtEC1': 0.0,
-    'RelativePtEC2': 0.0,
-    'RelativePtHF': 0.5,
-    'RelativeBal': 0.5,
-    'RelativeSample': 0.0,
-    'RelativeStatEC': 0.0,
-    'RelativeStatFSR': 0.0,
-    'RelativeStatHF': 0.0,
-    'SinglePionECAL': 1.0,
-    'SinglePionHCAL': 1.0,
-    'TimePtEta': 0.0,
-}
+# _JECSMEAR_SOURCES = {
+#     'AbsoluteMPFBias': 1.0,
+#     'AbsoluteScale': 1.0,
+#     'AbsoluteStat': 0.0,
+#     'FlavorQCD': 1.0,
+#     'Fragmentation': 1.0,
+#     'PileUpDataMC': 0.5,
+#     'PileUpPtBB': 0.5,
+#     'PileUpPtEC1': 0.5,
+#     'PileUpPtEC2': 0.5,
+#     'PileUpPtHF': 0.5,
+#     'PileUpPtRef': 0.5,
+#     'RelativeFSR': 0.5,
+#     'RelativeJEREC1': 0.0,
+#     'RelativeJEREC2': 0.0,
+#     'RelativeJERHF': 0.5,
+#     'RelativePtBB': 0.5,
+#     'RelativePtEC1': 0.0,
+#     'RelativePtEC2': 0.0,
+#     'RelativePtHF': 0.5,
+#     'RelativeBal': 0.5,
+#     'RelativeSample': 0.0,
+#     'RelativeStatEC': 0.0,
+#     'RelativeStatFSR': 0.0,
+#     'RelativeStatHF': 0.0,
+#     'SinglePionECAL': 1.0,
+#     'SinglePionHCAL': 1.0,
+#     'TimePtEta': 0.0,
+# }
 
 # class Systematic:
 #
@@ -1538,13 +1566,23 @@ class Systematics:
                 # tandp=True,
             ),
         ]
+        # if self.include_jes_splits:
+        #     for name, corr_eras in _JECSMEAR_SOURCES.items():
+        #         self.base.append(Systematic('jes'+name, {
+        #             'down': None,
+        #             'up': None,
+        #             },
+        #             correlation_eras=corr_eras,
+        #             correlation_procs=None,
+        #             # tandp=True,
+        #         ))
         if self.include_jes_splits:
-            for name, corr_eras in _JECSMEAR_SOURCES.items():
-                self.base.append(Systematic('jes'+name, {
+            for jes_source in _JECSMEAR_SOURCES.base.values():
+                self.base.append(Systematic('jes'+jes_source.name, {
                     'down': None,
                     'up': None,
                     },
-                    correlation_eras=corr_eras,
+                    correlation_eras=jes_source.era_correlation,
                     correlation_procs=None,
                     # tandp=True,
                 ))
