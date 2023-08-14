@@ -42,6 +42,7 @@ _YEARS = OrderedDict([
         },
         'lumi_fb_display': '19.5',
         'index': 1, # same as in LegacyTopTagging/include/Constants.h
+        'tcolor': 900+8,
     }),
     ('UL16postVFP', {
         'short_name': 'UL16postVFP',
@@ -58,6 +59,7 @@ _YEARS = OrderedDict([
         },
         'lumi_fb_display': '16.8',
         'index': 2, # same as in LegacyTopTagging/include/Constants.h
+        'tcolor': 860-6,
     }),
     ('UL17', {
         'short_name': 'UL17',
@@ -73,6 +75,7 @@ _YEARS = OrderedDict([
         },
         'lumi_fb_display': '41.5',
         'index': 3, # same as in LegacyTopTagging/include/Constants.h
+        'tcolor': 800-3,
     }),
     ('UL18', {
         'short_name': 'UL18',
@@ -88,6 +91,7 @@ _YEARS = OrderedDict([
         },
         'lumi_fb_display': '59.8',
         'index': 4, # same as in LegacyTopTagging/include/Constants.h
+        'tcolor': 820-8,
     }),
     ('run2', {
         'short_name': 'ULRunII',
@@ -97,6 +101,7 @@ _YEARS = OrderedDict([
         'lumi_pb': 137645.,
         'lumi_unc': 0.016,
         'lumi_fb_display': '138',
+        'tcolor': 0,
     }),
 ])
 
@@ -1289,7 +1294,7 @@ class Systematics:
                 combine_name='FSR2',
                 correlation_eras=1.0,
                 # correlation_procs='qcdewk',
-                tandp=True,
+                # tandp=True,
             ),
             Systematic('fsr_g2gg_mur', {
                 'down': 'weight * weight_fsr_g2gg_mur_down',
@@ -1297,7 +1302,7 @@ class Systematics:
                 },
                 combine_name='FSRg2ggMuR',
                 correlation_eras=1.0,
-                # tandp=True,
+                tandp=True,
             ),
             Systematic('fsr_g2qq_mur', {
                 'down': 'weight * weight_fsr_g2qq_mur_down',
@@ -1305,7 +1310,7 @@ class Systematics:
                 },
                 combine_name='FSRg2qqMuR',
                 correlation_eras=1.0,
-                # tandp=True,
+                tandp=True,
             ),
             Systematic('fsr_q2qg_mur', {
                 'down': 'weight * weight_fsr_q2qg_mur_down',
@@ -1313,7 +1318,7 @@ class Systematics:
                 },
                 combine_name='FSRq2qgMuR',
                 correlation_eras=1.0,
-                # tandp=True,
+                tandp=True,
             ),
             Systematic('fsr_x2xg_mur', {
                 'down': 'weight * weight_fsr_x2xg_mur_down',
@@ -1321,7 +1326,7 @@ class Systematics:
                 },
                 combine_name='FSRx2xgMuR',
                 correlation_eras=1.0,
-                # tandp=True,
+                tandp=True,
             ),
             Systematic('fsr_g2gg_cns', {
                 'down': 'weight * weight_fsr_g2gg_cns_down',
@@ -1329,7 +1334,7 @@ class Systematics:
                 },
                 combine_name='FSRg2ggCNS',
                 correlation_eras=1.0,
-                # tandp=True,
+                tandp=True,
             ),
             Systematic('fsr_g2qq_cns', {
                 'down': 'weight * weight_fsr_g2qq_cns_down',
@@ -1337,7 +1342,7 @@ class Systematics:
                 },
                 combine_name='FSRg2qqCNS',
                 correlation_eras=1.0,
-                # tandp=True,
+                tandp=True,
             ),
             Systematic('fsr_q2qg_cns', {
                 'down': 'weight * weight_fsr_q2qg_cns_down',
@@ -1345,7 +1350,7 @@ class Systematics:
                 },
                 combine_name='FSRq2qgCNS',
                 correlation_eras=1.0,
-                # tandp=True,
+                tandp=True,
             ),
             Systematic('fsr_x2xg_cns', {
                 'down': 'weight * weight_fsr_x2xg_cns_down',
@@ -1353,7 +1358,7 @@ class Systematics:
                 },
                 combine_name='FSRx2xgCNS',
                 correlation_eras=1.0,
-                # tandp=True,
+                tandp=True,
             ),
             #________________________________________
             Systematic('isr_2', {
@@ -1517,7 +1522,7 @@ class Systematics:
                 },
                 correlation_eras=0.0,
                 correlation_procs=None,
-                tandp=True,
+                # tandp=True,
             ),
             #________________________________________
             Systematic('jer', {
@@ -1584,7 +1589,7 @@ class Systematics:
                     },
                     correlation_eras=jes_source.era_correlation,
                     correlation_procs=None,
-                    # tandp=True,
+                    tandp=True,
                 ))
         self.base = {syst.name: syst for syst in self.base}
 

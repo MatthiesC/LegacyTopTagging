@@ -666,7 +666,7 @@ class ScaleFactorFits():
             #________________________________
             # MC statistics
             # https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/part2/bin-wise-stats.html
-            file.write('* autoMCStats 0 1 1\n') # event-threshold=0, include-signal=1, hist-mode=1
+            # file.write('* autoMCStats 0 1 1\n') # event-threshold=0, include-signal=1, hist-mode=1 # HACK decomment
             #________________________________
             # Nuisance groups
             file.write('uncertsEraCorrelated group = '+' '.join(era_correlated_systs)+'\n')
@@ -675,7 +675,9 @@ class ScaleFactorFits():
 
 
 
-    def combine_task(self, task_name, command, run):
+    def combine_task(self, task_name, command, run, print_command=False):
+        if print_command:
+            print('  Executing command: {}'.format(command))
         if run:
             time_start = timer()
             os.system('mkdir -p '+self.logdir)
@@ -865,7 +867,8 @@ class ScaleFactorFits():
                 lumi_unc = _YEARS.get(year).get('lumi_unc'),
                 # divide_by_bin_width = False,
                 data_name = 'data_obs',
-                text_prelim = 'Private Work',
+                # text_prelim = 'Private Work',
+                text_prelim = 'Preliminary',
                 # text_top_left = _YEARS.get(year).get('long_name'),
                 text_top_left = 'T&P '+('e' if channel == 'ele' else '#mu')+'+jets, UL '+_YEARS.get(year).get('year'),
                 text_top_right = _YEARS.get(year).get('lumi_fb_display')+' fb^{#minus1} (13 TeV)',
@@ -875,7 +878,7 @@ class ScaleFactorFits():
 
             task_name = '-'.join([self.tagger.name, self.wp.name, pt_bin.name, year, self.tagger.fit_variable])
             region_substring = '_'.join(['Main', region, channel])
-            plotName = 'Plot-'+prepostfit+'-'+task_name+'-'+region_substring+'-'+mscSplitting+('-withLeg' if do_legend else '-noLeg')+'.pdf'
+            plotName = 'Plot-'+prepostfit+'-'+task_name+'-'+region_substring+'-'+mscSplitting+('-withLeg' if do_legend else '-noLeg')+('-Preliminary' if nice.text_prelim == 'Preliminary' else '')+'.pdf'
             plotDir = self.control_plots_dir
 
             nice.plot()
@@ -1193,11 +1196,23 @@ class ScaleFactorFits():
         results[task_name3] = self.combine_task(task_name3, command3, run)
         #________________________________
         os.system('mkdir -p '+self.impact_plots_dir)
-        plot_command_base = 'plotImpacts.py \\'
+        # plot_command_base = 'plotImpacts.py \\'
+        plot_command_base = 'plotImpacts_old_version.py \\' #HACK
         plot_command_base += '-i '+impactsJsonPath+' \\'
         plot_command_base += '--POI {0} \\'
         plot_command_base += '-o {1} \\'
         # plot_command_base += '-t '+globalRenameJsonFile+' \\' # rename parameters
+
+        # # HACK: adjust commands to produce nicer impact plots:
+        # plot_command_base += '--cms-label Private\ Work \\'
+        # # plot_command_base += '--cms-label Preliminary \\'
+        # plot_command_base += '--per-page 20 \\'
+        # # plot_command_base += '--max-pages 1 \\'
+        # plot_command_base += '--label-size 0.035 \\'
+        # rename_file_name = 'rename_GoodExample-ak8_t__tau-BkgEff0p001-UL16preVFP-pt_480to600.json'
+        # rename_file_path = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/Analysis/Combine/', rename_file_name)
+        # plot_command_base += '--translate '+rename_file_path+' \\'
+
         for signal_rate_param in self.pois.keys():
             print('Plotting impacts for parameter:', signal_rate_param)
             plot_path = os.path.join(self.workdir, impactsJsonPath.replace('.json', '_'+signal_rate_param))
@@ -1279,6 +1294,7 @@ if __name__=='__main__':
         # mode='Hybrid',
         # mscSplitting = 'mscW3',
         # mscSplitting = 'mscTop3',
+        # robust_hesse = False,
         robust_hesse = True,
     )
 

@@ -27,11 +27,11 @@ years = [
 # 'ele',
 # ]
 taggers = [
-# 'ak8_t__tau',
-# 'ak8_t_btagDJet__tau',
+'ak8_t__tau',
+'ak8_t_btagDJet__tau',
 # 'ak8_t_btagDCSV__tau',
-# 'hotvr_t__tau',
-# 'ak8_w__partnet',
+'hotvr_t__tau',
+'ak8_w__partnet',
 'ak8_t__MDdeepak8',
 ]
 taggers = {k: _TAGGERS[k] for k in taggers}
@@ -191,6 +191,17 @@ class ScaleFactorCollector():
                             y_err_low = input_graph.GetErrorYlow(i)
                             y_err_high = input_graph.GetErrorYhigh(i)
 
+                            #HACK for ak8_w__partnet:
+                            if self.tagger.name == 'ak8_w__partnet' and msc == 'FullyMerged' and (pt_bin.name == 'pt_200to250' or pt_bin.name == 'pt_250to300'):
+                                is_exception_for_w_tagger = True
+                            else:
+                                is_exception_for_w_tagger = False
+                            if is_exception_for_w_tagger:
+                                y = 1.
+                                y_err_low = 0.
+                                y_err_high = 0.
+                            #HACK end
+
                             # setattr(x, 'y', v) is equivalent to x.y = v
                             setattr(self.scale_factors[msc][pt_bin.name][year], graph_type, ValueAndAsymmErrors(value=y, up=y_err_high, down=y_err_low))
                             # self.scale_factors[msc][pt_bin.name][year].tot.value = y
@@ -305,6 +316,11 @@ class ScaleFactorCollector():
         for index, pt_bin in enumerate(self.sorted_pt_bins):
             x_pt_offset[pt_bin.name] = index * x_pt_range
 
+        #HACK for W tagger:
+        arr_x__w_tagger = np.array([], dtype=np.float32)
+        arr_y__w_tagger = np.array([], dtype=np.float32)
+        arr_zeroes__w_tagger = np.array([], dtype=np.float32)
+
         # one graph for each year / each graph_type
         graphs = OrderedDict()
         points_per_graph = len(self.mscSplits) * len(self.sorted_pt_bins)
@@ -320,10 +336,21 @@ class ScaleFactorCollector():
                     for pt_bin in self.sorted_pt_bins:
                         arr_x = np.append(arr_x, x_sf_position[year] + x_pt_offset[pt_bin.name])
                         arr_y = np.append(arr_y, getattr(self.scale_factors[msc][pt_bin.name][year], 'tot').value + y_sf_offset[msc]) # always use central value of tot
-                        arr_exl = np.append(arr_exl, 0.5 * x_sf_width)
-                        arr_exh = np.append(arr_exh, 0.5 * x_sf_width)
+                        if graph_type == 'stat':
+                            exl = 0.6 * x_sf_width
+                        elif graph_type == 'uncorr':
+                            exl = 0.0 * x_sf_width
+                        else:
+                            exl = 0.4 * x_sf_width
+                        arr_exl = np.append(arr_exl, exl)
+                        arr_exh = np.append(arr_exh, exl)
                         arr_eyl = np.append(arr_eyl, getattr(self.scale_factors[msc][pt_bin.name][year], graph_type).down)
                         arr_eyh = np.append(arr_eyh, getattr(self.scale_factors[msc][pt_bin.name][year], graph_type).up)
+                        #HACK for W tagger:
+                        if self.tagger.name == 'ak8_w__partnet' and msc == 'FullyMerged' and (pt_bin.name == 'pt_200to250' or pt_bin.name == 'pt_250to300'):
+                            arr_x__w_tagger = np.append(arr_x__w_tagger, x_sf_position[year] + x_pt_offset[pt_bin.name])
+                            arr_y__w_tagger = np.append(arr_y__w_tagger, 1. + y_sf_offset[msc])
+                            arr_zeroes__w_tagger = np.append(arr_zeroes__w_tagger, 0.)
                 graphs.setdefault(year, OrderedDict())[graph_type] = root.TGraphAsymmErrors(points_per_graph, arr_x, arr_y, arr_exl, arr_exh, arr_eyl, arr_eyh)
 
         self.canvas.cd()
@@ -341,20 +368,43 @@ class ScaleFactorCollector():
         # root.gStyle.SetOptStat(root.kFALSE)
         # pad.cd()
 
+
+        # leg_x1 = 0.46
+        # leg_y1 = 0.76
+        # leg_x2 = 0.948
+        # leg_y2 = 0.81
+        # legend = root.TLegend(leg_x1, leg_y1, leg_x2, leg_y2)
+        # legend.SetNColumns(len(self.years))
+        leg_x1 = 0.015
+        leg_y1 = 0.81
+        leg_x2 = 0.18
+        leg_y2 = 0.98
+        legend = root.TLegend(leg_x1, leg_y1, leg_x2, leg_y2, '', 'brNDC')
+        # legend.SetNColumns(len(self.years))
+        legend.SetTextSize(0.03)
+        # legend.SetBorderSize(0)
+        # legend.SetFillStyle(0)
+
+        # same color setup as in LegacyTopTagging/Analysis/ControlPlots/plots_HOTVR_ptResponse_v2.cxx
+        transparency1 = 1.0
+        transparency2 = 0.5
+
         mg = root.TMultiGraph()
         mg.SetTitle('')
         for year in self.years:
             graph_tot = graphs[year]['tot']
-            graph_tot.SetFillColor(root.kRed)
+            graph_tot.SetFillColorAlpha(_YEARS.get(year)['tcolor'], transparency2)
             graph_tot.SetMarkerStyle(7)
             mg.Add(graph_tot)
-            graph_uncorr = graphs[year]['uncorr']
-            graph_uncorr.SetFillColor(root.kBlue)
-            graph_uncorr.SetMarkerStyle(7)
-            mg.Add(graph_uncorr)
+            # graph_uncorr = graphs[year]['uncorr']
+            # graph_uncorr.SetFillColor(root.kWhite)
+            # graph_uncorr.SetMarkerStyle(7)
+            # mg.Add(graph_uncorr)
             graph_stat = graphs[year]['stat']
-            graph_stat.SetFillColor(root.kGreen)
+            graph_stat.SetFillColorAlpha(_YEARS.get(year)['tcolor'], transparency1)
             graph_stat.SetMarkerStyle(7)
+            graph_stat.SetLineWidth(0)
+            legend.AddEntry(graph_stat, _YEARS.get(year)['year'])
             mg.Add(graph_stat)
         mg.Draw('a2p')
         mg.GetHistogram().GetXaxis().SetLimits(x_low, x_high)
@@ -369,9 +419,32 @@ class ScaleFactorCollector():
         for index, msc in enumerate(self.mscSplits):
             shifted_one = 1. + y_sf_offset[msc]
             lines[msc] = root.TLine(x_low, shifted_one, x_high, shifted_one)
-            lines[msc].SetLineColor(root.kGray + 2)
-            lines[msc].SetLineStyle(2)
+            lines[msc].SetLineColor(root.kGray + 1)
+            lines[msc].SetLineStyle(3)
             lines[msc].Draw()
+
+
+        end_error_size = 5 # this is a number of pixels. This could be dynamic depending on the size of the canvas and number of pt bins
+        root.gStyle.SetEndErrorSize(end_error_size)
+
+        mg2 = root.TMultiGraph()
+        mg2.SetTitle('')
+        for year in self.years:
+            graph_uncorr = graphs[year]['uncorr']
+            # graph_uncorr.SetFillColor(root.kWhite)
+            graph_uncorr.SetLineColor(root.kBlack)
+            graph_uncorr.SetMarkerStyle(7)
+            mg2.Add(graph_uncorr)
+        mg2.Draw('||p')
+
+        legend.Draw()
+
+        #HACK W tagger:
+        if self.tagger.name == 'ak8_w__partnet':
+            graph__w_tagger = root.TGraphAsymmErrors(len(arr_x__w_tagger), arr_x__w_tagger, arr_y__w_tagger, arr_zeroes__w_tagger, arr_zeroes__w_tagger, arr_zeroes__w_tagger, arr_zeroes__w_tagger)
+            graph__w_tagger.SetMarkerStyle(47)
+            graph__w_tagger.SetMarkerSize(1.2)
+            graph__w_tagger.Draw('p')
 
         axes = {}
         ndiv = 505
@@ -405,15 +478,22 @@ class ScaleFactorCollector():
         deltaX = 0.03
         hw_corrected_deltaX = deltaX * hw_correction
 
-        self.tlatex_cms = root.TLatex(self.coord.graph_to_pad_x(hw_corrected_deltaX), self.coord.graph_to_pad_y(1. - deltaX), 'CMS')
+        text_cms_offset_x = 0.055
+
+        self.tlatex_cms = root.TLatex(self.coord.graph_to_pad_x(hw_corrected_deltaX) + text_cms_offset_x, self.coord.graph_to_pad_y(1. - deltaX), 'CMS')
         self.tlatex_cms.SetTextAlign(13) # left top
         self.tlatex_cms.SetTextFont(62)
         self.tlatex_cms.SetTextSize(0.07)
         self.tlatex_cms.SetNDC()
         self.tlatex_cms.Draw()
 
-        self.text_prelim = 'Work in Progress'
-        self.tlatex_prelim = root.TLatex(self.coord.graph_to_pad_x(hw_corrected_deltaX + 0.14), self.coord.graph_to_pad_y(0.948), self.text_prelim)
+        # self.text_prelim = 'Work in Progress'
+        self.text_prelim = 'Preliminary'
+        #HACK
+        if self.tagger.name == 'ak8_w__partnet' or self.tagger.name == 'ak8_t__MDdeepak8':
+            self.text_prelim = 'Private Work'
+        #HACK end
+        self.tlatex_prelim = root.TLatex(self.coord.graph_to_pad_x(hw_corrected_deltaX + 0.14) + text_cms_offset_x, self.coord.graph_to_pad_y(0.948), self.text_prelim)
         self.tlatex_prelim.SetTextAlign(13) # left top
         self.tlatex_prelim.SetTextFont(52)
         self.tlatex_prelim.SetTextSize(0.045)
@@ -431,6 +511,14 @@ class ScaleFactorCollector():
             pt_text_string = self.tagger.label.replace('{WP_VALUE}', '{}'.format(self.wp.get_cut_value(year)))
         pt_text_string2 = '|#eta| < 2.5'
         pt_text_string += ', ' + pt_text_string2
+
+        #HACK for ak8_w__partnet and ak8_t__MDdeepak8:
+        if self.tagger.name == 'ak8_w__partnet':
+            pt_text_string = 'ParticleNet WvsQCD (#varepsilon_{B} = 3%), |#eta| < 2.5'
+        if self.tagger.name == 'ak8_t__MDdeepak8':
+            pt_text_string = 'MD-DeepAK8 TvsQCD (#varepsilon_{B} = 1%), |#eta| < 2.5'
+
+        #HACK end
 
         tlatex_pt = root.TLatex(self.coord.graph_to_pad_x(1. - hw_corrected_deltaX), self.coord.graph_to_pad_y(0.848), pt_text_string)
         tlatex_pt.SetTextAlign(31) # left top
@@ -477,7 +565,7 @@ class ScaleFactorCollector():
             pt_labels[pt_bin.name].Draw()
 
         y_label = root.TLatex(
-            margin_l * 0.45,
+            margin_l * 0.3, # margin_l * 0.45
             (1. - (y_gap / y_range + header_y_fraction)) / 2. * (1. - margin_t - margin_b) + margin_b,
             'Data-to-simulation scale factor'
         )
@@ -487,6 +575,21 @@ class ScaleFactorCollector():
         y_label.SetTextSize(self.text_size)
         y_label.SetNDC()
         y_label.Draw()
+
+        y_label2 = root.TLatex(
+            margin_l * 0.5,
+            (1. - (y_gap / y_range + header_y_fraction)) / 2. * (1. - margin_t - margin_b) + margin_b,
+            '[ inner (outer) colored area = stat. (tot.) unc. / black bar = era-uncorrelated unc. ]'
+        )
+        y_label2.SetTextAlign(21)
+        y_label2.SetTextAngle(90)
+        y_label2.SetTextFont(42)
+        y_label2.SetTextSize(0.02)
+        y_label2.SetNDC()
+        y_label2.Draw()
+
+
+
 
         msc_paves = {}
         msc_labels = {}
@@ -534,15 +637,17 @@ class ScaleFactorCollector():
             msc_labels[msc].SetTextSize(0.03)
             msc_labels[msc].Draw()
 
+
+            text_top_left_offset_x = 0.075
             text_top_left = 'Run II Ultra Legacy'
-            self.tlatex_top_left = root.TLatex(margin_l, 1. - margin_t + 0.01, text_top_left)
+            self.tlatex_top_left = root.TLatex(margin_l + text_top_left_offset_x, 1. - margin_t + 0.01, text_top_left)
             self.tlatex_top_left.SetTextAlign(11) # left bottom
             self.tlatex_top_left.SetTextFont(42)
             self.tlatex_top_left.SetTextSize(self.text_size)
             self.tlatex_top_left.SetNDC()
             self.tlatex_top_left.Draw()
 
-            text_top_right = ' + '.join([_YEARS.get(year).get('lumi_fb_display')+' fb^{#minus1}' for year in self.years])
+            text_top_right = ', '.join([_YEARS.get(year).get('lumi_fb_display')+' fb^{#minus1}' for year in self.years])
             text_top_right += ' (13 TeV)'
             self.tlatex_top_right = root.TLatex(1. - margin_r, 1. - margin_t + 0.01, text_top_right)
             self.tlatex_top_right.SetTextAlign(31) # right bottom

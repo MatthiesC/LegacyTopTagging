@@ -34,18 +34,18 @@ from parallel_threading import run_with_pool
 
 all_years = [
 'UL16preVFP',
-'UL16postVFP',
+# 'UL16postVFP',
 # 'UL17',
 # 'UL18',
 ]
 
 taggers = [
-# 'ak8_t__tau', #naf11 tmux5
+'ak8_t__tau', #naf11 tmux5
 # 'ak8_t_btagDJet__tau', #naf11 tmux6
 # 'ak8_t_btagDCSV__tau',#naf11 tmux7
-'hotvr_t__tau', #naf11 tmux8
-'ak8_w__partnet',
-'ak8_t__MDdeepak8',
+# 'hotvr_t__tau', #naf11 tmux8
+# 'ak8_w__partnet',
+# 'ak8_t__MDdeepak8',
 ]
 taggers = {k: _TAGGERS[k] for k in taggers}
 
@@ -99,18 +99,18 @@ processes = [
 'VJetsAndVV',
 ]
 
-do_histograms = True
-# do_histograms = False
+# do_histograms = True
+do_histograms = False
 
 ### only relevant for plots:
-# do_plotting = True
-do_plotting = False
+do_plotting = True
+# do_plotting = False
 do_legend = True
 # do_legend = False
 # mscSplitting = 'mscNone'
 # mscSplitting = 'mscTop2'
-# mscSplitting = 'mscTop3'
-mscSplitting = 'mscW3'
+mscSplitting = 'mscTop3'
+# mscSplitting = 'mscW3'
 
 processes_Plotter = None
 
@@ -608,7 +608,8 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
                 lumi_unc = _YEARS.get(year).get('lumi_unc'),
                 # divide_by_bin_width = False,
                 data_name = 'data_obs',
-                text_prelim = 'Private Work',
+                # text_prelim = 'Private Work',
+                text_prelim = 'Preliminary',
                 # text_top_left = _YEARS.get(year).get('long_name'),
                 text_top_left = 'T&P '+('e' if channel == 'ele' else '#mu')+'+jets, UL '+_YEARS.get(year).get('year'),
                 text_top_right = _YEARS.get(year).get('lumi_fb_display')+' fb^{#minus1} (13 TeV)',
@@ -616,7 +617,7 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
                 logy = logy,
             )
 
-            plotName = 'Plot-prefitRaw-'+task_name+'-'+outFolderName+'-'+mscSplitting+('-withLeg' if do_legend else '-noLeg')+'.pdf'
+            plotName = 'Plot-prefitRaw-'+task_name+'-'+outFolderName+'-'+mscSplitting+('-withLeg' if do_legend else '-noLeg')+('-Preliminary' if nice.text_prelim == 'Preliminary' else '')+'.pdf'
             plotDir = os.path.join(outDir, 'plots')
 
             nice.plot()
