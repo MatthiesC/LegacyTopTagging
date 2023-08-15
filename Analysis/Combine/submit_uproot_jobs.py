@@ -78,16 +78,16 @@ if __name__=='__main__':
     # key = tagger_name, value = number of wps
     # don't submit all at once! Will go over 5,000 jobs limit! (With all systs incl. all JES splits, FSR/ISR splits, one WP creates 146 jobs/year)
     taggers = {
-        'ak8_t__tau': 5,
-        'ak8_t_btagDJet__tau': 5,
-        'ak8_t_btagDCSV__tau': 5,
+        # 'ak8_t__tau': 5,
+        # 'ak8_t_btagDJet__tau': 5,
+        # 'ak8_t_btagDCSV__tau': 5,
         'hotvr_t__tau': 1,
-        # 'ak8_w__partnet': 1,
-        'ak8_t__MDdeepak8': 1,
+        'ak8_w__partnet': 1,
+        # 'ak8_t__MDdeepak8': 1,
     }
 
-    null_wp = False
-    # null_wp = True
+    # null_wp = False
+    null_wp = True
 
     for tagger_name, n_wps in taggers.items():
         if null_wp:

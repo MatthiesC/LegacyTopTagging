@@ -666,7 +666,7 @@ class ScaleFactorFits():
             #________________________________
             # MC statistics
             # https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/part2/bin-wise-stats.html
-            # file.write('* autoMCStats 0 1 1\n') # event-threshold=0, include-signal=1, hist-mode=1 # HACK decomment
+            file.write('* autoMCStats 0 1 1\n') # event-threshold=0, include-signal=1, hist-mode=1 # HACK decomment
             #________________________________
             # Nuisance groups
             file.write('uncertsEraCorrelated group = '+' '.join(era_correlated_systs)+'\n')
@@ -1164,27 +1164,27 @@ class ScaleFactorFits():
     def impacts(self, observed=False, run=True, parallel=True):
         print('Calculating nuisance parameter impacts:', expobs(observed, False))
         results = OrderedDict()
-        #________________________________
-        print('Performing an initial fit for the signal strength and its uncertainty')
-        command1 = 'combineTool.py -M Impacts \\'
-        command1 += '-m 0 \\' # required argument
-        command1 += '-d '+self.workspace_path+' \\'
-        command1 += '--doInitialFit \\'
-        command1 += '--robustFit 1 \\'
-        if self.robust_hesse:
-            command1 += '--robustHesse=1 \\' # produces covariance matrix of nuisance parameters
-        if not observed:
-            command1 += '-t -1 \\'
-            command1 += '--toysFile '+os.path.join(self.workdir, 'higgsCombine_toy.GenerateOnly.mH120.123456.root')+' \\'
-        task_name1 = '_'.join(['impacts', expobs(observed), 'command1'])
-        results[task_name1] = self.combine_task(task_name1, command1, run)
-        #________________________________
-        print('Calculating impacts for all nuisance parameters')
-        command2 = command1.replace('--doInitialFit', '--doFits')
-        if parallel:
-            command2 += '--parallel 16 \\' # spawn 6 parallel jobs
-        task_name2 = '_'.join(['impacts', expobs(observed), 'command2'])
-        results[task_name2] = self.combine_task(task_name2, command2, run)
+        # #________________________________
+        # print('Performing an initial fit for the signal strength and its uncertainty')
+        # command1 = 'combineTool.py -M Impacts \\'
+        # command1 += '-m 0 \\' # required argument
+        # command1 += '-d '+self.workspace_path+' \\'
+        # command1 += '--doInitialFit \\'
+        # command1 += '--robustFit 1 \\'
+        # if self.robust_hesse:
+        #     command1 += '--robustHesse=1 \\' # produces covariance matrix of nuisance parameters
+        # if not observed:
+        #     command1 += '-t -1 \\'
+        #     command1 += '--toysFile '+os.path.join(self.workdir, 'higgsCombine_toy.GenerateOnly.mH120.123456.root')+' \\'
+        # task_name1 = '_'.join(['impacts', expobs(observed), 'command1'])
+        # results[task_name1] = self.combine_task(task_name1, command1, run)
+        # #________________________________
+        # print('Calculating impacts for all nuisance parameters')
+        # command2 = command1.replace('--doInitialFit', '--doFits')
+        # if parallel:
+        #     command2 += '--parallel 16 \\' # spawn 6 parallel jobs
+        # task_name2 = '_'.join(['impacts', expobs(observed), 'command2'])
+        # results[task_name2] = self.combine_task(task_name2, command2, run)
         #________________________________
         print('Collecting output, converting to .json format')
         impactsJsonPath = os.path.join(self.workdir, 'impacts_'+expobs(observed)+'.json')
@@ -1203,15 +1203,15 @@ class ScaleFactorFits():
         plot_command_base += '-o {1} \\'
         # plot_command_base += '-t '+globalRenameJsonFile+' \\' # rename parameters
 
-        # # HACK: adjust commands to produce nicer impact plots:
-        # plot_command_base += '--cms-label Private\ Work \\'
-        # # plot_command_base += '--cms-label Preliminary \\'
-        # plot_command_base += '--per-page 20 \\'
-        # # plot_command_base += '--max-pages 1 \\'
-        # plot_command_base += '--label-size 0.035 \\'
-        # rename_file_name = 'rename_GoodExample-ak8_t__tau-BkgEff0p001-UL16preVFP-pt_480to600.json'
-        # rename_file_path = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/Analysis/Combine/', rename_file_name)
-        # plot_command_base += '--translate '+rename_file_path+' \\'
+        # HACK: adjust commands to produce nicer impact plots:
+        plot_command_base += '--cms-label Private\ Work \\'
+        # plot_command_base += '--cms-label Preliminary \\'
+        plot_command_base += '--per-page 20 \\'
+        plot_command_base += '--max-pages 1 \\'
+        plot_command_base += '--label-size 0.035 \\'
+        rename_file_name = 'rename_GoodExample-ak8_t__tau-BkgEff0p001-UL16preVFP-pt_480to600.json'
+        rename_file_path = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/Analysis/Combine/', rename_file_name)
+        plot_command_base += '--translate '+rename_file_path+' \\'
 
         for signal_rate_param in self.pois.keys():
             print('Plotting impacts for parameter:', signal_rate_param)
@@ -1294,8 +1294,8 @@ if __name__=='__main__':
         # mode='Hybrid',
         # mscSplitting = 'mscW3',
         # mscSplitting = 'mscTop3',
-        # robust_hesse = False,
-        robust_hesse = True,
+        robust_hesse = False,
+        # robust_hesse = True,
     )
 
     # x.write_rootfile()
@@ -1319,12 +1319,12 @@ if __name__=='__main__':
     # x.impacts(observed=False)
 
     # Observed:
-    x.multidimfit(observed=True)
-    x.multidimfit(observed=True, freezeEraCorrelated=True)
-    x.multidimfit(observed=True, freezeSyst=True)
-    x.write_scale_factor_file(observed=True)
-    x.prepostfitshapes(observed=True)
-    x.prepostfitshapes_for_plots(observed=True)
-    x.plot_prepostfitshapes(observed=True, prepostfit='prefitCombine')
-    x.plot_prepostfitshapes(observed=True, prepostfit='postfitCombine')
+    # x.multidimfit(observed=True)
+    # x.multidimfit(observed=True, freezeEraCorrelated=True)
+    # x.multidimfit(observed=True, freezeSyst=True)
+    # x.write_scale_factor_file(observed=True)
+    # x.prepostfitshapes(observed=True)
+    # x.prepostfitshapes_for_plots(observed=True)
+    # x.plot_prepostfitshapes(observed=True, prepostfit='prefitCombine')
+    # x.plot_prepostfitshapes(observed=True, prepostfit='postfitCombine')
     x.impacts(observed=True)
