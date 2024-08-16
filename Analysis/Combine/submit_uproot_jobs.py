@@ -50,6 +50,7 @@ log               = """+self.workdir+"""/"""+self.batch_name+""".$(Cluster).log
 RequestCpus       = 1
 RequestMemory     = 4G
 RequestDisk       = 4G
+RequestRuntime    = 14400
 getenv            = True
 JobBatchName      = """+self.batch_name+"""
 executable        = create_root_files_for_datacards_uproot.py
@@ -67,8 +68,8 @@ queue Systematic from (
 if __name__=='__main__':
 
     years = [
-    'UL16preVFP',
-    'UL16postVFP',
+    # 'UL16preVFP',
+    # 'UL16postVFP',
     'UL17',
     'UL18',
     ]
@@ -82,7 +83,7 @@ if __name__=='__main__':
         # 'ak8_t_btagDJet__tau': 5,
         # 'ak8_t_btagDCSV__tau': 5,
         'hotvr_t__tau': 1,
-        'ak8_w__partnet': 1,
+        # 'ak8_w__partnet': 1,
         # 'ak8_t__MDdeepak8': 1,
     }
 

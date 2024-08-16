@@ -43,6 +43,7 @@ _YEARS = OrderedDict([
         'lumi_fb_display': '19.5',
         'index': 1, # same as in LegacyTopTagging/include/Constants.h
         'tcolor': 900+8,
+        'leonidasNaming': '2016-RunBCDEF',
     }),
     ('UL16postVFP', {
         'short_name': 'UL16postVFP',
@@ -59,7 +60,9 @@ _YEARS = OrderedDict([
         },
         'lumi_fb_display': '16.8',
         'index': 2, # same as in LegacyTopTagging/include/Constants.h
-        'tcolor': 860-6,
+        # 'tcolor': 860-6,
+        'tcolor': 860-5,
+        'leonidasNaming': '2016-RunFGH',
     }),
     ('UL17', {
         'short_name': 'UL17',
@@ -76,6 +79,7 @@ _YEARS = OrderedDict([
         'lumi_fb_display': '41.5',
         'index': 3, # same as in LegacyTopTagging/include/Constants.h
         'tcolor': 800-3,
+        'leonidasNaming': '2017',
     }),
     ('UL18', {
         'short_name': 'UL18',
@@ -92,6 +96,7 @@ _YEARS = OrderedDict([
         'lumi_fb_display': '59.8',
         'index': 4, # same as in LegacyTopTagging/include/Constants.h
         'tcolor': 820-8,
+        'leonidasNaming': '2018',
     }),
     ('run2', {
         'short_name': 'ULRunII',
@@ -307,6 +312,47 @@ _PT_INTERVALS_TANDP_AK8_W = [
 ]
 _PT_INTERVALS_TANDP_AK8_W = {pt_interval.name: pt_interval for pt_interval in _PT_INTERVALS_TANDP_AK8_W}
 
+_PT_INTERVALS_TANDP_AK8_T_LEONIDAS_TVSQCD = [
+    VarInterval('pt', 300, 400,
+        fit=True,
+    ),
+    VarInterval('pt', 400, 480,
+        fit=True,
+    ),
+    VarInterval('pt', 480, 600,
+        fit=True,
+    ),
+    VarInterval('pt', 600, 1200,
+        fit=True,
+    ),
+]
+_PT_INTERVALS_TANDP_AK8_T_LEONIDAS_TVSQCD = {pt_interval.name: pt_interval for pt_interval in _PT_INTERVALS_TANDP_AK8_T_LEONIDAS_TVSQCD}
+
+_PT_INTERVALS_TANDP_AK8_W_LEONIDAS_WVSQCD = [
+    VarInterval('pt', 200, 300,
+        fit=True,
+    ),
+    VarInterval('pt', 300, 400,
+        fit=True,
+    ),
+    VarInterval('pt', 400, 800,
+        fit=True,
+    ),
+]
+_PT_INTERVALS_TANDP_AK8_W_LEONIDAS_WVSQCD = {pt_interval.name: pt_interval for pt_interval in _PT_INTERVALS_TANDP_AK8_W_LEONIDAS_WVSQCD}
+
+_PT_INTERVALS_TANDP_AK8_W_LEONIDAS_WVSQCDMD = [
+    VarInterval('pt', 200, 300,
+        fit=True,
+    ),
+    VarInterval('pt', 300, 400,
+        fit=True,
+    ),
+    VarInterval('pt', 400, 800,
+        fit=True,
+    ),
+]
+_PT_INTERVALS_TANDP_AK8_W_LEONIDAS_WVSQCDMD = {pt_interval.name: pt_interval for pt_interval in _PT_INTERVALS_TANDP_AK8_W_LEONIDAS_WVSQCDMD}
 
 class WorkingPoint:
 
@@ -339,7 +385,15 @@ class Tagger:
         self.name = name
         self.scan_var = scan_var
         self.tag_rule = tag_rule
-        if self.name.startswith('ak8_t'):
+        self.var_intervals = _PT_INTERVALS # just use all for now
+        self.fit_variable = 'VAR_NOT_DEFINED' # fixme
+        if self.name == 'ak8_t__leonidasTvsQCD':
+            self.var_intervals = _PT_INTERVALS_TANDP_AK8_T_LEONIDAS_TVSQCD
+        elif self.name == 'ak8_w__leonidasWvsQCD':
+            self.var_intervals = _PT_INTERVALS_TANDP_AK8_W_LEONIDAS_WVSQCD
+        elif self.name == 'ak8_w__leonidasWvsQCDMD':
+            self.var_intervals = _PT_INTERVALS_TANDP_AK8_W_LEONIDAS_WVSQCDMD
+        elif self.name.startswith('ak8_t'):
             self.var_intervals = _PT_INTERVALS_TANDP_AK8_T
             self.fit_variable = 'output_probejet_AK8_mSD'
         elif self.name.startswith('ak8_w'):
@@ -348,9 +402,6 @@ class Tagger:
         elif self.name.startswith('hotvr_t'):
             self.var_intervals = _PT_INTERVALS_TANDP_HOTVR
             self.fit_variable = 'output_probejet_HOTVR_mass'
-        else:
-            self.var_intervals = _PT_INTERVALS # just use all for now
-            self.fit_variable = 'VAR_NOT_DEFINED' # fixme
         if use_all_pt_intervals:
             self.var_intervals = _PT_INTERVALS
         self.wps = wps # cut values for scan_var; should be list of instances of class "WorkingPoint"
@@ -676,6 +727,110 @@ _TAGGERS = [
         'MDdeepak8_WvsQCD',
         [],
         tandp_rule='(output_probejet_AK8_MDDeepAK8_WvsQCD > {WP_VALUE})',
+    ),
+    #__________________________________________________
+    # Leonidas' ParticleNet Tagger
+    Tagger('ak8_t__leonidasTvsQCD',
+        'FIXME',
+        ['msd > 105', 'msd < 210'],
+        tandp_rule='',
+        wps=[
+            WorkingPoint(0.001,
+            {
+                'UL16preVFP': 0.957,
+                'UL16postVFP': 0.958,
+                'UL17': 0.970,
+                'UL18': 0.97,
+            },
+            # name='WP1'
+            ),
+            WorkingPoint(0.005,
+            {
+                'UL16preVFP': 0.738,
+                'UL16postVFP': 0.733,
+                'UL17': 0.801,
+                'UL18': 0.80,
+            },
+            # name='WP2'
+            ),
+            WorkingPoint(0.010,
+            {
+                'UL16preVFP': 0.490,
+                'UL16postVFP': 0.495,
+                'UL17': 0.581,
+                'UL18': 0.58,
+            },
+            # name='WP3'
+            ),
+        ],
+    ),
+    Tagger('ak8_w__leonidasWvsQCD',
+        'FIXME',
+        ['msd > 65', 'msd < 105'],
+        tandp_rule='',
+        wps=[
+            WorkingPoint(0.005,
+            {
+                'UL16preVFP': 0.974,
+                'UL16postVFP': 0.974,
+                'UL17': 0.978,
+                'UL18': 0.98,
+            },
+            # name='WP1'
+            ),
+            WorkingPoint(0.010,
+            {
+                'UL16preVFP': 0.935,
+                'UL16postVFP': 0.934,
+                'UL17': 0.944,
+                'UL18': 0.94,
+            },
+            # name='WP2'
+            ),
+            WorkingPoint(0.050,
+            {
+                'UL16preVFP': 0.677,
+                'UL16postVFP': 0.668,
+                'UL17': 0.709,
+                'UL18': 0.70,
+            },
+            # name='WP3'
+            ),
+        ],
+    ),
+    Tagger('ak8_w__leonidasWvsQCDMD',
+        'FIXME',
+        ['msd > 65', 'msd < 105'],
+        tandp_rule='',
+        wps=[
+            WorkingPoint(0.005,
+            {
+                'UL16preVFP': 0.910,
+                'UL16postVFP': 0.907,
+                'UL17': 0.891,
+                'UL18': 0.90,
+            },
+            # name='WP1'
+            ),
+            WorkingPoint(0.010,
+            {
+                'UL16preVFP': 0.845,
+                'UL16postVFP': 0.842,
+                'UL17': 0.810,
+                'UL18': 0.82,
+            },
+            # name='WP2'
+            ),
+            WorkingPoint(0.025,
+            {
+                'UL16preVFP': 0.637,
+                'UL16postVFP': 0.642,
+                'UL17': 0.579,
+                'UL18': 0.59,
+            },
+            # name='WP3'
+            ),
+        ],
     ),
 ]
 _TAGGERS = {tagger.name: tagger for tagger in _TAGGERS}

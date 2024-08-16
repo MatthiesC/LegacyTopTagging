@@ -46,6 +46,12 @@ graph_types = [
 
 golden_ratio = .61803398875
 
+# y_scaling_msc = {
+#     'FullyMerged': 1.0,
+#     'SemiMerged': ,
+#     'NotMerged': ,
+# }
+
 class ValueAndAsymmErrors():
 
     def __init__(self, value, up=None, down=None):
@@ -333,9 +339,21 @@ class ScaleFactorCollector():
                 arr_eyl = np.array([], dtype=np.float32)
                 arr_eyh = np.array([], dtype=np.float32)
                 for msc in self.mscSplits:
+
+                    # SCALE HERE
+                    scale_ey = 1.0
+                    if msc == 'FullyMerged':
+                        scale_ey = 0.4
+                    elif msc == 'SemiMerged':
+                        scale_ey = 0.7
+                    elif self.mscSplitting == 'mscW3':
+                        scale_ey = 0.4
+
                     for pt_bin in self.sorted_pt_bins:
                         arr_x = np.append(arr_x, x_sf_position[year] + x_pt_offset[pt_bin.name])
-                        arr_y = np.append(arr_y, getattr(self.scale_factors[msc][pt_bin.name][year], 'tot').value + y_sf_offset[msc]) # always use central value of tot
+                        # value_y = getattr(self.scale_factors[msc][pt_bin.name][year], 'tot').value + y_sf_offset[msc] # always use central value of tot # SCALE HERE
+                        value_y = 0.5 * y_sf_range + ( getattr(self.scale_factors[msc][pt_bin.name][year], 'tot').value - 0.5 * y_sf_range ) / scale_ey + y_sf_offset[msc] # always use central value of tot # SCALE HERE
+                        arr_y = np.append(arr_y, value_y)
                         if graph_type == 'stat':
                             exl = 0.6 * x_sf_width
                         elif graph_type == 'uncorr':
@@ -344,8 +362,10 @@ class ScaleFactorCollector():
                             exl = 0.4 * x_sf_width
                         arr_exl = np.append(arr_exl, exl)
                         arr_exh = np.append(arr_exh, exl)
-                        arr_eyl = np.append(arr_eyl, getattr(self.scale_factors[msc][pt_bin.name][year], graph_type).down)
-                        arr_eyh = np.append(arr_eyh, getattr(self.scale_factors[msc][pt_bin.name][year], graph_type).up)
+                        value_eyl = getattr(self.scale_factors[msc][pt_bin.name][year], graph_type).down / scale_ey # SCALE HERE
+                        arr_eyl = np.append(arr_eyl, value_eyl)
+                        value_eyh = getattr(self.scale_factors[msc][pt_bin.name][year], graph_type).up / scale_ey # SCALE HERE
+                        arr_eyh = np.append(arr_eyh, value_eyh)
                         #HACK for W tagger:
                         if self.tagger.name == 'ak8_w__partnet' and msc == 'FullyMerged' and (pt_bin.name == 'pt_200to250' or pt_bin.name == 'pt_250to300'):
                             arr_x__w_tagger = np.append(arr_x__w_tagger, x_sf_position[year] + x_pt_offset[pt_bin.name])
@@ -446,12 +466,26 @@ class ScaleFactorCollector():
             graph__w_tagger.SetMarkerSize(1.2)
             graph__w_tagger.Draw('p')
 
+        
+
         axes = {}
         ndiv = 505
         tick_length = 0.05
-        w_low = y_sf_low
-        w_high = y_sf_high
+        w_low_base = y_sf_low
+        w_high_base = y_sf_high
         for index_msc, msc in enumerate(self.mscSplits):
+
+            # SCALE HERE
+            scale_ey = 1.0
+            if msc == 'FullyMerged':
+                scale_ey = 0.4
+            elif msc == 'SemiMerged':
+                scale_ey = 0.7
+            elif self.mscSplitting == 'mscW3':
+                scale_ey = 0.4
+
+            w_low = 1 + ( w_low_base - 1 ) * scale_ey # SCALE HERE
+            w_high = 1 + ( w_high_base - 1 ) * scale_ey # SCALE HERE
             x_axis_low = x_low
             y_axis_low = y_sf_low + y_sf_offset[msc]
             x_axis_high = x_low
@@ -657,8 +691,10 @@ class ScaleFactorCollector():
             self.tlatex_top_right.Draw()
 
         for fileType in ['.pdf', '.png']:
-            plotFileName = self.sf_task_name+fileType
-            plotFilePath = os.path.join(self.outputPath, plotFileName)
+            plotFileName = self.sf_task_name+'-RescaledYAxis'+fileType
+            # plotFilePath = os.path.join(self.outputPath, plotFileName)
+            plotFileBasePath = 'scaleFactors_2023-08-10/'+self.sf_task_name
+            plotFilePath = os.path.join(plotFileBasePath, plotFileName)
             self.canvas.SaveAs(plotFilePath)
 
 if __name__ == '__main__':

@@ -450,7 +450,7 @@ void do_plot(
   cms->Draw();
 
   if(!plot_at_bottom) {
-    TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.87), "Simulation, Private Work");
+    TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.87), "Simulation, Preliminary");
     prelim->SetTextAlign(13); // left top
     prelim->SetTextFont(52);
     prelim->SetTextSize(0.035);
@@ -466,7 +466,7 @@ void do_plot(
     // prelim->SetTextColor(kWhite);
     prelim->Draw();
 
-    TText *prelim2 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.804), "Private Work");
+    TText *prelim2 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.804), "Preliminary");
     prelim2->SetTextAlign(13); // left top
     prelim2->SetTextFont(52);
     prelim2->SetTextSize(0.035);
@@ -737,7 +737,7 @@ void do_summary_plot(
   cms->Draw();
 
   if(!plot_at_bottom) {
-    TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.87), "Simulation, Private Work");
+    TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.87), "Simulation, Preliminary");
     prelim->SetTextAlign(13); // left top
     prelim->SetTextFont(52);
     prelim->SetTextSize(0.035);
@@ -753,7 +753,7 @@ void do_summary_plot(
     // prelim->SetTextColor(kWhite);
     prelim->Draw();
 
-    TText *prelim2 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.804), "Private Work");
+    TText *prelim2 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.804), "Preliminary");
     prelim2->SetTextAlign(13); // left top
     prelim2->SetTextFont(52);
     prelim2->SetTextSize(0.035);
@@ -1085,7 +1085,7 @@ void do_plot_all_years(
   cms->Draw();
 
   if(!plot_at_bottom) {
-    TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.87), "Simulation, Private Work");
+    TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.87), "Simulation, Preliminary");
     prelim->SetTextAlign(13); // left top
     prelim->SetTextFont(52);
     prelim->SetTextSize(0.035);
@@ -1101,7 +1101,7 @@ void do_plot_all_years(
     // prelim->SetTextColor(kWhite);
     prelim->Draw();
 
-    TText *prelim2 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.804), "Private Work");
+    TText *prelim2 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.804), "Preliminary");
     prelim2->SetTextAlign(13); // left top
     prelim2->SetTextFont(52);
     prelim2->SetTextSize(0.035);

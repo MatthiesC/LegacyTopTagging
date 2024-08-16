@@ -277,7 +277,8 @@ def plots_comparison_EOY_and_UL(
     fit_x_min = 200. if probejetalgo == 'HOTVR' else 300.  # Minimum x value for the fit range
     fit_x_max = 800. # Maximum x value for the fit range
 
-    exp_fit_func = root.TF1("exp_fit_func", "[0] * TMath::Exp([1] * x)")
+    # exp_fit_func = root.TF1("exp_fit_func", "[0] * TMath::Exp([1] * x)") # Exponential fit
+    exp_fit_func = root.TF1("exp_fit_func", "[0] + [1] * x") # Linear fit
     exp_fit_func.SetParameter(0, initial_value_A)      # Initial value for A
     exp_fit_func.SetParameter(1, initial_value_lambda) # Initial value for lambda
     exp_fit_func.SetRange(fit_x_min, fit_x_max)
@@ -356,7 +357,7 @@ def plots_comparison_EOY_and_UL(
     graph_EOY_markers_for_legend.SetFillColorAlpha(root.kGray, 1.)
 
     legend_sf.AddEntry(graph_UL, 'UL 20'+year+' (this study)', 'ep')
-    legend_sf.AddEntry(error_band_graph, 'Exponential fit to UL 20'+year+' (#chi^{2}/n.d.f. = '+"{:.2f}".format(chi2)+'/'+str(ndf)+')', 'lf')
+    legend_sf.AddEntry(error_band_graph, 'Linear fit to UL 20'+year+' (#chi^{2}/n.d.f. = '+"{:.2f}".format(chi2)+'/'+str(ndf)+')', 'lf')
     legend_sf.AddEntry(graph_EOY_markers_for_legend, 'EOY 20'+year+' (CMS DP 2020/025)', 'lpf')
 
 

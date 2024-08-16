@@ -399,26 +399,26 @@ if __name__ == '__main__':
     the_vars = []
     if the_tagger.name.startswith('ak8_t'):
         the_vars = [
-            'output_probejet_AK8_tau32',
-            'output_probejet_AK8_maxDeepJet',
-            'output_probejet_AK8_maxDeepCSV',
-            'output_probejet_AK8_MDDeepAK8_TvsQCD',
+            # 'output_probejet_AK8_tau32',
+            # 'output_probejet_AK8_maxDeepJet',
+            # 'output_probejet_AK8_maxDeepCSV',
+            # 'output_probejet_AK8_MDDeepAK8_TvsQCD',
             'output_probejet_AK8_mSD',
             'output_probejet_AK8_mass',
             'output_probejet_AK8_pt',
         ]
     elif the_tagger.name.startswith('ak8_w'):
         the_vars = [
-            'output_probejet_AK8_ParticleNet_WvsQCD',
-            'output_probejet_AK8_mSD',
-            'output_probejet_AK8_mass',
+            # 'output_probejet_AK8_ParticleNet_WvsQCD',
+            # 'output_probejet_AK8_mSD',
+            # 'output_probejet_AK8_mass',
             'output_probejet_AK8_pt',
         ]
     elif the_tagger.name.startswith('hotvr_t'):
         the_vars = [
-            'output_probejet_HOTVR_tau32',
-            'output_probejet_HOTVR_nsub',
-            'output_probejet_HOTVR_fpt1',
+            # 'output_probejet_HOTVR_tau32',
+            # 'output_probejet_HOTVR_nsub',
+            # 'output_probejet_HOTVR_fpt1',
             'output_probejet_HOTVR_mpair',
             'output_probejet_HOTVR_mass',
             'output_probejet_HOTVR_pt',
