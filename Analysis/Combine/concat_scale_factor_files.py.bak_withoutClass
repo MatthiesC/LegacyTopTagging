@@ -1,0 +1,152 @@
+from __future__ import print_function
+
+import os
+import sys
+import ROOT as root
+from collections import OrderedDict
+import numpy as np
+
+sys.path.append(os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/Analysis'))
+from constants import _YEARS, _TAGGERS, _NULL_WP
+
+years = [
+'UL16preVFP',
+'UL16postVFP',
+'UL17',
+'UL18',
+]
+regions = [
+'Pass',
+'Fail',
+]
+channels = [
+'muo',
+'ele',
+]
+taggers = [
+# 'ak8_t__tau',
+# 'ak8_t_btagDJet__tau',
+# 'ak8_t_btagDCSV__tau',
+# 'hotvr_t__tau',
+# 'ak8_w__partnet',
+'ak8_t__MDdeepak8',
+]
+taggers = {k: _TAGGERS[k] for k in taggers}
+
+graph_types = [
+'tot',
+'stat',
+'syst',
+'uncorr',
+'corr',
+]
+
+for tagger in taggers.values():
+
+    workdir_base_path = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel/combine/', tagger.name)
+    output_base_path = os.path.join(workdir_base_path, 'scale_factors')
+
+    if tagger.name.startswith('ak8_t'):
+        mscSplitting = 'mscTop3'
+    elif tagger.name.startswith('ak8_w'):
+        mscSplitting = 'mscW3'
+    elif tagger.name.startswith('hotvr_t'):
+        mscSplitting = 'mscTop3'
+
+    if mscSplitting == 'mscTop3':
+        mscSplits = [
+            'FullyMerged',
+            'SemiMerged',
+            'NotMerged',
+        ]
+    elif mscSplitting == 'mscW3':
+        mscSplits = [
+            'FullyMerged',
+            'WMerged',
+            'NotTopOrWMerged',
+        ]
+    else:
+        sys.exit()
+
+    # get pt bins for tagger
+    pt_bins = tagger.var_intervals
+    sorted_pt_bins = []
+    for pt_bin in pt_bins.values():
+        if not pt_bin.fit == True: continue
+        sorted_pt_bins.append(pt_bin)
+    sorted_pt_bins = sorted(sorted_pt_bins, key=lambda x: x.var_min, reverse=False)
+
+
+    for wp in tagger.get_wp():
+
+        sf_task_name = '-'.join(['scaleFactors', tagger.name, wp.name])
+        output_path = os.path.join(output_base_path, sf_task_name)
+        print(output_path)
+        os.system('mkdir -p '+output_path)
+
+        for year in years:
+
+            outfile_name = sf_task_name+'-'+year+'.root'
+            outfile_path = os.path.join(output_path, outfile_name)
+            print(outfile_path)
+
+            outFile = root.TFile.Open(outfile_path, 'RECREATE')
+            outFolderName = '-'.join([tagger.name, wp.name, year])
+            outFolder = outFile.mkdir(outFolderName)
+
+            for msc in mscSplits:
+
+                for graph_type in graph_types:
+
+                    graph_name = '_'.join([msc, year, graph_type])
+
+                    input_graphs = []
+
+                    for pt_bin in sorted_pt_bins:
+
+                        combine_task_name_suffix = '-'.join([('PtTotal' if pt_bin.total_range else pt_bin.name), year]) # HACK
+                        combine_task_name = '-'.join(['combineTask', tagger.name, wp.name]) + ('-'+combine_task_name_suffix if len(combine_task_name_suffix) else '')
+                        combine_task_path = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel/combine', tagger.name, 'workdirs', combine_task_name)
+                        infile_name = 'scale_factors_obs.root'
+                        infile_path = os.path.join(combine_task_path, infile_name)
+
+                        inFile = root.TFile.Open(infile_path, 'READ')
+                        # inFile.SetDirectory(0)
+
+                        # input_graph = inFile.Get(graph_name)
+                        input_graphs.append(inFile.Get(graph_name))
+
+                        inFile.Close()
+
+
+
+                    # Create an empty TGraphAsymmErrors object to store the concatenated data
+                    concatenated_graph = root.TGraphAsymmErrors()
+
+                    # Loop through each input TGraphAsymmErrors object and retrieve its data points and errors
+                    for input_graph in input_graphs:
+                        # Get the number of points in the input graph
+                        num_points = input_graph.GetN()
+
+                        # Loop through each point in the input graph and add it to the concatenated graph
+                        for i in range(num_points):
+                            x = root.Double()
+                            y = root.Double()
+                            x_err_low = root.Double()
+                            x_err_high = root.Double()
+                            y_err_low = root.Double()
+                            y_err_high = root.Double()
+
+                            # Get the values and errors of the point
+                            input_graph.GetPoint(i, x, y)
+                            x_err_low = input_graph.GetErrorXlow(i)
+                            x_err_high = input_graph.GetErrorXhigh(i)
+                            y_err_low = input_graph.GetErrorYlow(i)
+                            y_err_high = input_graph.GetErrorYhigh(i)
+
+                            # Add the point with errors to the concatenated graph
+                            concatenated_graph.SetPoint(concatenated_graph.GetN(), x, y)
+                            concatenated_graph.SetPointError(concatenated_graph.GetN() - 1, x_err_low, x_err_high, y_err_low, y_err_high)
+
+                    outFolder.cd()
+                    concatenated_graph.Write(graph_name)

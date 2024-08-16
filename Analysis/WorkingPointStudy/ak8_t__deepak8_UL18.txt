@@ -1,0 +1,27 @@
+
+Processing plots.cxx("${i}", "ak8_t__deepak8")...
+>>> WP: <<<
+Target eff BKG:    0.001
+Actual eff BKG:    0.00101432
+Actual eff SIG:    0.332678
+Scan variable cut: 0.987
+>>> WP: <<<
+Target eff BKG:    0.005
+Actual eff BKG:    0.00502353
+Actual eff SIG:    0.471938
+Scan variable cut: 0.924
+>>> WP: <<<
+Target eff BKG:    0.01
+Actual eff BKG:    0.00998908
+Actual eff SIG:    0.535545
+Scan variable cut: 0.828
+>>> WP: <<<
+Target eff BKG:    0.025
+Actual eff BKG:    0.0250272
+Actual eff SIG:    0.619636
+Scan variable cut: 0.526
+>>> WP: <<<
+Target eff BKG:    0.05
+Actual eff BKG:    0.0499619
+Actual eff SIG:    0.668209
+Scan variable cut: 0.22

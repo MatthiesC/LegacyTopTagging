@@ -1,0 +1,58 @@
+000 (23072099.000.000) 2022-10-07 19:43:29 Job submitted from host: <131.169.223.39:9618?addrs=131.169.223.39-9618+[2001-638-700-10df--1-27]-9618&alias=bird-htc-sched11.desy.de&noUDP&sock=schedd_2321_9767>
+...
+000 (23072099.001.000) 2022-10-07 19:43:29 Job submitted from host: <131.169.223.39:9618?addrs=131.169.223.39-9618+[2001-638-700-10df--1-27]-9618&alias=bird-htc-sched11.desy.de&noUDP&sock=schedd_2321_9767>
+...
+001 (23072099.000.000) 2022-10-07 19:44:44 Job executing on host: <131.169.160.154:34039?addrs=131.169.160.154-34039+[2001-638-700-10a0--1-9a]-34039&alias=batch1054.desy.de>
+...
+006 (23072099.000.000) 2022-10-07 19:44:52 Image size of job updated: 18992
+	14  -  MemoryUsage of job (MB)
+	14000  -  ResidentSetSize of job (KB)
+...
+001 (23072099.001.000) 2022-10-07 19:45:42 Job executing on host: <131.169.160.194:42182?addrs=131.169.160.194-42182+[2001-638-700-10a0--1-c2]-42182&alias=batch1188.desy.de>
+...
+006 (23072099.001.000) 2022-10-07 19:45:51 Image size of job updated: 686672
+	549  -  MemoryUsage of job (MB)
+	562048  -  ResidentSetSize of job (KB)
+...
+006 (23072099.000.000) 2022-10-07 19:49:44 Image size of job updated: 3051028
+	14  -  MemoryUsage of job (MB)
+	14000  -  ResidentSetSize of job (KB)
+...
+005 (23072099.000.000) 2022-10-07 19:49:44 Job terminated.
+	(1) Normal termination (return value 0)
+		Usr 0 00:03:51, Sys 0 00:00:42  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+		Usr 0 00:03:51, Sys 0 00:00:42  -  Total Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Total Local Usage
+	0  -  Run Bytes Sent By Job
+	0  -  Run Bytes Received By Job
+	0  -  Total Bytes Sent By Job
+	0  -  Total Bytes Received By Job
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :     1.00        1         1 
+	   Disk (KB)            :    15     4608000   6156180 
+	   Memory (MB)          :    14        4096      4096 
+
+	Job terminated of its own accord at 2022-10-07T17:49:44Z.
+...
+006 (23072099.001.000) 2022-10-07 19:49:47 Image size of job updated: 3440968
+	550  -  MemoryUsage of job (MB)
+	562824  -  ResidentSetSize of job (KB)
+...
+005 (23072099.001.000) 2022-10-07 19:49:47 Job terminated.
+	(1) Normal termination (return value 0)
+		Usr 0 00:03:25, Sys 0 00:00:31  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+		Usr 0 00:03:25, Sys 0 00:00:31  -  Total Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Total Local Usage
+	0  -  Run Bytes Sent By Job
+	0  -  Run Bytes Received By Job
+	0  -  Total Bytes Sent By Job
+	0  -  Total Bytes Received By Job
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :                 1         1 
+	   Disk (KB)            :       15  4608000   5889054 
+	   Memory (MB)          :      550     4096      4096 
+
+	Job terminated of its own accord at 2022-10-07T17:49:47Z.
+...

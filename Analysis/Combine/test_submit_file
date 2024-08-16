@@ -1,0 +1,21 @@
+#HTC Submission File for testing uproot script
+# +MyProject        =  "af-cms"
+Requirements = ( OpSysAndVer == "CentOS7" )
+universe          = vanilla
+notification      = Error
+notify_user       = matthies@mail.desy.de
+# initialdir        = test_workdir
+output            = test_workdir/test_name.$(Systematic).$(ClusterId).$(Process).out
+error             = test_workdir/test_name.$(Systematic).$(ClusterId).$(Process).err
+log               = test_workdir/test_name.$(Cluster).log
+RequestCpus       = 1
+RequestMemory     = 4G
+RequestDisk       = 4G
+getenv            = True
+JobBatchName      = test_name
+executable        = create_root_files_for_datacards_uproot.py
+arguments         = -t ak8_t__tau -w 0 -y UL17 -s $(Systematic)
+queue Systematic from (
+  nominal
+  pu_up
+)

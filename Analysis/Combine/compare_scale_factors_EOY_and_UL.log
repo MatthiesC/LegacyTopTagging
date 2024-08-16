@@ -1,0 +1,594 @@
+HOTVR_PUPPI_default
+ FCN=3.27868 FROM MIGRAD    STATUS=CONVERGED      44 CALLS          45 TOTAL
+                     EDM=2.97564e-21    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           9.78231e-01   4.80171e-02   1.41381e-05   4.55456e-09
+   2  p1          -8.00861e-05   1.17985e-04   3.47393e-08   2.14123e-06
+('chi2', 3.27868444461047)
+('ndf', 5L)
+AK8_PUPPI_subjetbtag_wp0p38_vt
+ FCN=1.79912 FROM MIGRAD    STATUS=CONVERGED      41 CALLS          42 TOTAL
+                     EDM=6.05981e-21    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           8.12109e-01   1.23967e-01   2.35487e-05   3.72452e-09
+   2  p1           1.37548e-04   2.32595e-04   4.41835e-08   2.03533e-06
+('chi2', 1.799117450425416)
+('ndf', 2L)
+AK8_PUPPI_wp0p38_vt_mis0p001
+ FCN=2.64547 FROM MIGRAD    STATUS=CONVERGED      42 CALLS          43 TOTAL
+                     EDM=7.17567e-25    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           8.64847e-01   1.41478e-01   2.85150e-05  -3.89347e-11
+   2  p1           8.99062e-06   2.61574e-04   5.27204e-08  -2.10587e-08
+('chi2', 2.6454735000468825)
+('ndf', 2L)
+AK8_PUPPI_subjetbtag_wp0p47_t
+ FCN=4.29421 FROM MIGRAD    STATUS=CONVERGED      42 CALLS          43 TOTAL
+                     EDM=3.45625e-22    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           8.61266e-01   1.09880e-01   2.81639e-05  -7.88401e-11
+   2  p1           7.62289e-05   2.13009e-04   5.45977e-08  -1.62677e-07
+('chi2', 4.294211850952991)
+('ndf', 2L)
+AK8_PUPPI_wp0p47_t_mis0p005
+ FCN=12.5856 FROM MIGRAD    STATUS=CONVERGED      42 CALLS          43 TOTAL
+                     EDM=3.3405e-22    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           8.92123e-01   1.10458e-01   4.61430e-05  -4.81210e-10
+   2  p1           5.78500e-05   2.11404e-04   8.83127e-08  -3.52002e-07
+('chi2', 12.58561862348039)
+('ndf', 2L)
+AK8_PUPPI_subjetbtag_wp0p52_m
+ FCN=2.92535 FROM MIGRAD    STATUS=CONVERGED      46 CALLS          47 TOTAL
+                     EDM=6.95079e-11    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           8.50670e-01   1.03900e-01   2.38178e-05   4.78510e-04
+   2  p1           1.07702e-04   2.00124e-04   4.58759e-08   2.38998e-01
+('chi2', 2.9253463992753903)
+('ndf', 2L)
+AK8_PUPPI_wp0p52_m_mis0p010
+ FCN=10.4566 FROM MIGRAD    STATUS=CONVERGED      42 CALLS          43 TOTAL
+                     EDM=1.28407e-22    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           8.40482e-01   1.01305e-01   3.91686e-05  -2.26758e-11
+   2  p1           1.71327e-04   1.99118e-04   7.69872e-08   6.92202e-08
+('chi2', 10.456578751719983)
+('ndf', 2L)
+AK8_PUPPI_subjetbtag_wp0p61_l
+ FCN=1.27768 FROM MIGRAD    STATUS=CONVERGED      43 CALLS          44 TOTAL
+                     EDM=1.10004e-21    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           9.02073e-01   1.08358e-01   1.84215e-05   1.86830e-09
+   2  p1           2.12116e-05   2.14795e-04   3.65165e-08   8.96898e-07
+('chi2', 1.2776765445886227)
+('ndf', 2L)
+AK8_PUPPI_wp0p61_l_mis0p025
+ FCN=2.32306 FROM MIGRAD    STATUS=CONVERGED      41 CALLS          42 TOTAL
+                     EDM=4.00116e-21    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           9.27431e-01   1.11802e-01   2.35091e-05  -2.64461e-09
+   2  p1           2.32473e-05   2.23700e-04   4.70383e-08  -1.53416e-06
+('chi2', 2.323056778667802)
+('ndf', 2L)
+AK8_PUPPI_subjetbtag_wp0p69_vl
+ FCN=1.2832 FROM MIGRAD    STATUS=CONVERGED      49 CALLS          50 TOTAL
+                     EDM=2.11001e-07    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           8.67314e-01   1.16221e-01   1.88104e-05  -1.49447e-03
+   2  p1           9.28858e-05   2.39448e-04   3.87546e-08   2.00060e+00
+('chi2', 1.2831954759459174)
+('ndf', 2L)
+AK8_PUPPI_wp0p69_vl_mis0p050
+ FCN=3.44024 FROM MIGRAD    STATUS=CONVERGED      46 CALLS          47 TOTAL
+                     EDM=4.86262e-13    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           8.85878e-01   1.32467e-01   2.96991e-05   3.35251e-05
+   2  p1           9.51738e-05   2.72404e-04   6.10729e-08   1.66085e-02
+('chi2', 3.4402367189382446)
+('ndf', 2L)
+HOTVR_PUPPI_default
+ FCN=7.50851 FROM MIGRAD    STATUS=CONVERGED      36 CALLS          37 TOTAL
+                     EDM=1.0201e-07    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           9.76307e-01   8.66016e-02   3.39554e-05  -1.88393e-02
+   2  p1           6.19282e-05   2.66446e-04   1.04470e-07  -6.06657e+00
+('chi2', 7.508511336995328)
+('ndf', 5L)
+AK8_PUPPI_subjetbtag_wp0p38_vt
+ FCN=0.476122 FROM MIGRAD    STATUS=CONVERGED      44 CALLS          45 TOTAL
+                     EDM=9.11895e-21    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           1.08030e+00   1.72989e-01   2.22992e-05  -1.92927e-10
+   2  p1          -9.47034e-05   3.88233e-04   5.00452e-08   2.63440e-07
+('chi2', 0.4761222580985782)
+('ndf', 2L)
+AK8_PUPPI_wp0p38_vt_mis0p001
+ FCN=0.595928 FROM MIGRAD    STATUS=CONVERGED      42 CALLS          43 TOTAL
+                     EDM=8.22695e-08    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           1.09119e+00   1.60894e-01   2.15307e-05   9.84521e-03
+   2  p1          -1.09711e-04   3.70435e-04   4.95713e-08   3.59251e+00
+('chi2', 0.5959277621714881)
+('ndf', 2L)
+AK8_PUPPI_subjetbtag_wp0p47_t
+ FCN=2.79293 FROM MIGRAD    STATUS=CONVERGED      42 CALLS          43 TOTAL
+                     EDM=1.93629e-21    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           1.10533e+00   1.48771e-01   2.99260e-05  -1.96624e-09
+   2  p1          -1.24003e-04   3.45702e-04   6.95394e-08  -8.46166e-07
+('chi2', 2.792927001374548)
+('ndf', 2L)
+AK8_PUPPI_wp0p47_t_mis0p005
+ FCN=6.8018 FROM MIGRAD    STATUS=CONVERGED      42 CALLS          43 TOTAL
+                     EDM=1.06136e-21    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           1.01909e+00   1.40199e-01   4.03122e-05  -1.65244e-10
+   2  p1           7.53922e-05   3.27290e-04   9.41075e-08   7.07844e-08
+('chi2', 6.801799883964384)
+('ndf', 2L)
+AK8_PUPPI_subjetbtag_wp0p52_m
+ FCN=2.21258 FROM MIGRAD    STATUS=CONVERGED      42 CALLS          43 TOTAL
+                     EDM=8.42071e-22    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           1.12217e+00   1.47189e-01   2.77134e-05  -1.60243e-10
+   2  p1          -1.64205e-04   3.37488e-04   6.35437e-08   5.24154e-08
+('chi2', 2.212578256464669)
+('ndf', 2L)
+AK8_PUPPI_wp0p52_m_mis0p010
+ FCN=5.13425 FROM MIGRAD    STATUS=CONVERGED      37 CALLS          38 TOTAL
+                     EDM=4.68276e-07    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           1.26150e+00   1.81402e-01   4.31298e-05  -2.70191e-02
+   2  p1          -3.99909e-04   3.87996e-04   9.22494e-08  -1.26167e+01
+('chi2', 5.134254184981421)
+('ndf', 2L)
+AK8_PUPPI_subjetbtag_wp0p61_l
+ FCN=3.45435 FROM MIGRAD    STATUS=CONVERGED      47 CALLS          48 TOTAL
+                     EDM=4.20736e-09    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           1.20943e+00   1.32459e-01   2.88954e-05   2.23166e-03
+   2  p1          -3.71798e-04   3.08645e-04   6.73299e-08   7.18713e-01
+('chi2', 3.45435295700227)
+('ndf', 2L)
+AK8_PUPPI_wp0p61_l_mis0p025
+ FCN=8.08794 FROM MIGRAD    STATUS=CONVERGED      41 CALLS          42 TOTAL
+                     EDM=2.001e-11    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           1.12852e+00   1.33804e-01   4.13088e-05   2.24592e-04
+   2  p1          -2.48055e-04   3.10235e-04   9.57777e-08   9.64618e-02
+('chi2', 8.087943212275825)
+('ndf', 2L)
+AK8_PUPPI_subjetbtag_wp0p69_vl
+ FCN=4.31496 FROM MIGRAD    STATUS=CONVERGED      47 CALLS          48 TOTAL
+                     EDM=2.61609e-11    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           1.17593e+00   1.19013e-01   2.80327e-05   2.82559e-04
+   2  p1          -2.52752e-04   2.83260e-04   6.67201e-08   1.10173e-01
+('chi2', 4.314955125441957)
+('ndf', 2L)
+AK8_PUPPI_wp0p69_vl_mis0p050
+ FCN=5.73334 FROM MIGRAD    STATUS=CONVERGED      42 CALLS          43 TOTAL
+                     EDM=5.81836e-22    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           9.60640e-01   1.11943e-01   2.89919e-05   1.53177e-10
+   2  p1           2.25774e-04   2.69491e-04   6.97951e-08  -6.36275e-08
+('chi2', 5.733343440531579)
+('ndf', 2L)
+HOTVR_PUPPI_default
+ FCN=7.30682 FROM MIGRAD    STATUS=CONVERGED      41 CALLS          42 TOTAL
+                     EDM=9.52821e-11    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           1.06048e+00   1.82342e-01   8.04815e-05  -1.48617e-04
+   2  p1          -1.39702e-04   3.73428e-04   1.64822e-07  -3.97776e-02
+('chi2', 7.306822821381348)
+('ndf', 5L)
+AK8_PUPPI_subjetbtag_wp0p38_vt
+ FCN=3.36174 FROM MIGRAD    STATUS=CONVERGED      41 CALLS          42 TOTAL
+                     EDM=1.26557e-07    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           1.17141e+00   4.61202e-01   1.24871e-04   4.09248e-03
+   2  p1          -4.34085e-04   8.84344e-04   2.39438e-07   2.10807e+00
+('chi2', 3.3617368270075416)
+('ndf', 2L)
+AK8_PUPPI_wp0p38_vt_mis0p001
+ FCN=3.60632 FROM MIGRAD    STATUS=CONVERGED      36 CALLS          37 TOTAL
+                     EDM=9.13683e-24    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           1.10850e+00   4.77317e-01   1.30449e-04   3.40432e-11
+   2  p1          -2.89096e-04   9.55317e-04   2.61084e-07   1.70094e-08
+('chi2', 3.6063248842746907)
+('ndf', 2L)
+AK8_PUPPI_subjetbtag_wp0p47_t
+ FCN=3.11743 FROM MIGRAD    STATUS=CONVERGED      36 CALLS          37 TOTAL
+                     EDM=2.55493e-24    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           8.19861e-01   4.17821e-01   1.07367e-04  -2.06809e-11
+   2  p1           2.66980e-04   8.05278e-04   2.06932e-07  -1.07303e-08
+('chi2', 3.117433900643807)
+('ndf', 2L)
+AK8_PUPPI_wp0p47_t_mis0p005
+ FCN=4.51564 FROM MIGRAD    STATUS=CONVERGED      42 CALLS          43 TOTAL
+                     EDM=1.53801e-24    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           9.73035e-01   3.86393e-01   1.16754e-04  -1.14109e-11
+   2  p1          -4.53472e-05   7.29341e-04   2.20381e-07  -4.03020e-09
+('chi2', 4.515644330326392)
+('ndf', 2L)
+AK8_PUPPI_subjetbtag_wp0p52_m
+ FCN=2.10763 FROM MIGRAD    STATUS=CONVERGED      36 CALLS          37 TOTAL
+                     EDM=5.09302e-23    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           9.13169e-01   3.93709e-01   8.88630e-05  -1.24936e-11
+   2  p1           1.05630e-04   7.49194e-04   1.69099e-07  -1.96966e-08
+('chi2', 2.107628604602408)
+('ndf', 2L)
+AK8_PUPPI_wp0p52_m_mis0p010
+ FCN=2.47176 FROM MIGRAD    STATUS=CONVERGED      36 CALLS          37 TOTAL
+                     EDM=1.62872e-22    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           5.38232e-01   4.56680e-01   9.33657e-05   5.94556e-11
+   2  p1           7.81114e-04   7.96935e-04   1.62929e-07   5.45133e-08
+('chi2', 2.471764498292959)
+('ndf', 2L)
+AK8_PUPPI_subjetbtag_wp0p61_l
+ FCN=4.54153 FROM MIGRAD    STATUS=CONVERGED      46 CALLS          47 TOTAL
+                     EDM=1.40709e-10    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           4.58977e-01   3.39726e-01   1.00462e-04  -4.60519e-05
+   2  p1           1.29777e-03   6.02322e-04   1.78115e-07   1.93770e-03
+('chi2', 4.541526434881101)
+('ndf', 2L)
+AK8_PUPPI_wp0p61_l_mis0p025
+ FCN=6.75323 FROM MIGRAD    STATUS=CONVERGED      42 CALLS          43 TOTAL
+                     EDM=2.47522e-22    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           9.96184e-01   3.05735e-01   1.03574e-04   1.71506e-10
+   2  p1           3.35687e-04   5.43974e-04   1.84282e-07   6.02459e-08
+('chi2', 6.753226755736577)
+('ndf', 2L)
+AK8_PUPPI_subjetbtag_wp0p69_vl
+ FCN=5.34197 FROM MIGRAD    STATUS=CONVERGED      41 CALLS          42 TOTAL
+                     EDM=5.0314e-07    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           7.37377e-01   2.85079e-01   9.07921e-05  -1.32742e-02
+   2  p1           8.14319e-04   5.02521e-04   1.60043e-07  -7.69871e+00
+('chi2', 5.341972162719998)
+('ndf', 2L)
+AK8_PUPPI_wp0p69_vl_mis0p050
+ FCN=7.08769 FROM MIGRAD    STATUS=CONVERGED      42 CALLS          43 TOTAL
+                     EDM=2.9346e-22    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           1.33226e+00   2.13022e-01   7.75828e-05   2.86204e-11
+   2  p1          -3.91319e-04   3.92163e-04   1.42826e-07  -4.66395e-08
+('chi2', 7.087687166847403)
+('ndf', 2L)
+HOTVR_PUPPI_default
+ FCN=3.67716 FROM MIGRAD    STATUS=CONVERGED      48 CALLS          49 TOTAL
+                     EDM=7.39049e-13    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           1.00127e+00   3.90991e-02   1.26346e-05   9.32789e-05
+   2  p1          -1.01605e-04   9.61897e-05   3.10829e-08   3.10838e-02
+('chi2', 3.6771567918725796)
+('ndf', 5L)
+AK8_PUPPI_subjetbtag_wp0p38_vt
+ FCN=0.772617 FROM MIGRAD    STATUS=CONVERGED      47 CALLS          48 TOTAL
+                     EDM=2.54615e-09    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           8.09526e-01   1.24497e-01   1.94943e-05   3.14068e-04
+   2  p1           1.81722e-04   2.37467e-04   3.71835e-08   4.57687e-01
+('chi2', 0.772616723413822)
+('ndf', 2L)
+AK8_PUPPI_wp0p38_vt_mis0p001
+ FCN=1.93711 FROM MIGRAD    STATUS=CONVERGED      41 CALLS          42 TOTAL
+                     EDM=2.07335e-21    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           8.71720e-01   1.25958e-01   2.56736e-05   2.09732e-09
+   2  p1           3.69487e-05   2.46215e-04   5.01850e-08   1.05082e-06
+('chi2', 1.9371146915067199)
+('ndf', 2L)
+AK8_PUPPI_subjetbtag_wp0p47_t
+ FCN=1.24395 FROM MIGRAD    STATUS=CONVERGED      47 CALLS          48 TOTAL
+                     EDM=4.01604e-10    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           8.25669e-01   9.89773e-02   1.81023e-05   6.90685e-04
+   2  p1           1.52454e-04   1.91340e-04   3.49947e-08   4.64076e-01
+('chi2', 1.2439536321643998)
+('ndf', 2L)
+AK8_PUPPI_wp0p47_t_mis0p005
+ FCN=1.94648 FROM MIGRAD    STATUS=CONVERGED      43 CALLS          44 TOTAL
+                     EDM=1.15039e-21    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           8.68894e-01   8.63789e-02   1.84817e-05  -1.95232e-09
+   2  p1           5.12764e-05   1.71294e-04   3.66503e-08  -1.07538e-06
+('chi2', 1.9464797389948019)
+('ndf', 2L)
+AK8_PUPPI_subjetbtag_wp0p52_m
+ FCN=2.67204 FROM MIGRAD    STATUS=CONVERGED      41 CALLS          42 TOTAL
+                     EDM=8.02125e-22    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           8.79156e-01   9.19767e-02   2.12421e-05  -1.14984e-09
+   2  p1           6.39190e-05   1.79629e-04   4.14856e-08  -4.01425e-07
+('chi2', 2.672042078556703)
+('ndf', 2L)
+AK8_PUPPI_wp0p52_m_mis0p010
+ FCN=2.32978 FROM MIGRAD    STATUS=CONVERGED      43 CALLS          44 TOTAL
+                     EDM=8.71826e-10    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           9.36776e-01   8.54428e-02   1.82264e-05  -2.00623e-03
+   2  p1          -3.68419e-05   1.72157e-04   3.67240e-08  -1.01152e+00
+('chi2', 2.3297824973739716)
+('ndf', 2L)
+AK8_PUPPI_subjetbtag_wp0p61_l
+ FCN=3.23193 FROM MIGRAD    STATUS=CONVERGED      43 CALLS          44 TOTAL
+                     EDM=5.32347e-22    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           9.80081e-01   9.42734e-02   2.23546e-05  -1.39060e-09
+   2  p1          -7.48831e-05   1.87878e-04   4.45506e-08  -6.23012e-07
+('chi2', 3.231929542174775)
+('ndf', 2L)
+AK8_PUPPI_wp0p61_l_mis0p025
+ FCN=4.04689 FROM MIGRAD    STATUS=CONVERGED      42 CALLS          43 TOTAL
+                     EDM=3.51657e-22    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           1.06184e+00   8.97037e-02   2.38363e-05  -2.79462e-10
+   2  p1          -2.14734e-04   1.79729e-04   4.77581e-08  -2.78962e-07
+('chi2', 4.046893764747992)
+('ndf', 2L)
+AK8_PUPPI_subjetbtag_wp0p69_vl
+ FCN=3.94696 FROM MIGRAD    STATUS=CONVERGED      41 CALLS          42 TOTAL
+                     EDM=3.90043e-11    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           1.03801e+00   1.05014e-01   2.56468e-05   3.71703e-04
+   2  p1          -1.35279e-04   2.16647e-04   5.29104e-08   1.80074e-01
+('chi2', 3.9469558411549137)
+('ndf', 2L)
+AK8_PUPPI_wp0p69_vl_mis0p050
+ FCN=6.25173 FROM MIGRAD    STATUS=CONVERGED      36 CALLS          37 TOTAL
+                     EDM=7.61261e-08    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           1.10285e+00   1.07156e-01   3.16236e-05  -1.60535e-02
+   2  p1          -2.36819e-04   2.25201e-04   6.64608e-08  -7.69439e+00
+('chi2', 6.251731182840446)
+('ndf', 2L)
+HOTVR_PUPPI_default
+ FCN=3.90548 FROM MIGRAD    STATUS=CONVERGED      41 CALLS          42 TOTAL
+                     EDM=3.55993e-07    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           9.11862e-01   7.84780e-02   2.31724e-05  -6.93133e-03
+   2  p1           3.02827e-04   2.36713e-04   6.98947e-08  -5.71963e+00
+('chi2', 3.905479190200209)
+('ndf', 5L)
+AK8_PUPPI_subjetbtag_wp0p38_vt
+ FCN=1.30962 FROM MIGRAD    STATUS=CONVERGED      46 CALLS          47 TOTAL
+                     EDM=2.92566e-09    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           1.19167e+00   1.45499e-01   2.19138e-05   2.28093e-03
+   2  p1          -2.79118e-04   3.36864e-04   5.07355e-08   8.57064e-01
+('chi2', 1.3096210337280916)
+('ndf', 2L)
+AK8_PUPPI_wp0p38_vt_mis0p001
+ FCN=1.8035 FROM MIGRAD    STATUS=CONVERGED      47 CALLS          48 TOTAL
+                     EDM=4.86919e-11    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           1.26472e+00   1.29764e-01   2.10391e-05  -2.15138e-04
+   2  p1          -4.26268e-04   3.09481e-04   5.01771e-08  -1.14811e-01
+('chi2', 1.8035028209513504)
+('ndf', 2L)
+AK8_PUPPI_subjetbtag_wp0p47_t
+ FCN=0.577339 FROM MIGRAD    STATUS=CONVERGED      47 CALLS          48 TOTAL
+                     EDM=2.2409e-08    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           1.24159e+00   1.31298e-01   1.67117e-05  -4.03101e-03
+   2  p1          -3.29437e-04   3.08156e-04   3.92223e-08  -1.09285e+00
+('chi2', 0.5773389951012513)
+('ndf', 2L)
+AK8_PUPPI_wp0p47_t_mis0p005
+ FCN=0.522478 FROM MIGRAD    STATUS=CONVERGED      47 CALLS          48 TOTAL
+                     EDM=1.22647e-07    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           1.28198e+00   1.14986e-01   1.39567e-05   4.94274e-03
+   2  p1          -4.11895e-04   2.75099e-04   3.33909e-08   3.77517e+00
+('chi2', 0.5224781042310248)
+('ndf', 2L)
+AK8_PUPPI_subjetbtag_wp0p52_m
+ FCN=0.867072 FROM MIGRAD    STATUS=CONVERGED      41 CALLS          42 TOTAL
+                     EDM=1.25787e-20    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           1.22556e+00   1.30738e-01   1.78137e-05  -4.76780e-09
+   2  p1          -2.96129e-04   3.05375e-04   4.16087e-08  -2.30803e-06
+('chi2', 0.8670724247508357)
+('ndf', 2L)
+AK8_PUPPI_wp0p52_m_mis0p010
+ FCN=0.448998 FROM MIGRAD    STATUS=CONVERGED      47 CALLS          48 TOTAL
+                     EDM=6.81981e-08    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           1.23896e+00   1.14398e-01   1.35109e-05   8.82007e-03
+   2  p1          -3.53280e-04   2.72340e-04   3.21644e-08   4.76285e+00
+('chi2', 0.448998470741235)
+('ndf', 2L)
+AK8_PUPPI_subjetbtag_wp0p61_l
+ FCN=1.59357 FROM MIGRAD    STATUS=CONVERGED      42 CALLS          43 TOTAL
+                     EDM=1.001e-21    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           1.13514e+00   1.30908e-01   2.16599e-05  -9.48255e-10
+   2  p1          -1.60666e-04   3.02297e-04   5.00179e-08  -5.21618e-07
+('chi2', 1.5935663772652569)
+('ndf', 2L)
+AK8_PUPPI_wp0p61_l_mis0p025
+ FCN=0.0746346 FROM MIGRAD    STATUS=CONVERGED      51 CALLS          52 TOTAL
+                     EDM=8.16062e-22    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           1.02503e+00   1.05799e-01   1.15653e-05   6.83972e-10
+   2  p1           5.03154e-05   2.52892e-04   2.76446e-08   4.26705e-07
+('chi2', 0.07463456715336081)
+('ndf', 2L)
+AK8_PUPPI_subjetbtag_wp0p69_vl
+ FCN=4.97701 FROM MIGRAD    STATUS=CONVERGED      42 CALLS          43 TOTAL
+                     EDM=3.74417e-21    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           1.05686e+00   1.29343e-01   3.15236e-05   2.32444e-09
+   2  p1           2.72527e-05   2.96380e-04   7.22339e-08   1.19885e-06
+('chi2', 4.977012367883869)
+('ndf', 2L)
+AK8_PUPPI_wp0p69_vl_mis0p050
+ FCN=3.57438 FROM MIGRAD    STATUS=CONVERGED      41 CALLS          42 TOTAL
+                     EDM=2.45774e-13    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           8.66357e-01   9.80827e-02   2.12085e-05  -3.42884e-05
+   2  p1           3.83844e-04   2.37663e-04   5.13902e-08  -1.41874e-02
+('chi2', 3.574376684391669)
+('ndf', 2L)
+HOTVR_PUPPI_default
+ FCN=1.47303 FROM MIGRAD    STATUS=CONVERGED      41 CALLS          42 TOTAL
+                     EDM=4.72898e-08    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           6.84937e-01   1.67471e-01   4.01266e-05   2.72778e-03
+   2  p1           4.17091e-04   3.34040e-04   8.00373e-08   2.11508e+00
+('chi2', 1.4730341232860893)
+('ndf', 5L)
+AK8_PUPPI_subjetbtag_wp0p38_vt
+ FCN=0.624934 FROM MIGRAD    STATUS=CONVERGED      41 CALLS          42 TOTAL
+                     EDM=1.71927e-14    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           6.29220e-01   4.46953e-01   7.25688e-05  -1.58047e-06
+   2  p1           6.02847e-04   9.32337e-04   1.51377e-07  -7.53697e-04
+('chi2', 0.6249338612904966)
+('ndf', 2L)
+AK8_PUPPI_wp0p38_vt_mis0p001
+ FCN=0.478353 FROM MIGRAD    STATUS=CONVERGED      48 CALLS          49 TOTAL
+                     EDM=3.78395e-24    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           7.28382e-01   3.99690e-01   6.28431e-05  -4.41665e-12
+   2  p1           4.30120e-04   8.58600e-04   1.34997e-07  -5.14002e-09
+('chi2', 0.4783529584904357)
+('ndf', 2L)
+AK8_PUPPI_subjetbtag_wp0p47_t
+ FCN=0.288367 FROM MIGRAD    STATUS=CONVERGED      36 CALLS          37 TOTAL
+                     EDM=5.04645e-24    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           7.39368e-01   3.75137e-01   5.68928e-05  -1.95143e-11
+   2  p1           4.77931e-04   7.25790e-04   1.10072e-07  -6.30394e-09
+('chi2', 0.28836726123328066)
+('ndf', 2L)
+AK8_PUPPI_wp0p47_t_mis0p005
+ FCN=0.473916 FROM MIGRAD    STATUS=CONVERGED      36 CALLS          37 TOTAL
+                     EDM=3.12458e-07    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           8.32428e-01   3.12355e-01   5.64488e-05  -5.65802e-03
+   2  p1           2.66029e-04   6.23657e-04   1.08285e-07  -1.73590e+00
+('chi2', 0.4739155699054747)
+('ndf', 2L)
+AK8_PUPPI_subjetbtag_wp0p52_m
+ FCN=0.0968901 FROM MIGRAD    STATUS=CONVERGED      42 CALLS          43 TOTAL
+                     EDM=9.22366e-09    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           7.12186e-01   3.40384e-01   4.77393e-05   1.02043e-03
+   2  p1           6.82944e-04   6.52469e-04   9.15097e-08   6.60314e-01
+('chi2', 0.09689013756204401)
+('ndf', 2L)
+AK8_PUPPI_wp0p52_m_mis0p010
+ FCN=0.253321 FROM MIGRAD    STATUS=CONVERGED      49 CALLS          50 TOTAL
+                     EDM=7.43094e-23    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           7.90186e-01   2.98180e-01   4.44226e-05  -6.24807e-12
+   2  p1           4.50645e-04   5.79883e-04   8.63905e-08  -2.40960e-08
+('chi2', 0.25332087836284534)
+('ndf', 2L)
+AK8_PUPPI_subjetbtag_wp0p61_l
+ FCN=0.0981941 FROM MIGRAD    STATUS=CONVERGED      52 CALLS          53 TOTAL
+                     EDM=4.94346e-10    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           7.81129e-01   3.22855e-01   4.33029e-05  -3.17565e-04
+   2  p1           6.38277e-04   5.71579e-04   7.66630e-08  -1.44545e-01
+('chi2', 0.09819406257854701)
+('ndf', 2L)
+AK8_PUPPI_wp0p61_l_mis0p025
+ FCN=0.26432 FROM MIGRAD    STATUS=CONVERGED      47 CALLS          48 TOTAL
+                     EDM=1.76296e-08    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           1.26324e+00   2.45967e-01   3.54790e-05   1.14731e-03
+   2  p1          -3.50164e-04   4.60660e-04   6.64469e-08   9.65581e-01
+('chi2', 0.2643197057551453)
+('ndf', 2L)
+AK8_PUPPI_subjetbtag_wp0p69_vl
+ FCN=2.01719 FROM MIGRAD    STATUS=CONVERGED      41 CALLS          42 TOTAL
+                     EDM=4.1199e-07    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           8.29908e-01   2.83588e-01   5.92781e-05   1.26287e-02
+   2  p1           5.61694e-04   4.94983e-04   1.03466e-07   7.44037e+00
+('chi2', 2.017186159835401)
+('ndf', 2L)
+AK8_PUPPI_wp0p69_vl_mis0p050
+ FCN=3.73092 FROM MIGRAD    STATUS=CONVERGED      47 CALLS          48 TOTAL
+                     EDM=5.10933e-08    STRATEGY= 1      ERROR MATRIX ACCURATE 
+  EXT PARAMETER                                   STEP         FIRST   
+  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+   1  p0           1.44292e+00   1.75489e-01   5.02530e-05  -3.36939e-03
+   2  p1          -6.61878e-04   3.31688e-04   9.49824e-08  -8.81304e-01
+('chi2', 3.730917417306849)
+('ndf', 2L)

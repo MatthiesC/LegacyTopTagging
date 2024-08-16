@@ -1,0 +1,528 @@
+Working on systematic: nominal
+Working on band: Main
+Working on region: Pass
+Working on channel: muo
+Working on process: DATA
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: QCD
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: nonQCD
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: TTbar
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: TTbar__MSc_FullyMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 1)
+Working on process: TTbar__MSc_WMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 2)
+Working on process: TTbar__MSc_QBMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 3)
+Working on process: TTbar__MSc_NotMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 4)
+Working on process: TTbar__MSc_YllufMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3) | (output_merge_scenario_AK8 == 4))
+Working on process: TTbar__MSc_SemiMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3))
+Working on process: TTbar__MSc_Background
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == -1)
+Working on process: ST
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: ST__MSc_FullyMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 1)
+Working on process: ST__MSc_WMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 2)
+Working on process: ST__MSc_QBMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 3)
+Working on process: ST__MSc_NotMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 4)
+Working on process: ST__MSc_YllufMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3) | (output_merge_scenario_AK8 == 4))
+Working on process: ST__MSc_SemiMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3))
+Working on process: ST__MSc_Background
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == -1)
+Working on process: VJetsAndVV
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on region: Fail
+Working on channel: muo
+Working on process: DATA
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: QCD
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: nonQCD
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: TTbar
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: TTbar__MSc_FullyMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 1)
+Working on process: TTbar__MSc_WMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 2)
+Working on process: TTbar__MSc_QBMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 3)
+Working on process: TTbar__MSc_NotMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 4)
+Working on process: TTbar__MSc_YllufMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3) | (output_merge_scenario_AK8 == 4))
+Working on process: TTbar__MSc_SemiMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3))
+Working on process: TTbar__MSc_Background
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == -1)
+Working on process: ST
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: ST__MSc_FullyMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 1)
+Working on process: ST__MSc_WMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 2)
+Working on process: ST__MSc_QBMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 3)
+Working on process: ST__MSc_NotMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 4)
+Working on process: ST__MSc_YllufMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3) | (output_merge_scenario_AK8 == 4))
+Working on process: ST__MSc_SemiMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3))
+Working on process: ST__MSc_Background
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == -1)
+Working on process: VJetsAndVV
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Writing output file...
+Wrote /nfs/dust/cms/user/matthies/uhh2-106X-v2/CMSSW_10_6_28/src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel/UL17/combine/ak8_t__tau/ak8_t__tau-BkgEff0p001-pt_300toInf-UL17-nominal-output_probejet_AK8_mSD/BasicHists-ak8_t__tau-BkgEff0p001-pt_300toInf-UL17-nominal-output_probejet_AK8_mSD.root
+Working on systematic: nominal
+Working on band: Main
+Working on region: Pass
+Working on channel: muo
+Working on process: DATA
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: QCD
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: nonQCD
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: TTbar
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: TTbar__MSc_FullyMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 1)
+Working on process: TTbar__MSc_WMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 2)
+Working on process: TTbar__MSc_QBMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 3)
+Working on process: TTbar__MSc_NotMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 4)
+Working on process: TTbar__MSc_YllufMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3) | (output_merge_scenario_AK8 == 4))
+Working on process: TTbar__MSc_SemiMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3))
+Working on process: TTbar__MSc_Background
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == -1)
+Working on process: ST
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: ST__MSc_FullyMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 1)
+Working on process: ST__MSc_WMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 2)
+Working on process: ST__MSc_QBMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 3)
+Working on process: ST__MSc_NotMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 4)
+Working on process: ST__MSc_YllufMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3) | (output_merge_scenario_AK8 == 4))
+Working on process: ST__MSc_SemiMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3))
+Working on process: ST__MSc_Background
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == -1)
+Working on process: VJetsAndVV
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on region: Fail
+Working on channel: muo
+Working on process: DATA
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: QCD
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: nonQCD
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: TTbar
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: TTbar__MSc_FullyMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 1)
+Working on process: TTbar__MSc_WMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 2)
+Working on process: TTbar__MSc_QBMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 3)
+Working on process: TTbar__MSc_NotMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 4)
+Working on process: TTbar__MSc_YllufMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3) | (output_merge_scenario_AK8 == 4))
+Working on process: TTbar__MSc_SemiMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3))
+Working on process: TTbar__MSc_Background
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == -1)
+Working on process: ST
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: ST__MSc_FullyMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 1)
+Working on process: ST__MSc_WMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 2)
+Working on process: ST__MSc_QBMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 3)
+Working on process: ST__MSc_NotMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 4)
+Working on process: ST__MSc_YllufMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3) | (output_merge_scenario_AK8 == 4))
+Working on process: ST__MSc_SemiMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3))
+Working on process: ST__MSc_Background
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == -1)
+Working on process: VJetsAndVV
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 300.00000) & (output_probejet_AK8_pt <= 400.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Writing output file...
+Wrote /nfs/dust/cms/user/matthies/uhh2-106X-v2/CMSSW_10_6_28/src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel/UL17/combine/ak8_t__tau/ak8_t__tau-BkgEff0p001-pt_300to400-UL17-nominal-output_probejet_AK8_mSD/BasicHists-ak8_t__tau-BkgEff0p001-pt_300to400-UL17-nominal-output_probejet_AK8_mSD.root
+Working on systematic: nominal
+Working on band: Main
+Working on region: Pass
+Working on channel: muo
+Working on process: DATA
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: QCD
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: nonQCD
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: TTbar
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: TTbar__MSc_FullyMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 1)
+Working on process: TTbar__MSc_WMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 2)
+Working on process: TTbar__MSc_QBMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 3)
+Working on process: TTbar__MSc_NotMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 4)
+Working on process: TTbar__MSc_YllufMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3) | (output_merge_scenario_AK8 == 4))
+Working on process: TTbar__MSc_SemiMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3))
+Working on process: TTbar__MSc_Background
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == -1)
+Working on process: ST
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: ST__MSc_FullyMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 1)
+Working on process: ST__MSc_WMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 2)
+Working on process: ST__MSc_QBMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 3)
+Working on process: ST__MSc_NotMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 4)
+Working on process: ST__MSc_YllufMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3) | (output_merge_scenario_AK8 == 4))
+Working on process: ST__MSc_SemiMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3))
+Working on process: ST__MSc_Background
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == -1)
+Working on process: VJetsAndVV
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on region: Fail
+Working on channel: muo
+Working on process: DATA
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: QCD
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: nonQCD
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: TTbar
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: TTbar__MSc_FullyMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 1)
+Working on process: TTbar__MSc_WMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 2)
+Working on process: TTbar__MSc_QBMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 3)
+Working on process: TTbar__MSc_NotMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 4)
+Working on process: TTbar__MSc_YllufMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3) | (output_merge_scenario_AK8 == 4))
+Working on process: TTbar__MSc_SemiMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3))
+Working on process: TTbar__MSc_Background
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == -1)
+Working on process: ST
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: ST__MSc_FullyMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 1)
+Working on process: ST__MSc_WMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 2)
+Working on process: ST__MSc_QBMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 3)
+Working on process: ST__MSc_NotMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 4)
+Working on process: ST__MSc_YllufMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3) | (output_merge_scenario_AK8 == 4))
+Working on process: ST__MSc_SemiMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3))
+Working on process: ST__MSc_Background
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == -1)
+Working on process: VJetsAndVV
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Writing output file...
+Wrote /nfs/dust/cms/user/matthies/uhh2-106X-v2/CMSSW_10_6_28/src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel/UL17/combine/ak8_t__tau/ak8_t__tau-BkgEff0p001-pt_400toInf-UL17-nominal-output_probejet_AK8_mSD/BasicHists-ak8_t__tau-BkgEff0p001-pt_400toInf-UL17-nominal-output_probejet_AK8_mSD.root
+Working on systematic: nominal
+Working on band: Main
+Working on region: Pass
+Working on channel: muo
+Working on process: DATA
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: QCD
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: nonQCD
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: TTbar
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: TTbar__MSc_FullyMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 1)
+Working on process: TTbar__MSc_WMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 2)
+Working on process: TTbar__MSc_QBMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 3)
+Working on process: TTbar__MSc_NotMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 4)
+Working on process: TTbar__MSc_YllufMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3) | (output_merge_scenario_AK8 == 4))
+Working on process: TTbar__MSc_SemiMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3))
+Working on process: TTbar__MSc_Background
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == -1)
+Working on process: ST
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: ST__MSc_FullyMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 1)
+Working on process: ST__MSc_WMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 2)
+Working on process: ST__MSc_QBMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 3)
+Working on process: ST__MSc_NotMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 4)
+Working on process: ST__MSc_YllufMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3) | (output_merge_scenario_AK8 == 4))
+Working on process: ST__MSc_SemiMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3))
+Working on process: ST__MSc_Background
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == -1)
+Working on process: VJetsAndVV
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on region: Fail
+Working on channel: muo
+Working on process: DATA
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: QCD
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: nonQCD
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: TTbar
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: TTbar__MSc_FullyMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 1)
+Working on process: TTbar__MSc_WMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 2)
+Working on process: TTbar__MSc_QBMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 3)
+Working on process: TTbar__MSc_NotMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 4)
+Working on process: TTbar__MSc_YllufMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3) | (output_merge_scenario_AK8 == 4))
+Working on process: TTbar__MSc_SemiMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3))
+Working on process: TTbar__MSc_Background
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == -1)
+Working on process: ST
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: ST__MSc_FullyMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 1)
+Working on process: ST__MSc_WMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 2)
+Working on process: ST__MSc_QBMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 3)
+Working on process: ST__MSc_NotMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 4)
+Working on process: ST__MSc_YllufMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3) | (output_merge_scenario_AK8 == 4))
+Working on process: ST__MSc_SemiMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3))
+Working on process: ST__MSc_Background
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == -1)
+Working on process: VJetsAndVV
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 400.00000) & (output_probejet_AK8_pt <= 480.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Writing output file...
+Wrote /nfs/dust/cms/user/matthies/uhh2-106X-v2/CMSSW_10_6_28/src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel/UL17/combine/ak8_t__tau/ak8_t__tau-BkgEff0p001-pt_400to480-UL17-nominal-output_probejet_AK8_mSD/BasicHists-ak8_t__tau-BkgEff0p001-pt_400to480-UL17-nominal-output_probejet_AK8_mSD.root
+Working on systematic: nominal
+Working on band: Main
+Working on region: Pass
+Working on channel: muo
+Working on process: DATA
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: QCD
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: nonQCD
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: TTbar
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: TTbar__MSc_FullyMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 1)
+Working on process: TTbar__MSc_WMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 2)
+Working on process: TTbar__MSc_QBMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 3)
+Working on process: TTbar__MSc_NotMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 4)
+Working on process: TTbar__MSc_YllufMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3) | (output_merge_scenario_AK8 == 4))
+Working on process: TTbar__MSc_SemiMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3))
+Working on process: TTbar__MSc_Background
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == -1)
+Working on process: ST
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: ST__MSc_FullyMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 1)
+Working on process: ST__MSc_WMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 2)
+Working on process: ST__MSc_QBMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 3)
+Working on process: ST__MSc_NotMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 4)
+Working on process: ST__MSc_YllufMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3) | (output_merge_scenario_AK8 == 4))
+Working on process: ST__MSc_SemiMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3))
+Working on process: ST__MSc_Background
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == -1)
+Working on process: VJetsAndVV
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on region: Fail
+Working on channel: muo
+Working on process: DATA
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: QCD
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: nonQCD
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: TTbar
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: TTbar__MSc_FullyMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 1)
+Working on process: TTbar__MSc_WMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 2)
+Working on process: TTbar__MSc_QBMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 3)
+Working on process: TTbar__MSc_NotMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 4)
+Working on process: TTbar__MSc_YllufMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3) | (output_merge_scenario_AK8 == 4))
+Working on process: TTbar__MSc_SemiMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3))
+Working on process: TTbar__MSc_Background
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == -1)
+Working on process: ST
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: ST__MSc_FullyMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 1)
+Working on process: ST__MSc_WMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 2)
+Working on process: ST__MSc_QBMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 3)
+Working on process: ST__MSc_NotMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 4)
+Working on process: ST__MSc_YllufMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3) | (output_merge_scenario_AK8 == 4))
+Working on process: ST__MSc_SemiMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3))
+Working on process: ST__MSc_Background
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == -1)
+Working on process: VJetsAndVV
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 480.00000) & (output_probejet_AK8_pt <= 600.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Writing output file...
+Wrote /nfs/dust/cms/user/matthies/uhh2-106X-v2/CMSSW_10_6_28/src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel/UL17/combine/ak8_t__tau/ak8_t__tau-BkgEff0p001-pt_480to600-UL17-nominal-output_probejet_AK8_mSD/BasicHists-ak8_t__tau-BkgEff0p001-pt_480to600-UL17-nominal-output_probejet_AK8_mSD.root
+Working on systematic: nominal
+Working on band: Main
+Working on region: Pass
+Working on channel: muo
+Working on process: DATA
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: QCD
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: nonQCD
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: TTbar
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: TTbar__MSc_FullyMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 1)
+Working on process: TTbar__MSc_WMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 2)
+Working on process: TTbar__MSc_QBMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 3)
+Working on process: TTbar__MSc_NotMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 4)
+Working on process: TTbar__MSc_YllufMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3) | (output_merge_scenario_AK8 == 4))
+Working on process: TTbar__MSc_SemiMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3))
+Working on process: TTbar__MSc_Background
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == -1)
+Working on process: ST
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on process: ST__MSc_FullyMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 1)
+Working on process: ST__MSc_WMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 2)
+Working on process: ST__MSc_QBMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 3)
+Working on process: ST__MSc_NotMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 4)
+Working on process: ST__MSc_YllufMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3) | (output_merge_scenario_AK8 == 4))
+Working on process: ST__MSc_SemiMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3))
+Working on process: ST__MSc_Background
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == -1)
+Working on process: VJetsAndVV
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ((output_probejet_AK8_tau32 < 0.38000))
+Working on region: Fail
+Working on channel: muo
+Working on process: DATA
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: QCD
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: nonQCD
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: TTbar
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: TTbar__MSc_FullyMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 1)
+Working on process: TTbar__MSc_WMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 2)
+Working on process: TTbar__MSc_QBMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 3)
+Working on process: TTbar__MSc_NotMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 4)
+Working on process: TTbar__MSc_YllufMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3) | (output_merge_scenario_AK8 == 4))
+Working on process: TTbar__MSc_SemiMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3))
+Working on process: TTbar__MSc_Background
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == -1)
+Working on process: ST
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Working on process: ST__MSc_FullyMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 1)
+Working on process: ST__MSc_WMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 2)
+Working on process: ST__MSc_QBMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 3)
+Working on process: ST__MSc_NotMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == 4)
+Working on process: ST__MSc_YllufMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3) | (output_merge_scenario_AK8 == 4))
+Working on process: ST__MSc_SemiMerged
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & ((output_merge_scenario_AK8 == 2) | (output_merge_scenario_AK8 == 3))
+Working on process: ST__MSc_Background
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000)) & (output_merge_scenario_AK8 == -1)
+Working on process: VJetsAndVV
+(output_has_probejet_AK8 == True) & (band == 0) & (output_probejet_AK8_pt > 600.00000) & (output_probejet_AK8_pt <= 999999.00000) & ~((output_probejet_AK8_tau32 < 0.38000))
+Writing output file...
+Wrote /nfs/dust/cms/user/matthies/uhh2-106X-v2/CMSSW_10_6_28/src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel/UL17/combine/ak8_t__tau/ak8_t__tau-BkgEff0p001-pt_600toInf-UL17-nominal-output_probejet_AK8_mSD/BasicHists-ak8_t__tau-BkgEff0p001-pt_600toInf-UL17-nominal-output_probejet_AK8_mSD.root
