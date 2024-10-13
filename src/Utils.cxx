@@ -254,6 +254,8 @@ bool TwoDSelection::passes(const Event & event) {
   const bool passed_ptrel_cut = ptrel > ptrel_min;
   const bool passed_dr_cut = dr > dr_min;
   const bool passes_circular = dr*dr / (dr_min*dr_min) + ptrel*ptrel / (ptrel_min*ptrel_min) > 1.f;
+  cout << ptrel << endl;
+  cout << dr << endl;
   if(circular) return passes_circular;
   else return passed_ptrel_cut || passed_dr_cut;
 }

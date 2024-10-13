@@ -41,7 +41,8 @@ public:
   virtual bool process(Event & event) override;
 
 private:
-  const bool debug;
+  // const bool debug;
+  bool debug;
   unsigned long long i_event = 0;
   const Channel fChannel;
   const Year fYear;
@@ -184,6 +185,11 @@ private:
   Event::Handle<int> fHandle_band;
   Event::Handle<int> fHandle_year;
   Event::Handle<string> fHandle_dataset;
+  Event::Handle<int> fHandle_run;
+  Event::Handle<int> fHandle_event;
+  Event::Handle<int> fHandle_luminosityBlock;
+
+  Event::Handle<vector<Jet>> fHandle_theBJets;
 };
 
 
@@ -290,6 +296,7 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx):
 
   slct_twod.reset(new ltt::TwoDSelection(ctx, ak4_ptrel_max, ak4_dr_lep_min, true));
 
+  fHandle_theBJets = ctx.get_handle<vector<Jet>>(kHandleName_pairedCHSjets_hemi);
   const JetId btagID = BTag(btagAlgo, btagWP);
   slct_btag.reset(new NJetSelection(1, -1, boost::none, ctx.get_handle<vector<Jet>>(kHandleName_bJets_hemi)));
   for(const auto & band : kRelevantBands) {
@@ -314,6 +321,9 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx):
   fHandle_band = ctx.declare_event_output<int>("band");
   fHandle_year = ctx.declare_event_output<int>("year");
   fHandle_dataset = ctx.declare_event_output<string>("dataset");
+  fHandle_run = ctx.declare_event_output<int>("run");
+  fHandle_event = ctx.declare_event_output<int>("event");
+  fHandle_luminosityBlock = ctx.declare_event_output<int>("luminosityBlock");
 }
 
 
@@ -322,6 +332,8 @@ TagAndProbeMainSelectionModule::TagAndProbeMainSelectionModule(Context & ctx):
 //------------//
 
 bool TagAndProbeMainSelectionModule::process(Event & event) {
+
+  if (event.event == 220301208) debug = true;
 
   if(debug) {
     cout << endl;
@@ -451,6 +463,11 @@ bool TagAndProbeMainSelectionModule::process(Event & event) {
 
   hist_btag_eff[band]->fill(event);
 
+  auto theBJets = event.get(fHandle_theBJets);
+  for (auto jet : theBJets) {
+    cout << jet.btag_DeepJet() << endl;
+  }
+
   const bool passes_btag = slct_btag->passes(event);
   if(!passes_btag) return false;
   if(run_btag_sf[band]) sf_btagging[band]->process(event);
@@ -478,6 +495,11 @@ bool TagAndProbeMainSelectionModule::process(Event & event) {
   event.set(fHandle_year, kYears.at(fYear).index);
   // event.set(fHandle_dataset, fDatasetVersion_without_year_suffix);
   event.set(fHandle_dataset, fDatasetVersion); // with year suffix
+  event.set(fHandle_run, event.run);
+  event.set(fHandle_event, event.event);
+  event.set(fHandle_luminosityBlock, event.luminosityBlock);
+
+  if(debug) throw runtime_error("asdf");
 
   return true;
 }
