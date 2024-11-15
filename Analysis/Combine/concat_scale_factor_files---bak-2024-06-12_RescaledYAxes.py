@@ -27,10 +27,10 @@ years = [
 # 'ele',
 # ]
 taggers = [
-'ak8_t__tau',
-'ak8_t_btagDJet__tau',
+# 'ak8_t__tau',
+# 'ak8_t_btagDJet__tau',
 # 'ak8_t_btagDCSV__tau',
-'hotvr_t__tau',
+# 'hotvr_t__tau',
 'ak8_w__partnet',
 'ak8_t__MDdeepak8',
 ]
@@ -514,25 +514,41 @@ class ScaleFactorCollector():
 
         text_cms_offset_x = 0.055
 
-        self.tlatex_cms = root.TLatex(self.coord.graph_to_pad_x(hw_corrected_deltaX) + text_cms_offset_x, self.coord.graph_to_pad_y(1. - deltaX), 'CMS')
-        self.tlatex_cms.SetTextAlign(13) # left top
-        self.tlatex_cms.SetTextFont(62)
-        self.tlatex_cms.SetTextSize(0.07)
-        self.tlatex_cms.SetNDC()
-        self.tlatex_cms.Draw()
-
-        # self.text_prelim = 'Work in Progress'
-        self.text_prelim = 'Preliminary'
-        #HACK
         if self.tagger.name == 'ak8_w__partnet' or self.tagger.name == 'ak8_t__MDdeepak8':
-            self.text_prelim = 'Private Work'
-        #HACK end
-        self.tlatex_prelim = root.TLatex(self.coord.graph_to_pad_x(hw_corrected_deltaX + 0.14) + text_cms_offset_x, self.coord.graph_to_pad_y(0.948), self.text_prelim)
-        self.tlatex_prelim.SetTextAlign(13) # left top
-        self.tlatex_prelim.SetTextFont(52)
-        self.tlatex_prelim.SetTextSize(0.045)
-        self.tlatex_prelim.SetNDC()
-        self.tlatex_prelim.Draw()
+            self.tlatex_pw = root.TLatex(self.coord.graph_to_pad_x(hw_corrected_deltaX) + text_cms_offset_x, self.coord.graph_to_pad_y(0.96), "Private work")
+            self.tlatex_pw.SetTextAlign(13) # left top
+            self.tlatex_pw.SetTextFont(52)
+            self.tlatex_pw.SetTextSize(self.text_size)
+            self.tlatex_pw.SetNDC()
+            self.tlatex_pw.Draw()
+
+            self.tlatex_pw2 = root.TLatex(self.coord.graph_to_pad_x(hw_corrected_deltaX) + text_cms_offset_x, self.coord.graph_to_pad_y(0.892), "(CMS data/simulation)")
+            self.tlatex_pw2.SetTextAlign(13) # left top
+            self.tlatex_pw2.SetTextFont(52)
+            self.tlatex_pw2.SetTextSize(self.text_size)
+            self.tlatex_pw2.SetNDC()
+            self.tlatex_pw2.Draw()
+
+        else:
+            self.tlatex_cms = root.TLatex(self.coord.graph_to_pad_x(hw_corrected_deltaX) + text_cms_offset_x, self.coord.graph_to_pad_y(1. - deltaX), 'CMS')
+            self.tlatex_cms.SetTextAlign(13) # left top
+            self.tlatex_cms.SetTextFont(62)
+            self.tlatex_cms.SetTextSize(0.07)
+            self.tlatex_cms.SetNDC()
+            self.tlatex_cms.Draw()
+
+            # self.text_prelim = 'Work in Progress'
+            self.text_prelim = 'Preliminary'
+            #HACK
+            if self.tagger.name == 'ak8_w__partnet' or self.tagger.name == 'ak8_t__MDdeepak8':
+                self.text_prelim = 'Private Work'
+            #HACK end
+            self.tlatex_prelim = root.TLatex(self.coord.graph_to_pad_x(hw_corrected_deltaX + 0.14) + text_cms_offset_x, self.coord.graph_to_pad_y(0.948), self.text_prelim)
+            self.tlatex_prelim.SetTextAlign(13) # left top
+            self.tlatex_prelim.SetTextFont(52)
+            self.tlatex_prelim.SetTextSize(0.045)
+            self.tlatex_prelim.SetNDC()
+            self.tlatex_prelim.Draw()
 
         if tagger.name.startswith('ak8_'):
             probejetalgo = 'AK8'
@@ -673,7 +689,7 @@ class ScaleFactorCollector():
 
 
             text_top_left_offset_x = 0.075
-            text_top_left = 'Run II Ultra Legacy'
+            text_top_left = 'Run II Legacy'
             self.tlatex_top_left = root.TLatex(margin_l + text_top_left_offset_x, 1. - margin_t + 0.01, text_top_left)
             self.tlatex_top_left.SetTextAlign(11) # left bottom
             self.tlatex_top_left.SetTextFont(42)

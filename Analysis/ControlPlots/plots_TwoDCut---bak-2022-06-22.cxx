@@ -103,8 +103,7 @@ void do_plot(const Year & year, const Process & process, const bool log_z) {
   double five_percent_x = 0.05 / ratio_hist_width_to_height;
 
   // TText *text_top_left = new TText(margin_l, 1-(margin_t-0.01), ((string)"T&P selection ("+kYears.at(year).name+")").c_str());
-  // TText *text_top_left = new TText(margin_l, 1-(margin_t-0.01), (string("Ultra Legacy ")+kYears.at(year).nice_name).c_str());
-  TText *text_top_left = new TLatex(margin_l, 1-(margin_t-0.01), (string("T&P #mu+jets, ")+kYears.at(year).nice_name).c_str());
+  TText *text_top_left = new TText(margin_l, 1-(margin_t-0.01), (string("Ultra Legacy ")+kYears.at(year).nice_name).c_str());
   text_top_left->SetTextAlign(11); // left bottom aligned
   text_top_left->SetTextFont(42);
   text_top_left->SetTextSize(0.035);
@@ -118,16 +117,15 @@ void do_plot(const Year & year, const Process & process, const bool log_z) {
   text_top_right->SetNDC();
   text_top_right->Draw();
 
-  // TText *cms = new TText(coord->ConvertGraphXToPadX(five_percent_x), coord->ConvertGraphYToPadY(0.95), "CMS");
-  // cms->SetTextAlign(13); // left top
-  // cms->SetTextFont(62);
-  // cms->SetTextSize(0.05);
-  // cms->SetNDC();
-  // cms->SetTextColor(kWhite);
-  // cms->Draw();
+  TText *cms = new TText(coord->ConvertGraphXToPadX(five_percent_x), coord->ConvertGraphYToPadY(0.95), "CMS");
+  cms->SetTextAlign(13); // left top
+  cms->SetTextFont(62);
+  cms->SetTextSize(0.05);
+  cms->SetNDC();
+  cms->SetTextColor(kWhite);
+  cms->Draw();
 
-  // TText *prelim = new TText(coord->ConvertGraphXToPadX(five_percent_x), coord->ConvertGraphYToPadY(0.87), "Simulation");
-  TText *prelim = new TText(coord->ConvertGraphXToPadX(five_percent_x), coord->ConvertGraphYToPadY(0.95), "Private work");
+  TText *prelim = new TText(coord->ConvertGraphXToPadX(five_percent_x), coord->ConvertGraphYToPadY(0.87), "Simulation");
   prelim->SetTextAlign(13); // left top
   prelim->SetTextFont(52);
   prelim->SetTextSize(0.035);
@@ -135,8 +133,7 @@ void do_plot(const Year & year, const Process & process, const bool log_z) {
   prelim->SetTextColor(kWhite);
   prelim->Draw();
 
-  // TText *prelim2 = new TText(coord->ConvertGraphXToPadX(five_percent_x), coord->ConvertGraphYToPadY(0.807), "Private Work");
-  TText *prelim2 = new TText(coord->ConvertGraphXToPadX(five_percent_x), coord->ConvertGraphYToPadY(0.887), "(CMS data/simulation)");
+  TText *prelim2 = new TText(coord->ConvertGraphXToPadX(five_percent_x), coord->ConvertGraphYToPadY(0.807), "Private Work");
   prelim2->SetTextAlign(13); // left top
   prelim2->SetTextFont(52);
   prelim2->SetTextSize(0.035);
@@ -245,8 +242,7 @@ void do_plot(const Year & year, const Process & process, const bool log_z) {
   // Save to disk
   string plotName = "plot_TwoDCut_"+process.name+"_"+kYears.at(year).name;
   plotName += (log_z ? string("_log") : string("_lin"))+".pdf";
-  // string plotDir = infileBasePath+"plots/";
-  string plotDir = "plots/";
+  string plotDir = infileBasePath+"plots/";
   gSystem->Exec(("mkdir -p "+plotDir).c_str());
   string plotPath = plotDir+plotName;
   c->SaveAs(plotPath.c_str());

@@ -531,7 +531,8 @@ _TAGGERS = [
         wps=[
             WorkingPoint(1., 0., name='Inclusive')
         ],
-        label='#tau_{3}/#tau_{2} < {WP_VALUE} + HOTVR cuts',
+        # label='#tau_{3}/#tau_{2} < {WP_VALUE} + HOTVR cuts',
+        label='HOTVR t tag incl. #tau_{3}/#tau_{2} < {WP_VALUE}',
     ),
     Tagger('hotvr_t__tau',
         'tau32',
@@ -542,7 +543,8 @@ _TAGGERS = [
         # We stick to 0.56 for consistency with previous
             WorkingPoint(9.999, 0.56, name='Standard') # providing bkg_eff does not make sense here; I have not derived it on my own; should be 3% or so
         ],
-        label='#tau_{3}/#tau_{2} < {WP_VALUE} + HOTVR cuts',
+        # label='#tau_{3}/#tau_{2} < {WP_VALUE} + HOTVR cuts',
+        label='HOTVR t tag incl. #tau_{3}/#tau_{2} < {WP_VALUE}',
     ),
     Tagger('ak8_t_incl__tau',
         'tau32',

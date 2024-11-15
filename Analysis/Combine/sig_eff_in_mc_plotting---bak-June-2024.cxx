@@ -427,12 +427,12 @@ void do_plot_nsubjettiness(const Year & year, const bool bool_prelim) {
 
 
 
-  // TLatex *text_top_left = new TLatex(margin_l, 1-(margin_t-0.01), (string("Ultra Legacy ")+kYears.at(year).nice_name).c_str());
-  // text_top_left->SetTextAlign(11); // left bottom aligned
-  // text_top_left->SetTextFont(42);
-  // text_top_left->SetTextSize(0.035);
-  // text_top_left->SetNDC();
-  // text_top_left->Draw();
+  TLatex *text_top_left = new TLatex(margin_l, 1-(margin_t-0.01), (string("Ultra Legacy ")+kYears.at(year).nice_name).c_str());
+  text_top_left->SetTextAlign(11); // left bottom aligned
+  text_top_left->SetTextFont(42);
+  text_top_left->SetTextSize(0.035);
+  text_top_left->SetNDC();
+  text_top_left->Draw();
 
   // TLatex *algo_label = new TLatex(coord->ConvertGraphXToPadX(1-(0.05*c->GetWh()/c->GetWw())), coord->ConvertGraphYToPadY(0.95), "AK8 PUPPI");
   // algo_label->SetTextAlign(33); // right top
@@ -474,28 +474,12 @@ void do_plot_nsubjettiness(const Year & year, const bool bool_prelim) {
   text_top_right->SetNDC();
   text_top_right->Draw();
 
-  TText *prelimPW1 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.95), "Private work");
-  prelimPW1->SetTextAlign(13); // left top
-  prelimPW1->SetTextFont(52);
-  prelimPW1->SetTextSize(0.03);
-  prelimPW1->SetNDC();
-  // prelimPW1->SetTextColor(kWhite);
-  if(!bool_prelim) prelimPW1->Draw();
-
-  TText *prelimPW2 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.90), "(CMS data/simulation)");
-  prelimPW2->SetTextAlign(13); // left top
-  prelimPW2->SetTextFont(52);
-  prelimPW2->SetTextSize(0.03);
-  prelimPW2->SetNDC();
-  // prelimPW2->SetTextColor(kWhite);
-  if(!bool_prelim) prelimPW2->Draw();
-
   TLatex *cms = new TLatex(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.95), "CMS");
   cms->SetTextAlign(13); // left top
   cms->SetTextFont(62);
   cms->SetTextSize(0.05);
   cms->SetNDC();
-  if(bool_prelim) cms->Draw();
+  cms->Draw();
 
   if(!plot_at_bottom) {
     TString prelim_text;
@@ -506,7 +490,7 @@ void do_plot_nsubjettiness(const Year & year, const bool bool_prelim) {
     prelim->SetTextFont(52);
     prelim->SetTextSize(0.035);
     prelim->SetNDC();
-    if(bool_prelim) prelim->Draw();
+    prelim->Draw();
   }
   else {
     TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.87), "Simulation");
@@ -515,7 +499,7 @@ void do_plot_nsubjettiness(const Year & year, const bool bool_prelim) {
     prelim->SetTextSize(0.035);
     prelim->SetNDC();
     // prelim->SetTextColor(kWhite);
-    if(bool_prelim) prelim->Draw();
+    prelim->Draw();
 
     TString prelim_text;
     if(bool_prelim) prelim_text = "Preliminary";
@@ -526,7 +510,7 @@ void do_plot_nsubjettiness(const Year & year, const bool bool_prelim) {
     prelim2->SetTextSize(0.035);
     prelim2->SetNDC();
     // prelim2->SetTextColor(kWhite);
-    if(bool_prelim) prelim2->Draw();
+    prelim2->Draw();
   }
 
 
@@ -774,12 +758,12 @@ void do_plot_partnet_w(const Year & year, const bool bool_prelim) {
 
 
 
-  // TLatex *text_top_left = new TLatex(margin_l, 1-(margin_t-0.01), (string("Ultra Legacy ")+kYears.at(year).nice_name).c_str());
-  // text_top_left->SetTextAlign(11); // left bottom aligned
-  // text_top_left->SetTextFont(42);
-  // text_top_left->SetTextSize(0.035);
-  // text_top_left->SetNDC();
-  // text_top_left->Draw();
+  TLatex *text_top_left = new TLatex(margin_l, 1-(margin_t-0.01), (string("Ultra Legacy ")+kYears.at(year).nice_name).c_str());
+  text_top_left->SetTextAlign(11); // left bottom aligned
+  text_top_left->SetTextFont(42);
+  text_top_left->SetTextSize(0.035);
+  text_top_left->SetNDC();
+  text_top_left->Draw();
 
   // TLatex *algo_label = new TLatex(coord->ConvertGraphXToPadX(1-(0.05*c->GetWh()/c->GetWw())), coord->ConvertGraphYToPadY(0.95), "AK8 PUPPI");
   // algo_label->SetTextAlign(33); // right top
@@ -821,28 +805,12 @@ void do_plot_partnet_w(const Year & year, const bool bool_prelim) {
   text_top_right->SetNDC();
   text_top_right->Draw();
 
-  TText *prelimPW1 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.95), "Private work");
-  prelimPW1->SetTextAlign(13); // left top
-  prelimPW1->SetTextFont(52);
-  prelimPW1->SetTextSize(0.03);
-  prelimPW1->SetNDC();
-  // prelimPW1->SetTextColor(kWhite);
-  if(!bool_prelim) prelimPW1->Draw();
-
-  TText *prelimPW2 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.90), "(CMS data/simulation)");
-  prelimPW2->SetTextAlign(13); // left top
-  prelimPW2->SetTextFont(52);
-  prelimPW2->SetTextSize(0.03);
-  prelimPW2->SetNDC();
-  // prelimPW2->SetTextColor(kWhite);
-  if(!bool_prelim) prelimPW2->Draw();
-
   TLatex *cms = new TLatex(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.95), "CMS");
   cms->SetTextAlign(13); // left top
   cms->SetTextFont(62);
   cms->SetTextSize(0.05);
   cms->SetNDC();
-  if(bool_prelim) cms->Draw();
+  cms->Draw();
 
   if(!plot_at_bottom) {
     TString prelim_text;
@@ -853,7 +821,7 @@ void do_plot_partnet_w(const Year & year, const bool bool_prelim) {
     prelim->SetTextFont(52);
     prelim->SetTextSize(0.035);
     prelim->SetNDC();
-    if(bool_prelim) prelim->Draw();
+    prelim->Draw();
   }
   else {
     TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.87), "Simulation");
@@ -862,7 +830,7 @@ void do_plot_partnet_w(const Year & year, const bool bool_prelim) {
     prelim->SetTextSize(0.035);
     prelim->SetNDC();
     // prelim->SetTextColor(kWhite);
-    if(bool_prelim) prelim->Draw();
+    prelim->Draw();
 
     TString prelim_text;
     if(bool_prelim) prelim_text = "Preliminary";
@@ -873,7 +841,7 @@ void do_plot_partnet_w(const Year & year, const bool bool_prelim) {
     prelim2->SetTextSize(0.035);
     prelim2->SetNDC();
     // prelim2->SetTextColor(kWhite);
-    if(bool_prelim) prelim2->Draw();
+    prelim2->Draw();
   }
 
 
@@ -1089,12 +1057,12 @@ void do_plot_partnet_top(const Year & year, const bool bool_prelim) {
 
 
 
-  // TLatex *text_top_left = new TLatex(margin_l, 1-(margin_t-0.01), (string("Ultra Legacy ")+kYears.at(year).nice_name).c_str());
-  // text_top_left->SetTextAlign(11); // left bottom aligned
-  // text_top_left->SetTextFont(42);
-  // text_top_left->SetTextSize(0.035);
-  // text_top_left->SetNDC();
-  // text_top_left->Draw();
+  TLatex *text_top_left = new TLatex(margin_l, 1-(margin_t-0.01), (string("Ultra Legacy ")+kYears.at(year).nice_name).c_str());
+  text_top_left->SetTextAlign(11); // left bottom aligned
+  text_top_left->SetTextFont(42);
+  text_top_left->SetTextSize(0.035);
+  text_top_left->SetNDC();
+  text_top_left->Draw();
 
   // TLatex *algo_label = new TLatex(coord->ConvertGraphXToPadX(1-(0.05*c->GetWh()/c->GetWw())), coord->ConvertGraphYToPadY(0.95), "AK8 PUPPI");
   // algo_label->SetTextAlign(33); // right top
@@ -1136,28 +1104,12 @@ void do_plot_partnet_top(const Year & year, const bool bool_prelim) {
   text_top_right->SetNDC();
   text_top_right->Draw();
 
-  TText *prelimPW1 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.95), "Private work");
-  prelimPW1->SetTextAlign(13); // left top
-  prelimPW1->SetTextFont(52);
-  prelimPW1->SetTextSize(0.03);
-  prelimPW1->SetNDC();
-  // prelimPW1->SetTextColor(kWhite);
-  if(!bool_prelim) prelimPW1->Draw();
-
-  TText *prelimPW2 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.90), "(CMS data/simulation)");
-  prelimPW2->SetTextAlign(13); // left top
-  prelimPW2->SetTextFont(52);
-  prelimPW2->SetTextSize(0.03);
-  prelimPW2->SetNDC();
-  // prelimPW2->SetTextColor(kWhite);
-  if(!bool_prelim) prelimPW2->Draw();
-
   TLatex *cms = new TLatex(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.95), "CMS");
   cms->SetTextAlign(13); // left top
   cms->SetTextFont(62);
   cms->SetTextSize(0.05);
   cms->SetNDC();
-  if(bool_prelim) cms->Draw();
+  cms->Draw();
 
   if(!plot_at_bottom) {
     TString prelim_text;
@@ -1168,7 +1120,7 @@ void do_plot_partnet_top(const Year & year, const bool bool_prelim) {
     prelim->SetTextFont(52);
     prelim->SetTextSize(0.035);
     prelim->SetNDC();
-    if(bool_prelim) prelim->Draw();
+    prelim->Draw();
   }
   else {
     TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.87), "Simulation");
@@ -1177,7 +1129,7 @@ void do_plot_partnet_top(const Year & year, const bool bool_prelim) {
     prelim->SetTextSize(0.035);
     prelim->SetNDC();
     // prelim->SetTextColor(kWhite);
-    if(bool_prelim) prelim->Draw();
+    prelim->Draw();
 
     TString prelim_text;
     if(bool_prelim) prelim_text = "Preliminary";
@@ -1188,7 +1140,7 @@ void do_plot_partnet_top(const Year & year, const bool bool_prelim) {
     prelim2->SetTextSize(0.035);
     prelim2->SetNDC();
     // prelim2->SetTextColor(kWhite);
-    if(bool_prelim) prelim2->Draw();
+    prelim2->Draw();
   }
 
 
