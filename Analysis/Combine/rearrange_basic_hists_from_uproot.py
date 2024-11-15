@@ -40,11 +40,11 @@ all_years = [
 ]
 
 taggers = [
-# 'ak8_t__tau', #naf11 tmux5
+'ak8_t__tau', #naf11 tmux5
 # 'ak8_t_btagDJet__tau', #naf11 tmux6
 # 'ak8_t_btagDCSV__tau',#naf11 tmux7
 # 'hotvr_t__tau', #naf11 tmux8
-'ak8_w__partnet',
+# 'ak8_w__partnet',
 # 'ak8_t__MDdeepak8',
 ]
 taggers = {k: _TAGGERS[k] for k in taggers}
@@ -109,8 +109,8 @@ do_legend = True
 # do_legend = False
 # mscSplitting = 'mscNone'
 # mscSplitting = 'mscTop2'
-# mscSplitting = 'mscTop3'
-mscSplitting = 'mscW3'
+mscSplitting = 'mscTop3'
+# mscSplitting = 'mscW3'
 
 processes_Plotter = None
 
@@ -610,8 +610,10 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
                 data_name = 'data_obs',
                 # text_prelim = 'Private Work',
                 text_prelim = 'Preliminary',
+                text_privatework = '(CMS data/simulation)',
                 # text_top_left = _YEARS.get(year).get('long_name'),
-                text_top_left = 'T&P '+('e' if channel == 'ele' else '#mu')+'+jets, UL '+_YEARS.get(year).get('year'),
+                # text_top_left = 'T&P '+('e' if channel == 'ele' else '#mu')+'+jets, UL '+_YEARS.get(year).get('year'),
+                text_top_left = 'T&P '+('e' if channel == 'ele' else '#mu')+'+jets',
                 text_top_right = _YEARS.get(year).get('lumi_fb_display')+' fb^{#minus1} (13 TeV)',
                 # nostack = True,
                 logy = logy,
@@ -757,68 +759,70 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
 
 if __name__=='__main__':
 
-    # #__________________________________________________
-    # # Default code to create all fitting templates (mSD or jet mass)
-    #
-    # for the_tagger in taggers.values():
-    #     print('Working on', the_tagger.name)
-    #     for year in all_years:
-    #         print('Working on', year)
-    #         for wp in the_tagger.get_wp(year=year):
-    #             print('Working on', wp.name)
-    #             for pt_bin in the_tagger.var_intervals.values():
-    #                 # if pt_bin.name != 'pt_300to400': continue # HACK
-    #                 print('Working on', pt_bin.name)
-    #                 create_rearranged_hists(the_tagger.fit_variable, the_tagger, year, wp, pt_bin, do_plot=do_plotting, do_hists=do_histograms)
-    #             # break # HACK
-
     #__________________________________________________
-    # Code to create plots of other variables (e.g. substructure)
-
+    # Default code to create all fitting templates (mSD or jet mass)
+    
     for the_tagger in taggers.values():
-
-        the_vars = []
-        if the_tagger.name.startswith('ak8_t'):
-            the_vars = [
-                # 'output_probejet_AK8_tau32',
-                # 'output_probejet_AK8_maxDeepJet',
-                # 'output_probejet_AK8_maxDeepCSV',
-                # 'output_probejet_AK8_MDDeepAK8_TvsQCD',
-                'output_probejet_AK8_mSD',
-                # 'output_probejet_AK8_mass',
-                # 'output_probejet_AK8_pt',
-            ]
-        elif the_tagger.name.startswith('ak8_w'):
-            the_vars = [
-                # 'output_probejet_AK8_ParticleNet_WvsQCD',
-                'output_probejet_AK8_mSD',
-                # 'output_probejet_AK8_mass',
-                # 'output_probejet_AK8_pt',
-            ]
-        elif the_tagger.name.startswith('hotvr_t'):
-            the_vars = [
-                # 'output_probejet_HOTVR_tau32',
-                # 'output_probejet_HOTVR_nsub',
-                # 'output_probejet_HOTVR_fpt1',
-                # 'output_probejet_HOTVR_mpair',
-                'output_probejet_HOTVR_mass',
-                # 'output_probejet_HOTVR_pt',
-            ]
-
         print('Working on', the_tagger.name)
-
-        for var in the_vars:
-
-            print('Working on', var)
-
-            for year in all_years:
-
-                print('Working on', year)
-                wp = _NULL_WP
-
+        for year in all_years:
+            if year != 'UL16preVFP': continue  # HACK
+            print('Working on', year)
+            for wp in the_tagger.get_wp(year=year):
+                if wp.name != 'BkgEff0p001': continue  # HACK
+                print('Working on', wp.name)
                 for pt_bin in the_tagger.var_intervals.values():
-
-                    # if not pt_bin.total_range: #HACK
-                    #     continue
+                    if pt_bin.name != 'pt_480to600': continue # HACK
                     print('Working on', pt_bin.name)
-                    create_rearranged_hists(var, the_tagger, year, wp, pt_bin, do_plot=do_plotting, do_hists=do_histograms, do_rebinning=False)
+                    create_rearranged_hists(the_tagger.fit_variable, the_tagger, year, wp, pt_bin, do_plot=do_plotting, do_hists=do_histograms)
+                # break # HACK
+
+    # #__________________________________________________
+    # # Code to create plots of other variables (e.g. substructure)
+
+    # for the_tagger in taggers.values():
+
+    #     the_vars = []
+    #     if the_tagger.name.startswith('ak8_t'):
+    #         the_vars = [
+    #             # 'output_probejet_AK8_tau32',
+    #             # 'output_probejet_AK8_maxDeepJet',
+    #             # 'output_probejet_AK8_maxDeepCSV',
+    #             # 'output_probejet_AK8_MDDeepAK8_TvsQCD',
+    #             'output_probejet_AK8_mSD',
+    #             # 'output_probejet_AK8_mass',
+    #             # 'output_probejet_AK8_pt',
+    #         ]
+    #     elif the_tagger.name.startswith('ak8_w'):
+    #         the_vars = [
+    #             # 'output_probejet_AK8_ParticleNet_WvsQCD',
+    #             'output_probejet_AK8_mSD',
+    #             # 'output_probejet_AK8_mass',
+    #             # 'output_probejet_AK8_pt',
+    #         ]
+    #     elif the_tagger.name.startswith('hotvr_t'):
+    #         the_vars = [
+    #             # 'output_probejet_HOTVR_tau32',
+    #             # 'output_probejet_HOTVR_nsub',
+    #             # 'output_probejet_HOTVR_fpt1',
+    #             # 'output_probejet_HOTVR_mpair',
+    #             'output_probejet_HOTVR_mass',
+    #             # 'output_probejet_HOTVR_pt',
+    #         ]
+
+    #     print('Working on', the_tagger.name)
+
+    #     for var in the_vars:
+
+    #         print('Working on', var)
+
+    #         for year in all_years:
+
+    #             print('Working on', year)
+    #             wp = _NULL_WP
+
+    #             for pt_bin in the_tagger.var_intervals.values():
+
+    #                 # if not pt_bin.total_range: #HACK
+    #                 #     continue
+    #                 print('Working on', pt_bin.name)
+    #                 create_rearranged_hists(var, the_tagger, year, wp, pt_bin, do_plot=do_plotting, do_hists=do_histograms, do_rebinning=False)

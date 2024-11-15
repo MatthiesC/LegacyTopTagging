@@ -105,8 +105,8 @@ do_histograms = False
 ### only relevant for plots:
 do_plotting = True
 # do_plotting = False
-# do_legend = True
-do_legend = False
+do_legend = True
+# do_legend = False
 # mscSplitting = 'mscNone'
 # mscSplitting = 'mscTop2'
 # mscSplitting = 'mscTop3'
@@ -613,10 +613,12 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
                 data_name = 'data_obs',
                 # text_prelim = 'Private Work',
                 text_prelim = 'Preliminary',
+                # text_privatework = '(CMS data/simulation)',
                 # text_top_left = _YEARS.get(year).get('long_name'),
                 # text_top_left = 'T&P '+('e' if channel == 'ele' else '#mu')+'+jets, UL '+_YEARS.get(year).get('year'),
                 # text_top_left = 'T&P'+(' e+jets' if channel == 'ele' else (' #mu+jets' if channel == 'muo' else ' e/#mu+jets'))+', UL '+_YEARS.get(year).get('year'),
-                text_top_left = 'T&P'+(' e+jets' if channel == 'ele' else (' #mu+jets' if channel == 'muo' else ' e/#mu+jets'))+', Run II Ultra Legacy',
+                # text_top_left = 'T&P'+(' e+jets' if channel == 'ele' else (' #mu+jets' if channel == 'muo' else ' e/#mu+jets'))+', Run II Ultra Legacy',
+                text_top_left = 'T&P'+(' e+jets' if channel == 'ele' else (' #mu+jets' if channel == 'muo' else ' e/#mu+jets')),
                 text_top_right = _YEARS.get(year).get('lumi_fb_display')+' fb^{#minus1} (13 TeV)',
                 # nostack = True,
                 logy = logy,

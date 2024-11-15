@@ -96,6 +96,7 @@ class NiceStackWithRatio():
         data_name = 'data_obs',
         totalprocs_name = 'TotalProcs',
         text_prelim = 'Work in Progress',
+        text_privatework = None,  # can be a string
         text_top_left = None,
         text_top_right = None,
         nostack = False,
@@ -135,6 +136,9 @@ class NiceStackWithRatio():
         self.is_multiplicity_plot = 'number of ' in self.x_axis_title.lower() or ' multiplicity' in self.x_axis_title.lower()
         self.text_size = 0.035
         self.text_prelim = text_prelim
+        self.text_privatework = text_privatework
+        if self.text_privatework is not None:
+            self.text_prelim = None
         self.text_top_left = text_top_left
         self.text_top_right = text_top_right
 
@@ -631,19 +635,35 @@ class NiceStackWithRatio():
             self.tlatex_top_right.SetNDC()
             self.tlatex_top_right.Draw()
 
-        self.tlatex_cms = root.TLatex(self.coord.graph_to_pad_x(0.05), self.coord.graph_to_pad_y(0.95), 'CMS')
-        self.tlatex_cms.SetTextAlign(13) # left top
-        self.tlatex_cms.SetTextFont(62)
-        self.tlatex_cms.SetTextSize(0.05)
-        self.tlatex_cms.SetNDC()
-        self.tlatex_cms.Draw()
+        if self.text_privatework is not None:
+            self.text_pw1 = root.TLatex(self.coord.graph_to_pad_x(0.05), self.coord.graph_to_pad_y(0.95), 'Private work')
+            self.text_pw1.SetTextAlign(13)
+            self.text_pw1.SetTextFont(52)
+            self.text_pw1.SetTextSize(0.03)
+            self.text_pw1.SetNDC()
+            self.text_pw1.Draw()
 
-        self.tlatex_prelim = root.TLatex(self.coord.graph_to_pad_x(0.05), self.coord.graph_to_pad_y(0.87), self.text_prelim)
-        self.tlatex_prelim.SetTextAlign(13) # left top
-        self.tlatex_prelim.SetTextFont(52)
-        self.tlatex_prelim.SetTextSize(self.text_size)
-        self.tlatex_prelim.SetNDC()
-        self.tlatex_prelim.Draw()
+            self.text_pw2 = root.TLatex(self.coord.graph_to_pad_x(0.05), self.coord.graph_to_pad_y(0.90), str(self.text_privatework))
+            self.text_pw2.SetTextAlign(13)
+            self.text_pw2.SetTextFont(52)
+            self.text_pw2.SetTextSize(0.03)
+            self.text_pw2.SetNDC()
+            self.text_pw2.Draw()
+
+        else:
+            self.tlatex_cms = root.TLatex(self.coord.graph_to_pad_x(0.05), self.coord.graph_to_pad_y(0.95), 'CMS')
+            self.tlatex_cms.SetTextAlign(13) # left top
+            self.tlatex_cms.SetTextFont(62)
+            self.tlatex_cms.SetTextSize(0.05)
+            self.tlatex_cms.SetNDC()
+            self.tlatex_cms.Draw()
+
+            self.tlatex_prelim = root.TLatex(self.coord.graph_to_pad_x(0.05), self.coord.graph_to_pad_y(0.87), self.text_prelim)
+            self.tlatex_prelim.SetTextAlign(13) # left top
+            self.tlatex_prelim.SetTextFont(52)
+            self.tlatex_prelim.SetTextSize(self.text_size)
+            self.tlatex_prelim.SetNDC()
+            self.tlatex_prelim.Draw()
 
         if self.draw_ratio_mc_stat:
             # draw a "legend" for MC stat. uncertainty band in ratio plot

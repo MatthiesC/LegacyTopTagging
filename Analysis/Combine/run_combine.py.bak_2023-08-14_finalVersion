@@ -869,10 +869,8 @@ class ScaleFactorFits():
                 data_name = 'data_obs',
                 # text_prelim = 'Private Work',
                 text_prelim = 'Preliminary',
-                text_privatework = '(CMS data/simulation)',
                 # text_top_left = _YEARS.get(year).get('long_name'),
-                # text_top_left = 'T&P '+('e' if channel == 'ele' else '#mu')+'+jets, UL '+_YEARS.get(year).get('year'),
-                text_top_left = 'T&P '+('e' if channel == 'ele' else '#mu')+'+jets',
+                text_top_left = 'T&P '+('e' if channel == 'ele' else '#mu')+'+jets, UL '+_YEARS.get(year).get('year'),
                 text_top_right = _YEARS.get(year).get('lumi_fb_display')+' fb^{#minus1} (13 TeV)',
                 # nostack = True,
                 logy = logy,
@@ -1327,6 +1325,6 @@ if __name__=='__main__':
     # x.write_scale_factor_file(observed=True)
     # x.prepostfitshapes(observed=True)
     # x.prepostfitshapes_for_plots(observed=True)
-    x.plot_prepostfitshapes(observed=True, prepostfit='prefitCombine')
-    x.plot_prepostfitshapes(observed=True, prepostfit='postfitCombine')
-    # x.impacts(observed=True)
+    # x.plot_prepostfitshapes(observed=True, prepostfit='prefitCombine')
+    # x.plot_prepostfitshapes(observed=True, prepostfit='postfitCombine')
+    x.impacts(observed=True)
