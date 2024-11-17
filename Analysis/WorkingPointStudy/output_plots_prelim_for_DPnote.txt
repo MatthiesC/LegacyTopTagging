@@ -1,0 +1,193 @@
+
+Processing plots.cxx("UL18", "ak8_t__tau")...
+>>> WP: <<<
+Target eff BKG:    0.001
+Actual eff BKG:    0.00100898
+Actual eff SIG:    0.105381
+Scan variable cut: 0.381
+>>> WP: <<<
+Target eff BKG:    0.005
+Actual eff BKG:    0.00502664
+Actual eff SIG:    0.210856
+Scan variable cut: 0.471
+>>> WP: <<<
+Target eff BKG:    0.01
+Actual eff BKG:    0.0100474
+Actual eff SIG:    0.268849
+Scan variable cut: 0.521
+>>> WP: <<<
+Target eff BKG:    0.025
+Actual eff BKG:    0.025116
+Actual eff SIG:    0.358617
+Scan variable cut: 0.604
+>>> WP: <<<
+Target eff BKG:    0.05
+Actual eff BKG:    0.0500301
+Actual eff SIG:    0.4392
+Scan variable cut: 0.685
+>>> WP: <<<
+Target eff BKG:    -1
+Actual eff BKG:    0.000567098
+Actual eff SIG:    0.0998225
+Scan variable cut: 0.381
+>>> WP: <<<
+Target eff BKG:    -1
+Actual eff BKG:    0.00251495
+Actual eff SIG:    0.197222
+Scan variable cut: 0.471
+>>> WP: <<<
+Target eff BKG:    -1
+Actual eff BKG:    0.0047614
+Actual eff SIG:    0.249776
+Scan variable cut: 0.521
+>>> WP: <<<
+Target eff BKG:    -1
+Actual eff BKG:    0.0111375
+Actual eff SIG:    0.329464
+Scan variable cut: 0.604
+>>> WP: <<<
+Target eff BKG:    -1
+Actual eff BKG:    0.0210662
+Actual eff SIG:    0.399605
+Scan variable cut: 0.685
+>>> WP: <<<
+Target eff BKG:    -1
+Actual eff BKG:    0.000502964
+Actual eff SIG:    0.104591
+Scan variable cut: 0.381
+>>> WP: <<<
+Target eff BKG:    -1
+Actual eff BKG:    0.0023381
+Actual eff SIG:    0.208775
+Scan variable cut: 0.471
+>>> WP: <<<
+Target eff BKG:    -1
+Actual eff BKG:    0.00449644
+Actual eff SIG:    0.265766
+Scan variable cut: 0.521
+>>> WP: <<<
+Target eff BKG:    -1
+Actual eff BKG:    0.0106606
+Actual eff SIG:    0.353382
+Scan variable cut: 0.604
+>>> WP: <<<
+Target eff BKG:    -1
+Actual eff BKG:    0.0203514
+Actual eff SIG:    0.43131
+Scan variable cut: 0.685
+>>> WP: <<<
+Target eff BKG:    -1
+Actual eff BKG:    0.0017361
+Actual eff SIG:    0.111616
+Scan variable cut: 0.381
+>>> WP: <<<
+Target eff BKG:    -1
+Actual eff BKG:    0.00806044
+Actual eff SIG:    0.229406
+Scan variable cut: 0.471
+>>> WP: <<<
+Target eff BKG:    -1
+Actual eff BKG:    0.0166513
+Actual eff SIG:    0.298347
+Scan variable cut: 0.521
+>>> WP: <<<
+Target eff BKG:    -1
+Actual eff BKG:    0.0488915
+Actual eff SIG:    0.415332
+Scan variable cut: 0.604
+>>> WP: <<<
+Target eff BKG:    -1
+Actual eff BKG:    0.131015
+Actual eff SIG:    0.536237
+Scan variable cut: 0.685
+Working on pt_1000toInf
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Working on pt_200to250
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Working on pt_200toInf
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Working on pt_250to300
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Working on pt_300to350
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Working on pt_300to400
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Working on pt_300toInf
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Working on pt_350to400
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Working on pt_400to480
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Working on pt_400toInf
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Working on pt_480to600
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Working on pt_500to600
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Working on pt_600toInf
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau
+Skip printing WP markers for inclusive tagger: ak8_t_incl__tau

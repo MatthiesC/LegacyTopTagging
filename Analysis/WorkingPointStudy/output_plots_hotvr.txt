@@ -1,0 +1,103 @@
+
+Processing plots.cxx("UL18", "hotvr_t__tau")...
+>>> WP: <<<
+Target eff BKG:    0.03
+Actual eff BKG:    0.0299397
+Actual eff SIG:    0.31242
+Scan variable cut: 0.55
+>>> WP: <<<
+Target eff BKG:    -1
+Actual eff BKG:    0.148382
+Actual eff SIG:    0.505186
+Scan variable cut: 0.55
+Working on pt_1000toInf
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Working on pt_200to250
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Working on pt_200toInf
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Working on pt_250to300
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Working on pt_300to350
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Working on pt_300to400
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Working on pt_300toInf
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Working on pt_350to400
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Working on pt_400to480
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Working on pt_400toInf
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Working on pt_480to600
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Working on pt_500to600
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Working on pt_600toInf
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
+Skip printing WP markers for inclusive tagger: hotvr_t_incl__tau
