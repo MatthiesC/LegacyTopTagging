@@ -11,6 +11,97 @@ const string data_path = "sig_eff_in_mc_BasicHists";
 
 
 
+TGraphAsymmErrors * create_sig_eff_graph_run2(
+  TFile * infile,
+  const string & graphNamePostfix,
+  double x_offset,
+  TFile * sf_file,
+  const string & tagger_and_wp
+) {
+  map<Year, TGraph> graph_map;
+  map<Year, TGraphAsymmErrors> sf_map_corr, sf_map_uncorr;
+  for (auto year : kAllYears) {
+    const string graphName = kYears.at(year).name + graphNamePostfix;
+    graph_map[year] = *(TGraph*)infile->Get(graphName.c_str());
+    const string sfName = tagger_and_wp + "-" + kYears.at(year).name + "/FullyMerged_" + kYears.at(year).name;
+    sf_map_corr[year] = *(TGraphAsymmErrors*)sf_file->Get((sfName + "_corr").c_str());
+    sf_map_uncorr[year] = *(TGraphAsymmErrors*)sf_file->Get((sfName + "_uncorr").c_str());
+  }
+
+  int n = graph_map[Year::isUL18].GetN();
+  //double x[n], y[n], exl[n], exh[n], eyl[n], eyh[n];
+  //double exl[n], exh[n], eyl[n], eyh[n];
+  vector<double> x, y, exl, exh, eyl, eyh;
+  //vector<double> x, y;
+  for(int i = 0; i <= n; i++) {
+    double px, py, sfx, sfy;  // px is the jet pt
+    //x[i] = 0;
+    //y[i] = 0;
+    //x.push_back(0);
+    //y.push_back(0);
+    //map<Year, double> relErrors_corr_l, relErrors_uncorr_l;
+    //map<Year, double> relErrors_corr_h, relErrors_uncorr_h;
+    double temp_x(0.), temp_y(0.);
+    double e_corr_l(0.), e_corr_h(0.), e_uncorr_l(0.), e_uncorr_h(0.);
+    for (auto year : kAllYears) {
+      double lumi_factor = kYears.at(year).lumi_fb / kYears.at(Year::isRun2).lumi_fb;
+      graph_map[year].GetPoint(i, px, py);
+      //cout << px << endl;
+      temp_x = px + x_offset;
+      //cout << x[i] << endl;
+
+      double sf = sf_map_corr.at(year).GetPoint(i, sfx, sfy);
+      temp_y += py * lumi_factor * sfy;
+
+      //relErrors_corr_l[year] = sf_map_corr[year].GetErrorXlow() / sfy;
+      //relErrors_corr_h[year] = sf_map_corr[year].GetErrorXhigh() / sfy;
+      //relErrors_uncorr_l[year] = sf_map_uncorr[year].GetErrorXlow() / sfy;
+      //relErrors_uncorr_h[year] = sf_map_uncorr[year].GetErrorXhigh() / sfy;
+
+      e_corr_l += lumi_factor * sf_map_corr.at(year).GetErrorYlow(i) / sfy;
+      e_corr_h += lumi_factor * sf_map_corr.at(year).GetErrorYhigh(i) / sfy;
+
+      e_uncorr_l += lumi_factor * pow(sf_map_uncorr.at(year).GetErrorYlow(i) / sfy, 2);
+      e_uncorr_h += lumi_factor * pow(sf_map_uncorr.at(year).GetErrorYhigh(i) / sfy, 2);
+    }
+
+    x.push_back(temp_x);
+    y.push_back(temp_y);
+
+    //eyl[i] = y[i] * sqrt( e_corr_l * e_corr_l + e_uncorr_l );
+    //eyh[i] = y[i] * sqrt( e_corr_h * e_corr_h + e_uncorr_h );
+    //exl[i] = 0;
+    //exh[i] = 0;
+
+    eyl.push_back(y.at(i) * sqrt( e_corr_l * e_corr_l + e_uncorr_l ));
+    eyh.push_back(y.at(i) * sqrt( e_corr_h * e_corr_h + e_uncorr_h ));
+    exl.push_back(0);
+    exh.push_back(0);
+  }
+
+  //if ( graphNamePostfix.find("BkgEff") != string::npos ) x[0] = 350 + x_offset; // FIX for some unexplainable bug where x[0] is always some small number albeit px was found correctly
+
+  double ax[n], ay[n];
+  double aexl[n], aexh[n], aeyl[n], aeyh[n];
+  for (int i = 0; i < n ; i++) {
+    ax[i] = x.at(i);
+    ay[i] = y.at(i);
+    aexl[i] = exl.at(i);
+    aexh[i] = exh.at(i);
+    aeyl[i] = eyl.at(i);
+    aeyh[i] = eyh.at(i);
+  }
+
+  TGraphAsymmErrors * result = new TGraphAsymmErrors(n, ax, ay, aexl, aexh, aeyl, aeyh);
+  return result;
+
+  // const string graphName = kYears.at(Year::isUL16preVFP).name + graphNamePostfix;
+  // TGraph graph_UL16preVFP = *(TGraph*)infile->Get(graphName.c_str());
+}
+
+
+
+
 TGraph * new_null_graph() {
   int n = 1001; // should be the same number + 1 as the variable "nx" in analyze.py
   double x[n], y[n];
@@ -107,7 +198,8 @@ static const values_leo_type_4 values_leo_TvsQCD_BkgEff0p001 = {
 };
 
 
-void do_plot_nsubjettiness(const Year & year, const bool bool_prelim) {
+//void do_plot_nsubjettiness(const Year & year, const bool bool_prelim) {
+void do_plot_nsubjettiness(const bool bool_prelim) {
 
   int debug = 0;
 
@@ -130,8 +222,19 @@ void do_plot_nsubjettiness(const Year & year, const bool bool_prelim) {
 
   cout << debug++ << endl;
 
-  const string graphName_nominal_vt = kYears.at(year).name + "-BkgEff0p001/"+inputGraphName;
-  TGraph graph_nominal_vt = *(TGraph*)infile_nominal->Get(graphName_nominal_vt.c_str());
+  double x_offset_nominal = 4;
+  double x_offset_btag = -x_offset_nominal;
+
+  double x_offset_general = 16;
+
+  string tagger_and_wp = "";
+
+  //const string graphName_nominal_vt = kYears.at(year).name + "-BkgEff0p001/"+inputGraphName;
+  //TGraph graph_nominal_vt = *(TGraph*)infile_nominal->Get(graphName_nominal_vt.c_str());
+  const string graphNamePostfix_nominal_vt = "-BkgEff0p001/"+inputGraphName;
+  TFile* sf_file_nominal_vt = TFile::Open("scaleFactors_2023-08-10/scaleFactors-ak8_t__tau-BkgEff0p001/scaleFactors-ak8_t__tau-BkgEff0p001.root", "READ");
+  tagger_and_wp = "ak8_t__tau-BkgEff0p001";
+  auto graph_nominal_vt = *(create_sig_eff_graph_run2(infile_nominal, graphNamePostfix_nominal_vt, x_offset_nominal-2*x_offset_general, sf_file_nominal_vt, tagger_and_wp));
   graph_nominal_vt.SetLineWidth(line_width);
   graph_nominal_vt.SetLineColor(kGreen);
   graph_nominal_vt.SetLineStyle(line_style_nominal);
@@ -142,8 +245,12 @@ void do_plot_nsubjettiness(const Year & year, const bool bool_prelim) {
 
   cout << debug++ << endl;
   
-  const string graphName_nominal_ti = kYears.at(year).name + "-BkgEff0p005/"+inputGraphName;
-  TGraph graph_nominal_ti = *(TGraph*)infile_nominal->Get(graphName_nominal_ti.c_str());
+  //const string graphName_nominal_ti = kYears.at(year).name + "-BkgEff0p005/"+inputGraphName;
+  //TGraph graph_nominal_ti = *(TGraph*)infile_nominal->Get(graphName_nominal_ti.c_str());
+  const string graphNamePostfix_nominal_ti = "-BkgEff0p005/"+inputGraphName;
+  TFile* sf_file_nominal_ti = TFile::Open("scaleFactors_2023-08-10/scaleFactors-ak8_t__tau-BkgEff0p005/scaleFactors-ak8_t__tau-BkgEff0p005.root", "READ");
+  tagger_and_wp = "ak8_t__tau-BkgEff0p005";
+  auto graph_nominal_ti = *(create_sig_eff_graph_run2(infile_nominal, graphNamePostfix_nominal_ti, x_offset_nominal-x_offset_general, sf_file_nominal_ti, tagger_and_wp));
   graph_nominal_ti.SetLineWidth(line_width);
   graph_nominal_ti.SetLineColor(kCyan);
   graph_nominal_ti.SetLineStyle(line_style_nominal);
@@ -154,8 +261,12 @@ void do_plot_nsubjettiness(const Year & year, const bool bool_prelim) {
 
   cout << debug++ << endl;
 
-  const string graphName_nominal_me = kYears.at(year).name + "-BkgEff0p010/"+inputGraphName;
-  TGraph graph_nominal_me = *(TGraph*)infile_nominal->Get(graphName_nominal_me.c_str());
+  //const string graphName_nominal_me = kYears.at(year).name + "-BkgEff0p010/"+inputGraphName;
+  //TGraph graph_nominal_me = *(TGraph*)infile_nominal->Get(graphName_nominal_me.c_str());
+  const string graphNamePostfix_nominal_me = "-BkgEff0p010/"+inputGraphName;
+  TFile* sf_file_nominal_me = TFile::Open("scaleFactors_2023-08-10/scaleFactors-ak8_t__tau-BkgEff0p010/scaleFactors-ak8_t__tau-BkgEff0p010.root", "READ");
+  tagger_and_wp = "ak8_t__tau-BkgEff0p010";
+  auto graph_nominal_me = *(create_sig_eff_graph_run2(infile_nominal, graphNamePostfix_nominal_me, x_offset_nominal, sf_file_nominal_me, tagger_and_wp));
   graph_nominal_me.SetLineWidth(line_width);
   graph_nominal_me.SetLineColor(kBlue);
   graph_nominal_me.SetLineStyle(line_style_nominal);
@@ -166,8 +277,12 @@ void do_plot_nsubjettiness(const Year & year, const bool bool_prelim) {
 
   cout << debug++ << endl;
 
-  const string graphName_nominal_lo = kYears.at(year).name + "-BkgEff0p025/"+inputGraphName;
-  TGraph graph_nominal_lo = *(TGraph*)infile_nominal->Get(graphName_nominal_lo.c_str());
+  //const string graphName_nominal_lo = kYears.at(year).name + "-BkgEff0p025/"+inputGraphName;
+  //TGraph graph_nominal_lo = *(TGraph*)infile_nominal->Get(graphName_nominal_lo.c_str());
+  const string graphNamePostfix_nominal_lo = "-BkgEff0p025/"+inputGraphName;
+  TFile* sf_file_nominal_lo = TFile::Open("scaleFactors_2023-08-10/scaleFactors-ak8_t__tau-BkgEff0p025/scaleFactors-ak8_t__tau-BkgEff0p025.root", "READ");
+  tagger_and_wp = "ak8_t__tau-BkgEff0p025";
+  auto graph_nominal_lo = *(create_sig_eff_graph_run2(infile_nominal, graphNamePostfix_nominal_lo, x_offset_nominal+x_offset_general, sf_file_nominal_lo, tagger_and_wp));
   graph_nominal_lo.SetLineWidth(line_width);
   graph_nominal_lo.SetLineColor(kMagenta);
   graph_nominal_lo.SetLineStyle(line_style_nominal);
@@ -178,8 +293,12 @@ void do_plot_nsubjettiness(const Year & year, const bool bool_prelim) {
 
   cout << debug++ << endl;
 
-  const string graphName_nominal_vl = kYears.at(year).name + "-BkgEff0p050/"+inputGraphName;
-  TGraph graph_nominal_vl = *(TGraph*)infile_nominal->Get(graphName_nominal_vl.c_str());
+  //const string graphName_nominal_vl = kYears.at(year).name + "-BkgEff0p050/"+inputGraphName;
+  //TGraph graph_nominal_vl = *(TGraph*)infile_nominal->Get(graphName_nominal_vl.c_str());
+  const string graphNamePostfix_nominal_vl = "-BkgEff0p050/"+inputGraphName;
+  TFile* sf_file_nominal_vl = TFile::Open("scaleFactors_2023-08-10/scaleFactors-ak8_t__tau-BkgEff0p050/scaleFactors-ak8_t__tau-BkgEff0p050.root", "READ");
+  tagger_and_wp = "ak8_t__tau-BkgEff0p050";
+  auto graph_nominal_vl = *(create_sig_eff_graph_run2(infile_nominal, graphNamePostfix_nominal_vl, x_offset_nominal+2*x_offset_general, sf_file_nominal_vl, tagger_and_wp));
   graph_nominal_vl.SetLineWidth(line_width);
   graph_nominal_vl.SetLineColor(kRed);
   graph_nominal_vl.SetLineStyle(line_style_nominal);
@@ -193,8 +312,12 @@ void do_plot_nsubjettiness(const Year & year, const bool bool_prelim) {
 
 
 
-  const string graphName_btag_vt = kYears.at(year).name + "-BkgEff0p001/"+inputGraphName;
-  TGraph graph_btag_vt = *(TGraph*)infile_btag->Get(graphName_btag_vt.c_str());
+  //const string graphName_btag_vt = kYears.at(year).name + "-BkgEff0p001/"+inputGraphName;
+  //TGraph graph_btag_vt = *(TGraph*)infile_btag->Get(graphName_btag_vt.c_str());
+  const string graphNamePostfix_btag_vt = "-BkgEff0p001/"+inputGraphName;
+  TFile* sf_file_btag_vt = TFile::Open("scaleFactors_2023-08-10/scaleFactors-ak8_t_btagDJet__tau-BkgEff0p001/scaleFactors-ak8_t_btagDJet__tau-BkgEff0p001.root", "READ");
+  tagger_and_wp = "ak8_t_btagDJet__tau-BkgEff0p001";
+  auto graph_btag_vt = *(create_sig_eff_graph_run2(infile_btag, graphNamePostfix_btag_vt, x_offset_btag-2*x_offset_general, sf_file_btag_vt, tagger_and_wp));
   graph_btag_vt.SetLineWidth(line_width);
   graph_btag_vt.SetLineColor(kGreen);
   graph_btag_vt.SetLineStyle(line_style_btag);
@@ -205,8 +328,12 @@ void do_plot_nsubjettiness(const Year & year, const bool bool_prelim) {
 
   cout << debug++ << endl;
   
-  const string graphName_btag_ti = kYears.at(year).name + "-BkgEff0p005/"+inputGraphName;
-  TGraph graph_btag_ti = *(TGraph*)infile_btag->Get(graphName_btag_ti.c_str());
+  //const string graphName_btag_ti = kYears.at(year).name + "-BkgEff0p005/"+inputGraphName;
+  //TGraph graph_btag_ti = *(TGraph*)infile_btag->Get(graphName_btag_ti.c_str());
+  const string graphNamePostfix_btag_ti = "-BkgEff0p005/"+inputGraphName;
+  TFile* sf_file_btag_ti = TFile::Open("scaleFactors_2023-08-10/scaleFactors-ak8_t_btagDJet__tau-BkgEff0p005/scaleFactors-ak8_t_btagDJet__tau-BkgEff0p005.root", "READ");
+  tagger_and_wp = "ak8_t_btagDJet__tau-BkgEff0p005";
+  auto graph_btag_ti = *(create_sig_eff_graph_run2(infile_btag, graphNamePostfix_btag_ti, x_offset_btag-x_offset_general, sf_file_btag_ti, tagger_and_wp));
   graph_btag_ti.SetLineWidth(line_width);
   graph_btag_ti.SetLineColor(kCyan);
   graph_btag_ti.SetLineStyle(line_style_btag);
@@ -217,8 +344,12 @@ void do_plot_nsubjettiness(const Year & year, const bool bool_prelim) {
 
   cout << debug++ << endl;
 
-  const string graphName_btag_me = kYears.at(year).name + "-BkgEff0p010/"+inputGraphName;
-  TGraph graph_btag_me = *(TGraph*)infile_btag->Get(graphName_btag_me.c_str());
+  //const string graphName_btag_me = kYears.at(year).name + "-BkgEff0p010/"+inputGraphName;
+  //TGraph graph_btag_me = *(TGraph*)infile_btag->Get(graphName_btag_me.c_str());
+  const string graphNamePostfix_btag_me = "-BkgEff0p010/"+inputGraphName;
+  TFile* sf_file_btag_me = TFile::Open("scaleFactors_2023-08-10/scaleFactors-ak8_t_btagDJet__tau-BkgEff0p010/scaleFactors-ak8_t_btagDJet__tau-BkgEff0p010.root", "READ");
+  tagger_and_wp = "ak8_t_btagDJet__tau-BkgEff0p010";
+  auto graph_btag_me = *(create_sig_eff_graph_run2(infile_btag, graphNamePostfix_btag_me, x_offset_btag, sf_file_btag_me, tagger_and_wp));
   graph_btag_me.SetLineWidth(line_width);
   graph_btag_me.SetLineColor(kBlue);
   graph_btag_me.SetLineStyle(line_style_btag);
@@ -229,8 +360,12 @@ void do_plot_nsubjettiness(const Year & year, const bool bool_prelim) {
 
   cout << debug++ << endl;
 
-  const string graphName_btag_lo = kYears.at(year).name + "-BkgEff0p025/"+inputGraphName;
-  TGraph graph_btag_lo = *(TGraph*)infile_btag->Get(graphName_btag_lo.c_str());
+  //const string graphName_btag_lo = kYears.at(year).name + "-BkgEff0p025/"+inputGraphName;
+  //TGraph graph_btag_lo = *(TGraph*)infile_btag->Get(graphName_btag_lo.c_str());
+  const string graphNamePostfix_btag_lo = "-BkgEff0p025/"+inputGraphName;
+  TFile* sf_file_btag_lo = TFile::Open("scaleFactors_2023-08-10/scaleFactors-ak8_t_btagDJet__tau-BkgEff0p025/scaleFactors-ak8_t_btagDJet__tau-BkgEff0p025.root", "READ");
+  tagger_and_wp = "ak8_t_btagDJet__tau-BkgEff0p025";
+  auto graph_btag_lo = *(create_sig_eff_graph_run2(infile_btag, graphNamePostfix_btag_lo, x_offset_btag+x_offset_general, sf_file_btag_lo, tagger_and_wp));
   graph_btag_lo.SetLineWidth(line_width);
   graph_btag_lo.SetLineColor(kMagenta);
   graph_btag_lo.SetLineStyle(line_style_btag);
@@ -241,8 +376,12 @@ void do_plot_nsubjettiness(const Year & year, const bool bool_prelim) {
 
   cout << debug++ << endl;
 
-  const string graphName_btag_vl = kYears.at(year).name + "-BkgEff0p050/"+inputGraphName;
-  TGraph graph_btag_vl = *(TGraph*)infile_btag->Get(graphName_btag_vl.c_str());
+  //const string graphName_btag_vl = kYears.at(year).name + "-BkgEff0p050/"+inputGraphName;
+  //TGraph graph_btag_vl = *(TGraph*)infile_btag->Get(graphName_btag_vl.c_str());
+  const string graphNamePostfix_btag_vl = "-BkgEff0p050/"+inputGraphName;
+  TFile* sf_file_btag_vl = TFile::Open("scaleFactors_2023-08-10/scaleFactors-ak8_t_btagDJet__tau-BkgEff0p050/scaleFactors-ak8_t_btagDJet__tau-BkgEff0p050.root", "READ");
+  tagger_and_wp = "ak8_t_btagDJet__tau-BkgEff0p050";
+  auto graph_btag_vl = *(create_sig_eff_graph_run2(infile_btag, graphNamePostfix_btag_vl, x_offset_btag+2*x_offset_general, sf_file_btag_vl, tagger_and_wp));
   graph_btag_vl.SetLineWidth(line_width);
   graph_btag_vl.SetLineColor(kRed);
   graph_btag_vl.SetLineStyle(line_style_btag);
@@ -258,8 +397,12 @@ void do_plot_nsubjettiness(const Year & year, const bool bool_prelim) {
 
   // HOTVR
 
-  const string graphName_hotvr = kYears.at(year).name + "-Standard/"+inputGraphName;
-  TGraph graph_hotvr = *(TGraph*)infile_hotvr->Get(graphName_hotvr.c_str());
+  //const string graphName_hotvr = kYears.at(year).name + "-Standard/"+inputGraphName;
+  //TGraph graph_hotvr = *(TGraph*)infile_hotvr->Get(graphName_hotvr.c_str());
+  const string graphNamePostfix_hotvr = "-Standard/"+inputGraphName;
+  TFile* sf_file_hotvr = TFile::Open("scaleFactors_2023-08-10/scaleFactors-hotvr_t__tau-Standard/scaleFactors-hotvr_t__tau-Standard.root", "READ");
+  tagger_and_wp = "hotvr_t__tau-Standard";
+  auto graph_hotvr = *(create_sig_eff_graph_run2(infile_hotvr, graphNamePostfix_hotvr, 0., sf_file_hotvr, tagger_and_wp));
   graph_hotvr.SetLineWidth(line_width);
   graph_hotvr.SetLineColor(kBlack);
   graph_hotvr.SetLineStyle(line_style_nominal);
@@ -308,9 +451,11 @@ void do_plot_nsubjettiness(const Year & year, const bool bool_prelim) {
   // if(is_eff_sig) mg->GetHistogram()->GetYaxis()->SetTitle("True positive rate, #varepsilon_{S}");
   mg->GetHistogram()->GetXaxis()->SetTitle("Probe jet #it{p}_{T} [GeV]");
   mg->GetHistogram()->GetYaxis()->SetTitle("Signal efficiency");
-  mg->GetHistogram()->GetXaxis()->SetTitleOffset(1.3);
+  mg->GetHistogram()->GetXaxis()->SetTitleSize(0.045);
+  mg->GetHistogram()->GetYaxis()->SetTitleSize(0.045);
+  mg->GetHistogram()->GetXaxis()->SetTitleOffset(1.2);
   mg->GetHistogram()->GetXaxis()->CenterTitle();
-  mg->GetHistogram()->GetYaxis()->SetTitleOffset(1.5);
+  mg->GetHistogram()->GetYaxis()->SetTitleOffset(1.4);
   mg->GetHistogram()->GetYaxis()->CenterTitle();
   // mg->GetHistogram()->GetXaxis()->SetNdivisions(405);
   // if(!log_y) mg->GetHistogram()->GetYaxis()->SetNdivisions(405);
@@ -466,7 +611,7 @@ void do_plot_nsubjettiness(const Year & year, const bool bool_prelim) {
 
   // string string_text_top_right = "t#bar{t} #rightarrow all-jets @ #sqrt{#it{s}} = 13 TeV";
   // string string_text_top_right = "#sqrt{#it{s}} = 13 TeV";
-  string string_text_top_right = kYears.at(year).lumi_fb_display+" fb^{#minus1} (13 TeV)";
+  string string_text_top_right = kYears.at(Year::isRun2).lumi_fb_display+" fb^{#minus1} (13 TeV)";
   TLatex *text_top_right = new TLatex(1-margin_r, 1-(margin_t-0.01), string_text_top_right.c_str());
   text_top_right->SetTextAlign(31); // right bottom aligned
   text_top_right->SetTextFont(42);
@@ -542,8 +687,8 @@ void do_plot_nsubjettiness(const Year & year, const bool bool_prelim) {
 
   // Save to disk
   string plotName;
-  if(bool_prelim) plotName = "plot_sig_eff_in_mc__ak8__"+kYears.at(year).name+".pdf";
-  else plotName = "plot_sig_eff_in_mc__ak8__"+kYears.at(year).name+"-PrivateWork.pdf";
+  if(bool_prelim) plotName = "plot_sig_eff_in_mc__ak8__"+kYears.at(Year::isRun2).name+".pdf";
+  else plotName = "plot_sig_eff_in_mc__ak8__"+kYears.at(Year::isRun2).name+"-PrivateWork.pdf";
   // string plotName = "plot__"+tagger.name_base+"__"+pt_bin.name+"__"+graph_base_name+"__";
   // for(bool do_x : {do_raw, do_msd, do_msd_btag}) { do_x ? plotName += "1" : plotName += "0"; }
   // plotName += (log_y ? string("log") : string("lin"))+".pdf";
@@ -1215,13 +1360,16 @@ void do_plot_partnet_top(const Year & year, const bool bool_prelim) {
 
 void sig_eff_in_mc_plotting() {
 
+    do_plot_nsubjettiness(true);
+    do_plot_nsubjettiness(false);
+
     for(const auto year : kAllYears) {
-      do_plot_nsubjettiness(year, true);
-      do_plot_nsubjettiness(year, false);
-      do_plot_partnet_w(year, true);
-      do_plot_partnet_w(year, false);
-      do_plot_partnet_top(year, true);
-      do_plot_partnet_top(year, false);
+      //do_plot_nsubjettiness(year, true);
+      //do_plot_nsubjettiness(year, false);
+      //do_plot_partnet_w(year, true);
+      //do_plot_partnet_w(year, false);
+      //do_plot_partnet_top(year, true);
+      //do_plot_partnet_top(year, false);
   }
 
 }
