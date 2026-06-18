@@ -166,8 +166,6 @@ class NiceStackWithRatio():
 
         self.logy = logy
 
-        self.bug_fix_y_scaling = 1.
-
     def setup_canvas(self):
         self.canvas = root.TCanvas('canvas', 'canvas title', self.canvas_height, self.canvas_width)
         self.canvas.cd()
@@ -255,6 +253,9 @@ class NiceStackWithRatio():
                     err2 += hist.GetBinError(i_bin)**2
                 self.totalprocs.SetBinContent(i_bin, binc)
                 self.totalprocs.SetBinError(i_bin, math.sqrt(err2))
+                # if i_bin == 1:  # HACK
+                #     print('bin1 =', self.totalprocs.GetBinContent(i_bin))
+                #     print('err1 =', self.totalprocs.GetBinError(i_bin))
             self.totalprocs.SetLineColor(self.totalprocs_tcolor)
             self.totalprocs.SetLineWidth(1)
             self.totalprocs.SetMarkerSize(0)
@@ -391,8 +392,12 @@ class NiceStackWithRatio():
         hist.SetTitle('')
 
         maximum_stack = last.GetBinContent(last.GetMaximumBin())
+        print('max_pred', maximum_stack)  # HACK
         maximum_data = max(self.data.GetY())
+        print('max_data', maximum_data)  # HACK
         maximum = max(maximum_data, maximum_stack)
+        maximum = 59182.2314212 # HACK partnet_w mSD
+        maximum = 35111.2044809 # HACK MDdeepak8 mSD
 
         minimum_stack = last.GetBinContent(last.GetMinimumBin())
         minimum_data = min(self.data.GetY())
@@ -409,6 +414,11 @@ class NiceStackWithRatio():
         else:
             new_minimum = 0.
             new_maximum = 1.5 * maximum
+
+        # HACK:
+        new_maximum = 88773.3471318  # for partnet_w mSD
+        # new_maximum = 52666.8067214  # for MDdeepak8 mSD
+
         last.SetMaximum(new_maximum) # this updates the axis maximum
         hist.SetMaximum(new_maximum)
         last.SetMinimum(new_minimum)
@@ -442,13 +452,7 @@ class NiceStackWithRatio():
             # print(x2o) # max label
             # print(bwx) # label value difference
             if x2o >= 10000.:
-                label_values = np.linspace(x1o, x2o, n_labels) * self.bug_fix_y_scaling #*2 HACK for eta of run2 HOTVRs
-                # if label_values[-1] < new_maximum:
-                #     print("\033[91mWARNING: y label issue!!! Make sure to adjust nice.bug_fix_y_scaling\033[0m")
-                #     print(label_values)
-                #     print(new_maximum)
-                #     label_values *= self.bug_fix_y_scaling
-                # print(label_values)
+                label_values = np.linspace(x1o, x2o, n_labels)
                 for i_label in range(0, n_labels):
                     hist.GetYaxis().ChangeLabel(i_label+1, -1, -1, -1, -1, -1, human_format(label_values[i_label]))
                 # sometimes, the highest label is not yet fixed, so we need this additional line (that has no effect if it is not needed??):

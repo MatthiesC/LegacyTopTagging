@@ -710,7 +710,7 @@ class ScaleFactorCollector():
 
 
         text_top_left_offset_x = 0.075
-        text_top_left = 'Run II Legacy'
+        text_top_left = 'Run 2 Legacy'
         self.tlatex_top_left = root.TLatex(margin_l + text_top_left_offset_x, 1. - margin_t + 0.01, text_top_left)
         self.tlatex_top_left.SetTextAlign(11) # left bottom
         self.tlatex_top_left.SetTextFont(42)

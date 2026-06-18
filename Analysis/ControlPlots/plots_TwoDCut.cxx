@@ -104,7 +104,8 @@ void do_plot(const Year & year, const Process & process, const bool log_z) {
 
   // TText *text_top_left = new TText(margin_l, 1-(margin_t-0.01), ((string)"T&P selection ("+kYears.at(year).name+")").c_str());
   // TText *text_top_left = new TText(margin_l, 1-(margin_t-0.01), (string("Ultra Legacy ")+kYears.at(year).nice_name).c_str());
-  TText *text_top_left = new TLatex(margin_l, 1-(margin_t-0.01), (string("T&P #mu+jets, ")+kYears.at(year).nice_name).c_str());
+  // TText *text_top_left = new TLatex(margin_l, 1-(margin_t-0.01), (string("T&P #mu+jets, ")+kYears.at(year).nice_name).c_str());
+  TText *text_top_left = new TLatex(margin_l, 1-(margin_t-0.01), "T&P #mu+jets");
   text_top_left->SetTextAlign(11); // left bottom aligned
   text_top_left->SetTextFont(42);
   text_top_left->SetTextSize(0.035);

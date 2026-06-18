@@ -27,10 +27,10 @@ years = [
 # 'ele',
 # ]
 taggers = [
-# 'ak8_t__tau',
-# 'ak8_t_btagDJet__tau',
+'ak8_t__tau',
+'ak8_t_btagDJet__tau',
 # 'ak8_t_btagDCSV__tau',
-# 'hotvr_t__tau',
+'hotvr_t__tau',
 'ak8_w__partnet',
 'ak8_t__MDdeepak8',
 ]
@@ -688,23 +688,23 @@ class ScaleFactorCollector():
             msc_labels[msc].Draw()
 
 
-            text_top_left_offset_x = 0.075
-            text_top_left = 'Run II Legacy'
-            self.tlatex_top_left = root.TLatex(margin_l + text_top_left_offset_x, 1. - margin_t + 0.01, text_top_left)
-            self.tlatex_top_left.SetTextAlign(11) # left bottom
-            self.tlatex_top_left.SetTextFont(42)
-            self.tlatex_top_left.SetTextSize(self.text_size)
-            self.tlatex_top_left.SetNDC()
-            self.tlatex_top_left.Draw()
+        text_top_left_offset_x = 0.075
+        text_top_left = 'Run 2 Legacy'
+        self.tlatex_top_left = root.TLatex(margin_l + text_top_left_offset_x, 1. - margin_t + 0.01, text_top_left)
+        self.tlatex_top_left.SetTextAlign(11) # left bottom
+        self.tlatex_top_left.SetTextFont(42)
+        self.tlatex_top_left.SetTextSize(self.text_size)
+        self.tlatex_top_left.SetNDC()
+        self.tlatex_top_left.Draw()
 
-            text_top_right = ', '.join([_YEARS.get(year).get('lumi_fb_display')+' fb^{#minus1}' for year in self.years])
-            text_top_right += ' (13 TeV)'
-            self.tlatex_top_right = root.TLatex(1. - margin_r, 1. - margin_t + 0.01, text_top_right)
-            self.tlatex_top_right.SetTextAlign(31) # right bottom
-            self.tlatex_top_right.SetTextFont(42)
-            self.tlatex_top_right.SetTextSize(self.text_size)
-            self.tlatex_top_right.SetNDC()
-            self.tlatex_top_right.Draw()
+        text_top_right = ', '.join([_YEARS.get(year).get('lumi_fb_display')+' fb^{#minus1}' for year in self.years])
+        text_top_right += ' (13 TeV)'
+        self.tlatex_top_right = root.TLatex(1. - margin_r, 1. - margin_t + 0.01, text_top_right)
+        self.tlatex_top_right.SetTextAlign(31) # right bottom
+        self.tlatex_top_right.SetTextFont(42)
+        self.tlatex_top_right.SetTextSize(self.text_size)
+        self.tlatex_top_right.SetNDC()
+        self.tlatex_top_right.Draw()
 
         for fileType in ['.pdf', '.png']:
             plotFileName = self.sf_task_name+'-RescaledYAxis'+fileType

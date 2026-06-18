@@ -8,6 +8,7 @@ from tqdm import tqdm
 import uproot
 # import awkward as ak
 import numpy as np
+import pandas as pd
 from hist import Hist
 import hist
 
@@ -99,6 +100,16 @@ regions = [
 bands = _BANDS
 
 
+
+all_sf_types = ['tot', 'stat', 'syst', 'corr', 'uncorr']
+#sf_type = 'tot'  ## TODO
+all_sf_directions = ['sf_central', 'sf_up', 'sf_down']
+#sf_direction = 'sf_central'  ## TODO
+#sf_direction = 'sf_up'  ## TODO
+#sf_direction = 'sf_down'  ## TODO
+
+
+
 if not sys.argv[1:]: sys.exit('No arguments provided. Exit.')
 parser = argparse.ArgumentParser()
 parser.add_argument('-v', '--vars', nargs='+') # Optional; by default, will use the_tagger.fit_variable
@@ -109,7 +120,14 @@ parser.add_argument('-s', '--systs', nargs='+', default=['nominal'])
 # parser.add_argument('-b', '--bands', nargs='+', choices=bands.keys())
 # parser.add_argument('-r', '--regions', nargs='+', choices=regions)
 parser.add_argument('-c', '--channels', nargs='+', choices=all_channels, default=all_channels)
+
+parser.add_argument('-a', '--sf_type', choices=all_sf_types)
+parser.add_argument('-b', '--sf_direction', choices=all_sf_directions)
+
 args = parser.parse_args(sys.argv[1:])
+
+sf_type = args.sf_type
+sf_direction = args.sf_direction
 
 years = args.years
 channels = args.channels
@@ -160,6 +178,8 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
 
         # tandp_rule = tagger.tandp_rule.replace('WP_VALUE', '{:.5f}'.format(wp.cut_value)).replace('DEEPCSV_SCORE', '{:.5f}'.format(_DEEPCSV_WPS[year]['loose'])).replace('DEEPJET_SCORE', '{:.5f}'.format(_DEEPJET_WPS[year]['loose']))
 
+    sf_wp_name = 'NOT_DEFINED'
+
     if arg_wp_index != -1:
         tandp_rule = tagger.get_tandp_rule(arg_wp_index, year)
         wp = tagger.get_wp(wp_index, year)
@@ -167,10 +187,59 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
         tandp_rule = 'True'
         if tagger.name == 'ak8_t__tau':
             tandp_rule = '(output_probejet_AK8_mSD > 105) & (output_probejet_AK8_mSD < 210)'
+            sf_wp_name = 'BkgEff0p050'
         elif tagger.name == 'hotvr_t__tau':
             tandp_rule = '(output_probejet_HOTVR_fpt1 < 0.8) & (output_probejet_HOTVR_nsub > 2) & (output_probejet_HOTVR_mpair > 50) & (output_probejet_HOTVR_mass > 140) & (output_probejet_HOTVR_mass < 220)'
             # tandp_rule = '(output_probejet_HOTVR_mass > 140) & (output_probejet_HOTVR_mass < 220)'
+            sf_wp_name = 'Standard'
         wp = _NULL_WP
+
+    path_sf_file = 'scaleFactors-{}-{}'.format(tagger.name, sf_wp_name)
+    path_sf_file = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/Analysis/Combine/scaleFactors_2023-08-10/', path_sf_file, path_sf_file+'.root')
+    sf_file = uproot.open(path_sf_file)
+    mscs = ['FullyMerged', 'SemiMerged', 'NotMerged']
+    sf_types = ['tot', 'stat', 'syst', 'corr', 'uncorr']
+    sf_graphs = {}
+    sf_values = {}
+    for the_year in all_years:
+        for the_sf_type in sf_types:
+            for msc in mscs:
+                graph_name = '{}-{}-{}'.format(tagger.name, sf_wp_name, the_year) + '/' + '{}_{}_{}'.format(msc, the_year, the_sf_type)
+                graph = sf_file[graph_name]
+                sf_graphs.setdefault(msc, {}).setdefault(the_year, {})[the_sf_type] = graph
+                sf_df = pd.DataFrame(
+                    data={
+                        'pt_low': graph.values()[0] - graph.errors('low')[0],
+                        'pt_high': graph.values()[0] + graph.errors('high')[0],
+                        'sf_central': graph.values()[1],
+                        'sf_up': graph.values()[1] + graph.errors('high')[1],
+                        'sf_down': graph.values()[1] - graph.errors('low')[1],
+                    }
+                )
+                sf_df.loc[sf_df.index[-1], 'pt_high'] = 999999.  # Replacing the highest pt value with 'infinity'
+                sf_values.setdefault(msc, {}).setdefault(the_year, {})[the_sf_type] = sf_df
+            
+
+    #print(sf_values['FullyMerged']['UL18']['tot'])
+    #exit()
+
+     # Function to get the correct value based on pt range
+    def get_sf_value(row, _pt_name, _msc, _year, _sf_type, _direction):
+        if _msc in mscs:
+            matched_row = sf_values[_msc][_year][_sf_type].copy()
+        else:
+            matched_row = pd.DataFrame(
+                data={
+                    'pt_low': [0.],
+                    'pt_high': [999999.],
+                    'sf_central': [1.],
+                    'sf_up': [1.],
+                    'sf_down': [1.],
+                }
+            )
+        matched_row = matched_row[(matched_row['pt_low'] <= row[_pt_name]) & (row[_pt_name] < matched_row['pt_high'])]
+        return matched_row[_direction].values[0] if not matched_row.empty else None
+
 
     for pt_bin in tagger.var_intervals.values():
 
@@ -288,10 +357,12 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
                                 cut_rule += ' & ((output_merge_scenario_{0} == 2) | (output_merge_scenario_{0} == 3))'.format(probejetalgo)
                             elif msc == 'NotTopOrWMerged':
                                 cut_rule += ' & ((output_merge_scenario_{0} == 3) | (output_merge_scenario_{0} == 4))'.format(probejetalgo)
-                            elif msc == 'Background':
+                            elif msc == 'Background' or is_data:
                                 cut_rule += ' & (output_merge_scenario_{0} == -1)'.format(probejetalgo)
 
                             print(cut_rule)
+
+                            pt_name = 'output_probejet_{}_pt'.format(probejetalgo)
 
                             weight_alias = syst_v.weight_alias
                             expressions = [
@@ -300,7 +371,7 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
                                 # 'dataset',
                                 'output_has_probejet_{}'.format(probejetalgo),
                                 'band',
-                                'output_probejet_{}_pt'.format(probejetalgo),
+                                pt_name,
                                 'output_merge_scenario_{}'.format(probejetalgo),
                             ]
 
@@ -317,13 +388,23 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
 
                             expressions = list(set(expressions))  # get rid of duplicates
 
-                            for batch in tqdm(uproot.iterate(batches[band_k][region][channel][process][syst], expressions=expressions, aliases={'the_weight': weight_alias}, cut=cut_rule, library='pd')):
+                            batch_size = 100000
+                            for batch in tqdm(uproot.iterate(batches[band_k][region][channel][process][syst], expressions=expressions, aliases={'the_weight': weight_alias}, cut=cut_rule, library='pd', step_size=batch_size)):
+
+                                if len(batch) == 0:
+                                    continue
 
                                 if is_murmuf and not is_data: # no murmuf norm factors available for data
                                     batch['dataset'] = batch['dataset'].apply(lambda dataset: dataset.replace('__AllMergeScenarios', '')) # get rid of __AllMergeScenarios in the dataset names
                                     batch = batch.merge(normFactsQCD.qcd_norm_df, on='dataset')
                                     norm_factor_name = syst
                                     batch['the_weight'] = batch['the_weight'] * batch[norm_factor_name]
+
+                                if msc in mscs:
+                                    batch = batch.merge(sf_values[msc][year][sf_type], how='cross')
+                                    batch = batch[(batch[pt_name] >= batch['pt_low']) & (batch[pt_name] < batch['pt_high'])]
+                                    batch['the_weight_orig'] = batch['the_weight'].copy()
+                                    batch['the_weight'] = batch['the_weight'] * batch[sf_direction]
 
                                 arr_weight = batch['the_weight'].to_numpy()
                                 arr_variable = batch[variable].to_numpy()
@@ -336,7 +417,7 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
 
                 task_name = '-'.join([tagger.name, wp.name, pt_bin.name, year, syst, variable])
                 # outDir = os.path.join(outDirBase, task_name)
-                outDir = os.path.join(outDirBase, 'Anna_BasicHists')
+                outDir = os.path.join(outDirBase, 'AnnaPostfit_BasicHists-{}-{}'.format(sf_type, sf_direction))
                 os.system('mkdir -p '+outDir)
                 outFileName = 'BasicHists-'+task_name+'.root'
                 outFilePath = os.path.join(outDir, outFileName)

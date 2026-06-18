@@ -139,16 +139,22 @@ for year in args.years:
         )
 
     workDir = '_'.join(['workdir', 'WorkingPointStudy', year])
-    inputDir = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/output/WorkingPointStudy', year, 'nominal', workDir)
-    inputFileName = 'uhh2.AnalysisModuleRunner.MC.TTbarToHadronic_'+year+'_{0}.root'
+    # inputDir = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/output/WorkingPointStudy', year, 'nominal_bak_2024-11-12', workDir)
+    inputDir = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/output/WorkingPointStudy', year, 'nominal_bak_2024-11-12')
+    # inputFileName = 'uhh2.AnalysisModuleRunner.MC.TTbarToHadronic_'+year+'_{0}.root'
+    inputFileName = 'uhh2.AnalysisModuleRunner.MC.TTbarToHadronic_'+year+'.root'
     inputFilePath = os.path.join(inputDir, inputFileName)
 
-    if args.test:
-        files_i = range(1)
-        batches = [inputFilePath.format(str(i))+':AnalysisTree' for i in files_i]
-        print(batches)
-    else:
-        batches = [inputFilePath.format('*')+':AnalysisTree']
+    print(inputFilePath)
+
+    # if args.test:
+    #     files_i = range(1)
+    #     batches = [inputFilePath.format(str(i))+':AnalysisTree' for i in files_i]
+    #     print(batches)
+    # else:
+    #     batches = [inputFilePath.format('*')+':AnalysisTree']
+
+    batches = [inputFilePath+':AnalysisTree']
 
     for batch in tqdm(uproot.iterate(batches, expressions=aliases, aliases=alias_calculations, cut=base_cut, library='pd')):
 
@@ -237,7 +243,7 @@ for year in args.years:
     # print(hists['response_corr'].view().value / hists['response_gen'].view().value)
     # print(np.sqrt(hists['response_corr'].view().variance / hists['response_gen'].view().value))
 
-    outputDir = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/output/WorkingPointStudy', year, 'nominal')
+    outputDir = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/output/WorkingPointStudy', year, 'nominal_bak_2024-11-12')
     outputFileName = 'HOTVR_JetPtResponse.root'
     outputFilePath = os.path.join(outputDir, outputFileName)
     with uproot.recreate(outputFilePath) as outfile:

@@ -50,7 +50,8 @@ TGraphAsymmErrors * create_sig_eff_graph_run2(
       temp_x = px + x_offset;
       //cout << x[i] << endl;
 
-      double sf = sf_map_corr.at(year).GetPoint(i, sfx, sfy);
+      sf_map_corr.at(year).GetPoint(i, sfx, sfy);
+      sfy = 1.;  // HACK
       temp_y += py * lumi_factor * sfy;
 
       //relErrors_corr_l[year] = sf_map_corr[year].GetErrorXlow() / sfy;
@@ -73,8 +74,10 @@ TGraphAsymmErrors * create_sig_eff_graph_run2(
     //exl[i] = 0;
     //exh[i] = 0;
 
-    eyl.push_back(y.at(i) * sqrt( e_corr_l * e_corr_l + e_uncorr_l ));
-    eyh.push_back(y.at(i) * sqrt( e_corr_h * e_corr_h + e_uncorr_h ));
+    //eyl.push_back(y.at(i) * sqrt( e_corr_l * e_corr_l + e_uncorr_l ));
+    //eyh.push_back(y.at(i) * sqrt( e_corr_h * e_corr_h + e_uncorr_h ));
+    eyl.push_back(0);  // HACK
+    eyh.push_back(0);  // HACK
     exl.push_back(0);
     exh.push_back(0);
   }
@@ -592,7 +595,7 @@ TGraphAsymmErrors create_sig_eff_graph_run2_partnet_w(
       const auto scaleFactors = leoScaleFactors.at(e_leo_Tagger).at(year).at(e_leo_WP);
       for (const auto & scaleFactor : scaleFactors) {
         if (scaleFactor.pt_low > temp_x || scaleFactor.pt_high < temp_x) continue;
-        sf = scaleFactor.sf;
+        //sf = scaleFactor.sf;  // HACK to force use of value 1.0
         sf_eyl = scaleFactor.sf_down;
         sf_eyh = scaleFactor.sf_up;
         break;
@@ -612,8 +615,10 @@ TGraphAsymmErrors create_sig_eff_graph_run2_partnet_w(
     exh.push_back(0);
     temp_eyl = temp_y * sqrt(temp_eyl);
     temp_eyh = temp_y * sqrt(temp_eyh);
-    eyl.push_back(temp_eyl);
-    eyh.push_back(temp_eyh);
+    //eyl.push_back(temp_eyl);
+    //eyh.push_back(temp_eyh);
+    eyl.push_back(0);  // HACK
+    eyh.push_back(0);  // HACK
   }
 
   double ax[n], ay[n], aexl[n], aexh[n], aeyl[n], aeyh[n];
@@ -886,7 +891,7 @@ void do_plot_nsubjettiness(const bool bool_prelim) {
   // if(is_eff_sig) mg->GetHistogram()->GetYaxis()->SetTitle("True positive rate, #varepsilon_{S}");
   mg->GetHistogram()->GetXaxis()->SetTitle("Probe jet #it{p}_{T} [GeV]");
   // mg->GetHistogram()->GetYaxis()->SetTitle("Signal efficiency");
-  mg->GetHistogram()->GetYaxis()->SetTitle("#varepsilon_{S}^{prefit} #times scale factor");
+  mg->GetHistogram()->GetYaxis()->SetTitle("#varepsilon_{S}^{prefit}");
   mg->GetHistogram()->GetXaxis()->SetTitleSize(0.045);
   mg->GetHistogram()->GetYaxis()->SetTitleSize(0.045);
   mg->GetHistogram()->GetXaxis()->SetTitleOffset(1.2);
@@ -1063,13 +1068,21 @@ void do_plot_nsubjettiness(const bool bool_prelim) {
   // prelimPW1->SetTextColor(kWhite);
   if(!bool_prelim) prelimPW1->Draw();
 
-  TText *prelimPW2 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.90), "(CMS data/simulation)");
+  TText *prelimPW2 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.90), "(CMS data/");
   prelimPW2->SetTextAlign(13); // left top
   prelimPW2->SetTextFont(52);
   prelimPW2->SetTextSize(0.03);
   prelimPW2->SetNDC();
   // prelimPW2->SetTextColor(kWhite);
   if(!bool_prelim) prelimPW2->Draw();
+
+  TText *prelimPW3 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.85), "simulation)");
+  prelimPW3->SetTextAlign(13); // left top
+  prelimPW3->SetTextFont(52);
+  prelimPW3->SetTextSize(0.03);
+  prelimPW3->SetNDC();
+  // prelimPW3->SetTextColor(kWhite);
+  if(!bool_prelim) prelimPW3->Draw();
 
   TLatex *cms = new TLatex(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.95), "CMS");
   cms->SetTextAlign(13); // left top
@@ -1123,8 +1136,8 @@ void do_plot_nsubjettiness(const bool bool_prelim) {
 
   // Save to disk
   string plotName;
-  if(bool_prelim) plotName = "plot_sig_eff_in_mc__ak8__"+kYears.at(Year::isRun2).name+".pdf";
-  else plotName = "plot_sig_eff_in_mc__ak8__"+kYears.at(Year::isRun2).name+"-PrivateWork.pdf";
+  if(bool_prelim) plotName = "plot_sig_eff_in_mc_noScaleFactors__ak8__"+kYears.at(Year::isRun2).name+".pdf";
+  else plotName = "plot_sig_eff_in_mc_noScaleFactors__ak8__"+kYears.at(Year::isRun2).name+"-PrivateWork.pdf";
   // string plotName = "plot__"+tagger.name_base+"__"+pt_bin.name+"__"+graph_base_name+"__";
   // for(bool do_x : {do_raw, do_msd, do_msd_btag}) { do_x ? plotName += "1" : plotName += "0"; }
   // plotName += (log_y ? string("log") : string("lin"))+".pdf";
@@ -1264,7 +1277,7 @@ void do_plot_partnet_w(const bool bool_prelim) {
   // if(is_eff_sig) mg->GetHistogram()->GetYaxis()->SetTitle("True positive rate, #varepsilon_{S}");
   mg->GetHistogram()->GetXaxis()->SetTitle("Probe jet #it{p}_{T} [GeV]");
   // mg->GetHistogram()->GetYaxis()->SetTitle("Signal efficiency");
-  mg->GetHistogram()->GetYaxis()->SetTitle("#varepsilon_{S}^{prefit} #times scale factor");
+  mg->GetHistogram()->GetYaxis()->SetTitle("#varepsilon_{S}^{prefit}");
   mg->GetHistogram()->GetXaxis()->SetTitleSize(0.045);
   mg->GetHistogram()->GetYaxis()->SetTitleSize(0.045);
   mg->GetHistogram()->GetXaxis()->SetTitleOffset(1.2);
@@ -1274,6 +1287,8 @@ void do_plot_partnet_w(const bool bool_prelim) {
   // mg->GetHistogram()->GetXaxis()->SetNdivisions(405);
   // if(!log_y) mg->GetHistogram()->GetYaxis()->SetNdivisions(405);
   gStyle->SetLineWidth(1);
+  gStyle->SetEndErrorSize(0);
+
 
   // legend->Draw();
 
@@ -1424,13 +1439,21 @@ void do_plot_partnet_w(const bool bool_prelim) {
   // prelimPW1->SetTextColor(kWhite);
   if(!bool_prelim) prelimPW1->Draw();
 
-  TText *prelimPW2 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.90), "(CMS data/simulation)");
+  TText *prelimPW2 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.90), "(CMS data/");
   prelimPW2->SetTextAlign(13); // left top
   prelimPW2->SetTextFont(52);
   prelimPW2->SetTextSize(0.03);
   prelimPW2->SetNDC();
   // prelimPW2->SetTextColor(kWhite);
   if(!bool_prelim) prelimPW2->Draw();
+
+  TText *prelimPW3 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.85), "simulation)");
+  prelimPW3->SetTextAlign(13); // left top
+  prelimPW3->SetTextFont(52);
+  prelimPW3->SetTextSize(0.03);
+  prelimPW3->SetNDC();
+  // prelimPW3->SetTextColor(kWhite);
+  if(!bool_prelim) prelimPW3->Draw();
 
   TLatex *cms = new TLatex(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.95), "CMS");
   cms->SetTextAlign(13); // left top
@@ -1484,8 +1507,8 @@ void do_plot_partnet_w(const bool bool_prelim) {
 
   // Save to disk
   string plotName;
-  if(bool_prelim) plotName = "plot_sig_eff_in_mc__partnet_w__"+kYears.at(Year::isRun2).name+".pdf";
-  else plotName = "plot_sig_eff_in_mc__partnet_w__"+kYears.at(Year::isRun2).name+"-PrivateWork.pdf";
+  if(bool_prelim) plotName = "plot_sig_eff_in_mc_noScaleFactors__partnet_w__"+kYears.at(Year::isRun2).name+".pdf";
+  else plotName = "plot_sig_eff_in_mc_noScaleFactors__partnet_w__"+kYears.at(Year::isRun2).name+"-PrivateWork.pdf";
   string plotPath = data_path+"/"+plotName;
   c->SaveAs(plotPath.c_str());
   delete c;
@@ -1584,7 +1607,7 @@ void do_plot_partnet_top(const bool bool_prelim) {
   // if(is_eff_sig) mg->GetHistogram()->GetYaxis()->SetTitle("True positive rate, #varepsilon_{S}");
   mg->GetHistogram()->GetXaxis()->SetTitle("Probe jet #it{p}_{T} [GeV]");
   // mg->GetHistogram()->GetYaxis()->SetTitle("Signal efficiency");
-  mg->GetHistogram()->GetYaxis()->SetTitle("#varepsilon_{S}^{prefit} #times scale factor");
+  mg->GetHistogram()->GetYaxis()->SetTitle("#varepsilon_{S}^{prefit}");
   mg->GetHistogram()->GetXaxis()->SetTitleSize(0.045);
   mg->GetHistogram()->GetYaxis()->SetTitleSize(0.045);
   mg->GetHistogram()->GetXaxis()->SetTitleOffset(1.2);
@@ -1594,6 +1617,8 @@ void do_plot_partnet_top(const bool bool_prelim) {
   // mg->GetHistogram()->GetXaxis()->SetNdivisions(405);
   // if(!log_y) mg->GetHistogram()->GetYaxis()->SetNdivisions(405);
   gStyle->SetLineWidth(1);
+  gStyle->SetEndErrorSize(0);
+
 
   // legend->Draw();
 
@@ -1748,13 +1773,21 @@ void do_plot_partnet_top(const bool bool_prelim) {
   // prelimPW1->SetTextColor(kWhite);
   if(!bool_prelim) prelimPW1->Draw();
 
-  TText *prelimPW2 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.90), "(CMS data/simulation)");
+  TText *prelimPW2 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.90), "(CMS data/");
   prelimPW2->SetTextAlign(13); // left top
   prelimPW2->SetTextFont(52);
   prelimPW2->SetTextSize(0.03);
   prelimPW2->SetNDC();
   // prelimPW2->SetTextColor(kWhite);
   if(!bool_prelim) prelimPW2->Draw();
+
+  TText *prelimPW3 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.85), "simulation)");
+  prelimPW3->SetTextAlign(13); // left top
+  prelimPW3->SetTextFont(52);
+  prelimPW3->SetTextSize(0.03);
+  prelimPW3->SetNDC();
+  // prelimPW3->SetTextColor(kWhite);
+  if(!bool_prelim) prelimPW3->Draw();
 
   TLatex *cms = new TLatex(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.95), "CMS");
   cms->SetTextAlign(13); // left top
@@ -1808,8 +1841,8 @@ void do_plot_partnet_top(const bool bool_prelim) {
 
   // Save to disk
   string plotName;
-  if(bool_prelim) plotName = "plot_sig_eff_in_mc__partnet_top__"+kYears.at(Year::isRun2).name+".pdf";
-  else plotName = "plot_sig_eff_in_mc__partnet_top__"+kYears.at(Year::isRun2).name+"-PrivateWork.pdf";
+  if(bool_prelim) plotName = "plot_sig_eff_in_mc_noScaleFactors__partnet_top__"+kYears.at(Year::isRun2).name+".pdf";
+  else plotName = "plot_sig_eff_in_mc_noScaleFactors__partnet_top__"+kYears.at(Year::isRun2).name+"-PrivateWork.pdf";
   string plotPath = data_path+"/"+plotName;
   c->SaveAs(plotPath.c_str());
   delete c;
@@ -1817,13 +1850,13 @@ void do_plot_partnet_top(const bool bool_prelim) {
 
 
 
-void sig_eff_in_mc_plotting() {
+void sig_eff_in_mc_plotting___noScaleFactors() {
 
-    do_plot_nsubjettiness(true);
+    //do_plot_nsubjettiness(true);
     do_plot_nsubjettiness(false);
-    do_plot_partnet_w(true);
+    //do_plot_partnet_w(true);
     do_plot_partnet_w(false);
-    do_plot_partnet_top(true);
+    //do_plot_partnet_top(true);
     do_plot_partnet_top(false);
 
     for(const auto year : kAllYears) {

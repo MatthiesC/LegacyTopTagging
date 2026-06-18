@@ -23,7 +23,7 @@ systs = systematics.base
 # sys.exit()
 
 sys.path.append(os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/NicePlots/python'))
-from plotter import NiceStackWithRatio, Process, human_format
+from plotter___hacked_for_ptNoTopPtRw_plots import NiceStackWithRatio, Process, human_format
 
 from parallel_threading import run_with_pool
 
@@ -602,7 +602,12 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
 
             _, x_axis_title, x_axis_unit, logy, leg_offset_x, leg_offset_y = get_variable_binning_xlabel_xunit(variable_name=variable_name, tagger_name=tagger.name, fit_variable=is_fit_template)
 
+            totalprocs_NoTopPtRw_filename = 'get_NoTopPtRw_numpys_'+tagger.name+'.npy'
+            with open(totalprocs_NoTopPtRw_filename, 'rb') as totalprocs_NoTopPtRw_file:
+                totalprocs_NoTopPtRw = np.load(totalprocs_NoTopPtRw_file)
+
             nice = NiceStackWithRatio(
+                totalprocs_NoTopPtRw = totalprocs_NoTopPtRw,
                 infile_path = outFilePath,
                 infile_directory = outFolderName, # the directory within the ROOT file
                 x_axis_title = x_axis_title,
@@ -642,7 +647,7 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
             if not is_fit_template:
                 nice.y_axis_title = y_axis_titles[variable_name]
 
-            plotName = 'Plot-prefitRaw-'+task_name+'-'+outFolderName+'-'+mscSplitting+('-withLeg' if do_legend else '-noLeg')+('-Preliminary' if nice.text_prelim == 'Preliminary' else '')+'.pdf'
+            plotName = 'Plot-prefitRaw-'+task_name+'-'+outFolderName+'-'+mscSplitting+('-withLeg' if do_legend else '-noLeg')+('-Preliminary' if nice.text_prelim == 'Preliminary' else '')+'-TopPtRwRatio.pdf'
             plotDir = os.path.join(outDir, 'plots')
 
             if variable_name == 'mpair':  # evil HACK
@@ -782,6 +787,19 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
             # tlatex_pt3.SetNDC()
             # tlatex_pt3.Draw()
 
+
+            nice.pad_ratio.cd()
+
+            string_fit1 = 'Non-solid: w/o top #it{p}_{T} reweighting in t#bar{t} MC'
+            #tlatex_fit1 = root.TLatex(0.25, 1.4, string_fit1)
+            tlatex_fit1 = root.TLatex(40, 1.15, string_fit1)
+            tlatex_fit1.SetTextAlign(12) # left center
+            tlatex_fit1.SetTextFont(42)
+            tlatex_fit1.SetTextColor(root.kBlue)
+            tlatex_fit1.SetTextSize(0.1)
+            #tlatex_fit1.SetNDC()
+            tlatex_fit1.Draw()
+
             nice.save_plot(plotName, plotDir)
 
 
@@ -810,28 +828,28 @@ if __name__=='__main__':
         the_vars = []
         if the_tagger.name.startswith('ak8_t'):
             the_vars = [
-                'output_probejet_AK8_tau32',
-                'output_probejet_AK8_maxDeepJet',
+                #'output_probejet_AK8_tau32',
+                #'output_probejet_AK8_maxDeepJet',
                 # 'output_probejet_AK8_maxDeepCSV',
-                'output_probejet_AK8_MDDeepAK8_TvsQCD',
+                #'output_probejet_AK8_MDDeepAK8_TvsQCD',
                 # 'output_probejet_AK8_mSD',
-                'output_probejet_AK8_mass',
+                #'output_probejet_AK8_mass',
                 'output_probejet_AK8_pt',
             ]
         elif the_tagger.name.startswith('ak8_w'):
             the_vars = [
-                'output_probejet_AK8_ParticleNet_WvsQCD',
+                #'output_probejet_AK8_ParticleNet_WvsQCD',
                 # 'output_probejet_AK8_mSD',
-                'output_probejet_AK8_mass',
+                #'output_probejet_AK8_mass',
                 'output_probejet_AK8_pt',
             ]
         elif the_tagger.name.startswith('hotvr_t'):
             the_vars = [
-                'output_probejet_HOTVR_tau32',
-                'output_probejet_HOTVR_nsub',
+                #'output_probejet_HOTVR_tau32',
+                #'output_probejet_HOTVR_nsub',
                 # 'output_probejet_HOTVR_fpt1',
                 # 'output_probejet_HOTVR_mpair',
-                'output_probejet_HOTVR_mass',
+                #'output_probejet_HOTVR_mass',
                 'output_probejet_HOTVR_pt',
             ]
 

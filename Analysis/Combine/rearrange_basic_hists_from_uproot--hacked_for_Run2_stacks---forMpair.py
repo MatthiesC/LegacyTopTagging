@@ -43,8 +43,8 @@ taggers = [
 # 'ak8_t__tau', #naf11 tmux5
 # 'ak8_t_btagDJet__tau', #naf11 tmux6
 # 'ak8_t_btagDCSV__tau',#naf11 tmux7
-# 'hotvr_t__tau', #naf11 tmux8
-'ak8_w__partnet',
+'hotvr_t__tau', #naf11 tmux8
+# 'ak8_w__partnet',
 # 'ak8_t__MDdeepak8',
 ]
 taggers = {k: _TAGGERS[k] for k in taggers}
@@ -109,8 +109,8 @@ do_legend = True
 # do_legend = False
 # mscSplitting = 'mscNone'
 # mscSplitting = 'mscTop2'
-# mscSplitting = 'mscTop3'
-mscSplitting = 'mscW3'
+mscSplitting = 'mscTop3'
+# mscSplitting = 'mscW3'
 
 processes_Plotter = None
 
@@ -812,27 +812,27 @@ if __name__=='__main__':
             the_vars = [
                 'output_probejet_AK8_tau32',
                 'output_probejet_AK8_maxDeepJet',
-                # 'output_probejet_AK8_maxDeepCSV',
+                'output_probejet_AK8_maxDeepCSV',
                 'output_probejet_AK8_MDDeepAK8_TvsQCD',
-                # 'output_probejet_AK8_mSD',
+                'output_probejet_AK8_mSD',
                 'output_probejet_AK8_mass',
                 'output_probejet_AK8_pt',
             ]
         elif the_tagger.name.startswith('ak8_w'):
             the_vars = [
                 'output_probejet_AK8_ParticleNet_WvsQCD',
-                # 'output_probejet_AK8_mSD',
+                'output_probejet_AK8_mSD',
                 'output_probejet_AK8_mass',
                 'output_probejet_AK8_pt',
             ]
         elif the_tagger.name.startswith('hotvr_t'):
             the_vars = [
-                'output_probejet_HOTVR_tau32',
-                'output_probejet_HOTVR_nsub',
+                # 'output_probejet_HOTVR_tau32',
+                # 'output_probejet_HOTVR_nsub',
                 # 'output_probejet_HOTVR_fpt1',
-                # 'output_probejet_HOTVR_mpair',
-                'output_probejet_HOTVR_mass',
-                'output_probejet_HOTVR_pt',
+                'output_probejet_HOTVR_mpair',
+                # 'output_probejet_HOTVR_mass',
+                # 'output_probejet_HOTVR_pt',
             ]
 
         print('Working on', the_tagger.name)

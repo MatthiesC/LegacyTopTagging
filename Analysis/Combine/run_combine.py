@@ -891,6 +891,11 @@ class ScaleFactorFits():
             nice.canvas.cd()
 
             pt_text_string = self.tagger.label.replace('{WP_VALUE}', '{}'.format(self.wp.get_cut_value(year)))+' [#bf{'+region+'}]'
+            if region == 'Pass':   # HACK
+                pt_text_string = '#tau_{3}/#tau_{2} < '+str(self.wp.get_cut_value(year))+' (#bf{Pass region})'
+            elif region == 'Fail':
+                pt_text_string = '#tau_{3}/#tau_{2} > '+str(self.wp.get_cut_value(year))+' (#bf{Fail region})'
+
             pt_text_string2 = ''
             if pt_bin.max_set:
                 pt_text_string2 += '#it{p}_{T} #in ({pt_min}, {pt_max}] GeV, |#eta| < 2.5'.replace('{pt_min}', '{}'.format(pt_bin.var_min)).replace('{pt_max}', '{}'.format(pt_bin.var_max))

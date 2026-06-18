@@ -244,9 +244,13 @@ def plots_comparison_EOY_and_UL(
     # graph_EOY.GetHistogram().GetXaxis().SetNdivisions(1006)
     graph_EOY.GetHistogram().GetXaxis().SetTitle('Probe jet #it{p}_{T} [GeV]')
     graph_EOY.GetHistogram().GetYaxis().SetTitle('Data-to-simulation scale factor')
-    graph_EOY.GetHistogram().GetXaxis().SetTitleOffset(1.3)
+    graph_EOY.GetHistogram().GetXaxis().SetTitleSize(0.045)
+    #graph_EOY.GetHistogram().GetXaxis().SetTitleOffset(1.3)
+    graph_EOY.GetHistogram().GetXaxis().SetTitleOffset(1.2)
     graph_EOY.GetHistogram().GetXaxis().CenterTitle()
-    graph_EOY.GetHistogram().GetYaxis().SetTitleOffset(1.5)
+    graph_EOY.GetHistogram().GetYaxis().SetTitleSize(0.045)
+    #graph_EOY.GetHistogram().GetYaxis().SetTitleOffset(1.5)
+    graph_EOY.GetHistogram().GetYaxis().SetTitleOffset(1.4)
     graph_EOY.GetHistogram().GetYaxis().CenterTitle()
     graph_EOY.GetHistogram().SetMinimum(y_min)
     graph_EOY.GetHistogram().SetMaximum(y_max_modified)
@@ -381,7 +385,7 @@ def plots_comparison_EOY_and_UL(
         if subjetbtag:
             pt_text_string += ' + subjet b tag'
     elif probejetalgo == 'HOTVR':
-        pt_text_string += '#tau_{3}/#tau_{2} < 0.56 + HOTVR cuts'
+        pt_text_string += 'HOTVR t tag incl. #tau_{3}/#tau_{2} < 0.56'
 
     if pt_text_string:
         tlatex_pt = root.TLatex(coord.graph_to_pad_x(0.95), coord.graph_to_pad_y(0.84), pt_text_string)
@@ -391,21 +395,37 @@ def plots_comparison_EOY_and_UL(
         tlatex_pt.SetNDC()
         tlatex_pt.Draw()
 
-    tlatex_cms = root.TLatex(coord.graph_to_pad_x(0.05), coord.graph_to_pad_y(0.95), 'CMS')
-    tlatex_cms.SetTextAlign(13) # left top
-    tlatex_cms.SetTextFont(62)
-    tlatex_cms.SetTextSize(0.05)
-    tlatex_cms.SetNDC()
-    tlatex_cms.Draw()
+    # tlatex_cms = root.TLatex(coord.graph_to_pad_x(0.05), coord.graph_to_pad_y(0.95), 'CMS')
+    # tlatex_cms.SetTextAlign(13) # left top
+    # tlatex_cms.SetTextFont(62)
+    # tlatex_cms.SetTextSize(0.05)
+    # tlatex_cms.SetNDC()
+    # tlatex_cms.Draw()
 
-    text_prelim = 'Private Work'
+    # text_prelim = 'Private Work'
 
-    tlatex_prelim = root.TLatex(coord.graph_to_pad_x(0.05), coord.graph_to_pad_y(0.87), text_prelim)
-    tlatex_prelim.SetTextAlign(13) # left top
-    tlatex_prelim.SetTextFont(52)
-    tlatex_prelim.SetTextSize(text_size)
-    tlatex_prelim.SetNDC()
-    tlatex_prelim.Draw()
+    # tlatex_prelim = root.TLatex(coord.graph_to_pad_x(0.05), coord.graph_to_pad_y(0.87), text_prelim)
+    # tlatex_prelim.SetTextAlign(13) # left top
+    # tlatex_prelim.SetTextFont(52)
+    # tlatex_prelim.SetTextSize(text_size)
+    # tlatex_prelim.SetNDC()
+    # tlatex_prelim.Draw()
+
+
+    text_pw1 = root.TLatex(coord.graph_to_pad_x(0.05), coord.graph_to_pad_y(0.95), 'Private work')
+    text_pw1.SetTextAlign(13)
+    text_pw1.SetTextFont(52)
+    text_pw1.SetTextSize(0.03)
+    text_pw1.SetNDC()
+    text_pw1.Draw()
+
+    text_pw2 = root.TLatex(coord.graph_to_pad_x(0.05), coord.graph_to_pad_y(0.90), '(CMS data/simulation)')
+    text_pw2.SetTextAlign(13)
+    text_pw2.SetTextFont(52)
+    text_pw2.SetTextSize(0.03)
+    text_pw2.SetNDC()
+    text_pw2.Draw()
+
 
     # text_top_left = '20'+year+' data-taking era'
     text_top_left = ''

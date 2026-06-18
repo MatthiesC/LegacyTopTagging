@@ -5,6 +5,8 @@
 
 using namespace macros;
 
+static const float yShift = 0.05;
+
 typedef struct {
   string name;
   string text;
@@ -339,9 +341,9 @@ void do_plot(
   if((is_eff_sig || is_roc) && log_y) plot_at_bottom = true;
 
   float legend_x1 = coord->ConvertGraphXToPadX(plot_at_bottom ? 0.45 : 0.05);
-  float legend_y1 = coord->ConvertGraphYToPadY(plot_at_bottom ? 0.05 : 0.47 - (is_eff_bkg ? 0.07 : 0.));
+  float legend_y1 = coord->ConvertGraphYToPadY(plot_at_bottom ? 0.05 : 0.47 + yShift);
   float legend_x2 = coord->ConvertGraphXToPadX(plot_at_bottom ? 0.95 : 0.55);
-  float legend_y2 = coord->ConvertGraphYToPadY(plot_at_bottom ? 0.35 : 0.77 - (is_eff_bkg ? 0.07 : 0.));
+  float legend_y2 = coord->ConvertGraphYToPadY(plot_at_bottom ? 0.35 : 0.77 + yShift);
   TLegend *legend = new TLegend(legend_x1, legend_y1, legend_x2, legend_y2); // x1 y1 x2 y2
   // const string header = ("#bf{Scan of "+tagger.scan_var_tlatex+" for "+pt_bin.text+"}");
   const string header = ("#bf{Scan of "+tagger.scan_var_tlatex+"}");
@@ -407,10 +409,7 @@ void do_plot(
   // text_top_left->SetNDC();
   // text_top_left->Draw();
 
-  float y_value = 0.95;
-  if(!plot_at_bottom) y_value = 0.225;
-
-  TLatex *algo_label = new TLatex(coord->ConvertGraphXToPadX(1-(0.05*c->GetWh()/c->GetWw())), coord->ConvertGraphYToPadY(y_value), (kProbeJetAlgos.at(tagger.probejetalgo).name+" PUPPI").c_str());
+  TLatex *algo_label = new TLatex(coord->ConvertGraphXToPadX(1-(0.05*c->GetWh()/c->GetWw())), coord->ConvertGraphYToPadY(0.95), (kProbeJetAlgos.at(tagger.probejetalgo).name+" PUPPI").c_str());
   algo_label->SetTextAlign(33); // right top
   algo_label->SetTextFont(62);
   algo_label->SetTextSize(0.05); // 0.05
@@ -441,8 +440,7 @@ void do_plot(
   pt_text->Draw();
 
   // string string_text_top_right = "t#bar{t} #rightarrow all-jets @ #sqrt{#it{s}} = 13 TeV";
-  // string string_text_top_right = "#sqrt{#it{s}} = 13 TeV";
-  string string_text_top_right = "(13 TeV)";
+  string string_text_top_right = "#sqrt{#it{s}} = 13 TeV";
   TLatex *text_top_right = new TLatex(1-margin_r, 1-(margin_t-0.01), string_text_top_right.c_str());
   text_top_right->SetTextAlign(31); // right bottom aligned
   text_top_right->SetTextFont(42);
@@ -450,54 +448,54 @@ void do_plot(
   text_top_right->SetNDC();
   text_top_right->Draw();
 
-  // TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.95), "Private work");
-  // prelim->SetTextAlign(13); // left top
-  // prelim->SetTextFont(52);
-  // prelim->SetTextSize(0.03);
-  // prelim->SetNDC();
-  // // prelim->SetTextColor(kWhite);
-  // prelim->Draw();
+  TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.95), "Private work");
+  prelim->SetTextAlign(13); // left top
+  prelim->SetTextFont(52);
+  prelim->SetTextSize(0.03);
+  prelim->SetNDC();
+  // prelim->SetTextColor(kWhite);
+  prelim->Draw();
 
-  // TText *prelim2 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.90), "(CMS data/simulation)");
-  // prelim2->SetTextAlign(13); // left top
-  // prelim2->SetTextFont(52);
-  // prelim2->SetTextSize(0.03);
-  // prelim2->SetNDC();
-  // // prelim2->SetTextColor(kWhite);
-  // prelim2->Draw();
+  TText *prelim2 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.90), "(CMS data/simulation)");
+  prelim2->SetTextAlign(13); // left top
+  prelim2->SetTextFont(52);
+  prelim2->SetTextSize(0.03);
+  prelim2->SetNDC();
+  // prelim2->SetTextColor(kWhite);
+  prelim2->Draw();
 
-  TLatex *cms = new TLatex(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.95), "CMS");
-  cms->SetTextAlign(13); // left top
-  cms->SetTextFont(62);
-  cms->SetTextSize(0.05);
-  cms->SetNDC();
-  cms->Draw();
+  // TLatex *cms = new TLatex(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.95), "CMS");
+  // cms->SetTextAlign(13); // left top
+  // cms->SetTextFont(62);
+  // cms->SetTextSize(0.05);
+  // cms->SetNDC();
+  // cms->Draw();
 
-  if(false) {
-    TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.87), "Simulation, Preliminary");
-    prelim->SetTextAlign(13); // left top
-    prelim->SetTextFont(52);
-    prelim->SetTextSize(0.035);
-    prelim->SetNDC();
-    prelim->Draw();
-  }
-  else {
-    TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.87), "Simulation");
-    prelim->SetTextAlign(13); // left top
-    prelim->SetTextFont(52);
-    prelim->SetTextSize(0.035);
-    prelim->SetNDC();
-    // prelim->SetTextColor(kWhite);
-    prelim->Draw();
+  // if(!plot_at_bottom) {
+  //   TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.87), "Simulation, Preliminary");
+  //   prelim->SetTextAlign(13); // left top
+  //   prelim->SetTextFont(52);
+  //   prelim->SetTextSize(0.035);
+  //   prelim->SetNDC();
+  //   prelim->Draw();
+  // }
+  // else {
+  //   TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.87), "Simulation");
+  //   prelim->SetTextAlign(13); // left top
+  //   prelim->SetTextFont(52);
+  //   prelim->SetTextSize(0.035);
+  //   prelim->SetNDC();
+  //   // prelim->SetTextColor(kWhite);
+  //   prelim->Draw();
 
-    TText *prelim2 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.804), "Preliminary");
-    prelim2->SetTextAlign(13); // left top
-    prelim2->SetTextFont(52);
-    prelim2->SetTextSize(0.035);
-    prelim2->SetNDC();
-    // prelim2->SetTextColor(kWhite);
-    prelim2->Draw();
-  }
+  //   TText *prelim2 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.804), "Preliminary");
+  //   prelim2->SetTextAlign(13); // left top
+  //   prelim2->SetTextFont(52);
+  //   prelim2->SetTextSize(0.035);
+  //   prelim2->SetNDC();
+  //   // prelim2->SetTextColor(kWhite);
+  //   prelim2->Draw();
+  // }
 
   // WP markers
   for(const auto & wp : tagger.wps.at(tagger.name_base)) {
@@ -542,7 +540,7 @@ void do_plot(
   // Save to disk
   string plotName = "plot__"+tagger.name_base+"__"+pt_bin.name+"__"+graph_base_name+"__";
   // for(bool do_x : {do_raw, do_msd, do_msd_btag}) { do_x ? plotName += "1" : plotName += "0"; }
-  plotName += (log_y ? string("log") : string("lin"))+"__prelim.pdf";
+  plotName += (log_y ? string("log") : string("lin"))+".pdf";
   // string plotPath = infileBasePath+plotName;
   TString plotPath = (TString(infilePath)).ReplaceAll("graphs.root", "")+plotName;
   c->SaveAs(plotPath.Data());
@@ -610,9 +608,9 @@ void do_summary_plot(
   if((is_eff_sig || is_roc) && log_y) plot_at_bottom = true;
 
   float legend_x1 = coord->ConvertGraphXToPadX(plot_at_bottom ? 0.45 : 0.05);
-  float legend_y1 = coord->ConvertGraphYToPadY(plot_at_bottom ? 0.05 : (plot_WPs ? 0.32 : 0.42)); //0.47
+  float legend_y1 = coord->ConvertGraphYToPadY(plot_at_bottom ? 0.05 : (plot_WPs ? 0.32  + yShift : 0.42 + yShift)); //0.47
   float legend_x2 = coord->ConvertGraphXToPadX(plot_at_bottom ? 0.95 : 0.55);
-  float legend_y2 = coord->ConvertGraphYToPadY(plot_at_bottom ? (plot_WPs ? 0.50 : 0.40) : 0.77); //0.35
+  float legend_y2 = coord->ConvertGraphYToPadY(plot_at_bottom ? (plot_WPs ? 0.50 : 0.40) : 0.77 + yShift); //0.35
   TLegend *legend = new TLegend(legend_x1, legend_y1, legend_x2, legend_y2); // x1 y1 x2 y2
   string legend_title = "FIXME";
   if(is_base_tagger) legend_title = tagger.legend_base;
@@ -646,7 +644,7 @@ void do_summary_plot(
   wp_graph->SetMarkerSize(1.2);
   wp_graph->SetMarkerStyle(24);
   mg->Add(wp_graph);
-  if(plot_WPs) legend->AddEntry(wp_graph, "WPs for 480 < #it{p}_{T} < 600 GeV");
+  if(plot_WPs) legend->AddEntry(wp_graph, "WPs for 480 < #it{p}_{T}/GeV < 600");
   auto dp_graph = new_null_graph();
   dp_graph->SetMarkerColor(kRed);
   dp_graph->SetMarkerSize(1.2);
@@ -718,10 +716,7 @@ void do_summary_plot(
   // text_top_left->SetNDC();
   // text_top_left->Draw();
 
-  float y_value = 0.95;
-  if(!plot_at_bottom) y_value = 0.25;
-
-  TLatex *algo_label = new TLatex(coord->ConvertGraphXToPadX(1-(0.05*c->GetWh()/c->GetWw())), coord->ConvertGraphYToPadY(y_value), (kProbeJetAlgos.at(tagger.probejetalgo).name+" PUPPI").c_str());
+  TLatex *algo_label = new TLatex(coord->ConvertGraphXToPadX(1-(0.05*c->GetWh()/c->GetWw())), coord->ConvertGraphYToPadY(0.95), (kProbeJetAlgos.at(tagger.probejetalgo).name+" PUPPI").c_str());
   algo_label->SetTextAlign(33); // right top
   algo_label->SetTextFont(62);
   algo_label->SetTextSize(0.05); // 0.05
@@ -752,8 +747,7 @@ void do_summary_plot(
   pt_text->Draw();
 
   // string string_text_top_right = "t#bar{t} #rightarrow all-jets @ #sqrt{#it{s}} = 13 TeV";
-  // string string_text_top_right = "#sqrt{#it{s}} = 13 TeV";
-  string string_text_top_right = "(13 TeV)";
+  string string_text_top_right = "#sqrt{#it{s}} = 13 TeV";
   TLatex *text_top_right = new TLatex(1-margin_r, 1-(margin_t-0.01), string_text_top_right.c_str());
   text_top_right->SetTextAlign(31); // right bottom aligned
   text_top_right->SetTextFont(42);
@@ -761,54 +755,54 @@ void do_summary_plot(
   text_top_right->SetNDC();
   text_top_right->Draw();
 
-  // TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.95), "Private work");
-  // prelim->SetTextAlign(13); // left top
-  // prelim->SetTextFont(52);
-  // prelim->SetTextSize(0.03);
-  // prelim->SetNDC();
-  // // prelim->SetTextColor(kWhite);
-  // prelim->Draw();
+  TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.95), "Private work");
+  prelim->SetTextAlign(13); // left top
+  prelim->SetTextFont(52);
+  prelim->SetTextSize(0.03);
+  prelim->SetNDC();
+  // prelim->SetTextColor(kWhite);
+  prelim->Draw();
 
-  // TText *prelim2 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.90), "(CMS data/simulation)");
-  // prelim2->SetTextAlign(13); // left top
-  // prelim2->SetTextFont(52);
-  // prelim2->SetTextSize(0.03);
-  // prelim2->SetNDC();
-  // // prelim2->SetTextColor(kWhite);
-  // prelim2->Draw();
+  TText *prelim2 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.90), "(CMS data/simulation)");
+  prelim2->SetTextAlign(13); // left top
+  prelim2->SetTextFont(52);
+  prelim2->SetTextSize(0.03);
+  prelim2->SetNDC();
+  // prelim2->SetTextColor(kWhite);
+  prelim2->Draw();
 
-  TLatex *cms = new TLatex(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.95), "CMS");
-  cms->SetTextAlign(13); // left top
-  cms->SetTextFont(62);
-  cms->SetTextSize(0.05);
-  cms->SetNDC();
-  cms->Draw();
+  // TLatex *cms = new TLatex(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.95), "CMS");
+  // cms->SetTextAlign(13); // left top
+  // cms->SetTextFont(62);
+  // cms->SetTextSize(0.05);
+  // cms->SetNDC();
+  // cms->Draw();
 
-  if(false) {
-    TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.87), "Simulation, Preliminary");
-    prelim->SetTextAlign(13); // left top
-    prelim->SetTextFont(52);
-    prelim->SetTextSize(0.035);
-    prelim->SetNDC();
-    prelim->Draw();
-  }
-  else {
-    TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.87), "Simulation");
-    prelim->SetTextAlign(13); // left top
-    prelim->SetTextFont(52);
-    prelim->SetTextSize(0.035);
-    prelim->SetNDC();
-    // prelim->SetTextColor(kWhite);
-    prelim->Draw();
+  // if(!plot_at_bottom) {
+  //   TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.87), "Simulation, Preliminary");
+  //   prelim->SetTextAlign(13); // left top
+  //   prelim->SetTextFont(52);
+  //   prelim->SetTextSize(0.035);
+  //   prelim->SetNDC();
+  //   prelim->Draw();
+  // }
+  // else {
+  //   TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.87), "Simulation");
+  //   prelim->SetTextAlign(13); // left top
+  //   prelim->SetTextFont(52);
+  //   prelim->SetTextSize(0.035);
+  //   prelim->SetNDC();
+  //   // prelim->SetTextColor(kWhite);
+  //   prelim->Draw();
 
-    TText *prelim2 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.804), "Preliminary");
-    prelim2->SetTextAlign(13); // left top
-    prelim2->SetTextFont(52);
-    prelim2->SetTextSize(0.035);
-    prelim2->SetNDC();
-    // prelim2->SetTextColor(kWhite);
-    prelim2->Draw();
-  }
+  //   TText *prelim2 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.804), "Preliminary");
+  //   prelim2->SetTextAlign(13); // left top
+  //   prelim2->SetTextFont(52);
+  //   prelim2->SetTextSize(0.035);
+  //   prelim2->SetNDC();
+  //   // prelim2->SetTextColor(kWhite);
+  //   prelim2->Draw();
+  // }
 
 
   //   for(int i = 0; i < wps_ref_pt480to600.size(); i++) {
@@ -866,7 +860,7 @@ void do_summary_plot(
   // Save to disk
   string plotName = "plot__"+variant+"__comparePtBins__"+graph_base_name+"__";
   // for(bool do_x : {do_raw, do_msd, do_msd_btag}) { do_x ? plotName += "1" : plotName += "0"; }
-  plotName += (log_y ? string("log") : string("lin"))+"__prelim.pdf";
+  plotName += (log_y ? string("log") : string("lin"))+".pdf";
   // string plotPath = infileBasePath+plotName;
   TString plotPath = (string)getenv("CMSSW_BASE")+"/src/UHH2/LegacyTopTagging/output/WorkingPointStudy/"+kYears.at(year).name+"/nominal/"+variant+"/"+plotName;
   c->SaveAs(plotPath.Data());
@@ -1003,9 +997,9 @@ void do_plot_all_years(
   if((is_eff_sig || is_roc) && log_y) plot_at_bottom = true;
 
   float legend_x1 = coord->ConvertGraphXToPadX(plot_at_bottom ? 0.45 : 0.05);
-  float legend_y1 = coord->ConvertGraphYToPadY(plot_at_bottom ? 0.05 : 0.47 - (is_eff_bkg ? 0.07 : 0.));
+  float legend_y1 = coord->ConvertGraphYToPadY(plot_at_bottom ? 0.05 : 0.47 + yShift);
   float legend_x2 = coord->ConvertGraphXToPadX(plot_at_bottom ? 0.95 : 0.55);
-  float legend_y2 = coord->ConvertGraphYToPadY(plot_at_bottom ? 0.35 : 0.77 - (is_eff_bkg ? 0.07 : 0.));
+  float legend_y2 = coord->ConvertGraphYToPadY(plot_at_bottom ? 0.35 : 0.77 + yShift);
 
   if(is_eff_bkg && log_y) {
     legend_y1 = coord->ConvertGraphYToPadY(0.2);
@@ -1080,10 +1074,7 @@ void do_plot_all_years(
   // text_top_left->SetNDC();
   // text_top_left->Draw();
 
-  float y_value = 0.95;
-  if(!plot_at_bottom) y_value = 0.225;
-
-  TLatex *algo_label = new TLatex(coord->ConvertGraphXToPadX(1-(0.05*c->GetWh()/c->GetWw())), coord->ConvertGraphYToPadY(y_value), (kProbeJetAlgos.at(tagger.probejetalgo).name+" PUPPI").c_str());
+  TLatex *algo_label = new TLatex(coord->ConvertGraphXToPadX(1-(0.05*c->GetWh()/c->GetWw())), coord->ConvertGraphYToPadY(0.95), (kProbeJetAlgos.at(tagger.probejetalgo).name+" PUPPI").c_str());
   algo_label->SetTextAlign(33); // right top
   algo_label->SetTextFont(62);
   algo_label->SetTextSize(0.05); // 0.05
@@ -1124,8 +1115,7 @@ void do_plot_all_years(
 
 
   // string string_text_top_right = "t#bar{t} #rightarrow all-jets @ #sqrt{#it{s}} = 13 TeV";
-  // string string_text_top_right = "#sqrt{#it{s}} = 13 TeV";
-  string string_text_top_right = "(13 TeV)";
+  string string_text_top_right = "#sqrt{#it{s}} = 13 TeV";
   TLatex *text_top_right = new TLatex(1-margin_r, 1-(margin_t-0.01), string_text_top_right.c_str());
   text_top_right->SetTextAlign(31); // right bottom aligned
   text_top_right->SetTextFont(42);
@@ -1135,54 +1125,54 @@ void do_plot_all_years(
 
 
 
-  // TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.95), "Private work");
-  // prelim->SetTextAlign(13); // left top
-  // prelim->SetTextFont(52);
-  // prelim->SetTextSize(0.03);
-  // prelim->SetNDC();
-  // // prelim->SetTextColor(kWhite);
-  // prelim->Draw();
+  TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.95), "Private work");
+  prelim->SetTextAlign(13); // left top
+  prelim->SetTextFont(52);
+  prelim->SetTextSize(0.03);
+  prelim->SetNDC();
+  // prelim->SetTextColor(kWhite);
+  prelim->Draw();
 
-  // TText *prelim2 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.90), "(CMS data/simulation)");
-  // prelim2->SetTextAlign(13); // left top
-  // prelim2->SetTextFont(52);
-  // prelim2->SetTextSize(0.03);
-  // prelim2->SetNDC();
-  // // prelim2->SetTextColor(kWhite);
-  // prelim2->Draw();
+  TText *prelim2 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.90), "(CMS data/simulation)");
+  prelim2->SetTextAlign(13); // left top
+  prelim2->SetTextFont(52);
+  prelim2->SetTextSize(0.03);
+  prelim2->SetNDC();
+  // prelim2->SetTextColor(kWhite);
+  prelim2->Draw();
 
-  TLatex *cms = new TLatex(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.95), "CMS");
-  cms->SetTextAlign(13); // left top
-  cms->SetTextFont(62);
-  cms->SetTextSize(0.05);
-  cms->SetNDC();
-  cms->Draw();
+  // TLatex *cms = new TLatex(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.95), "CMS");
+  // cms->SetTextAlign(13); // left top
+  // cms->SetTextFont(62);
+  // cms->SetTextSize(0.05);
+  // cms->SetNDC();
+  // cms->Draw();
 
-  if(false) {
-    TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.87), "Simulation, Preliminary");
-    prelim->SetTextAlign(13); // left top
-    prelim->SetTextFont(52);
-    prelim->SetTextSize(0.035);
-    prelim->SetNDC();
-    prelim->Draw();
-  }
-  else {
-    TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.87), "Simulation");
-    prelim->SetTextAlign(13); // left top
-    prelim->SetTextFont(52);
-    prelim->SetTextSize(0.035);
-    prelim->SetNDC();
-    // prelim->SetTextColor(kWhite);
-    prelim->Draw();
+  // if(!plot_at_bottom) {
+  //   TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.87), "Simulation, Preliminary");
+  //   prelim->SetTextAlign(13); // left top
+  //   prelim->SetTextFont(52);
+  //   prelim->SetTextSize(0.035);
+  //   prelim->SetNDC();
+  //   prelim->Draw();
+  // }
+  // else {
+  //   TText *prelim = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.87), "Simulation");
+  //   prelim->SetTextAlign(13); // left top
+  //   prelim->SetTextFont(52);
+  //   prelim->SetTextSize(0.035);
+  //   prelim->SetNDC();
+  //   // prelim->SetTextColor(kWhite);
+  //   prelim->Draw();
 
-    TText *prelim2 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.804), "Preliminary");
-    prelim2->SetTextAlign(13); // left top
-    prelim2->SetTextFont(52);
-    prelim2->SetTextSize(0.035);
-    prelim2->SetNDC();
-    // prelim2->SetTextColor(kWhite);
-    prelim2->Draw();
-  }
+  //   TText *prelim2 = new TText(coord->ConvertGraphXToPadX(0.05), coord->ConvertGraphYToPadY(0.804), "Preliminary");
+  //   prelim2->SetTextAlign(13); // left top
+  //   prelim2->SetTextFont(52);
+  //   prelim2->SetTextSize(0.035);
+  //   prelim2->SetNDC();
+  //   // prelim2->SetTextColor(kWhite);
+  //   prelim2->Draw();
+  // }
 
 
   for(const auto & marker : markers) {
@@ -1214,7 +1204,7 @@ void do_plot_all_years(
   // Save to disk
   string plotName = "plot__"+tagger.name_base+"__"+pt_bin.name+"__"+graph_base_name+"__";
   // for(bool do_x : {do_raw, do_msd, do_msd_btag}) { do_x ? plotName += "1" : plotName += "0"; }
-  plotName += (log_y ? string("log") : string("lin"))+"__allYears__prelim.pdf";
+  plotName += (log_y ? string("log") : string("lin"))+"__allYears.pdf";
   // string plotPath = infileBasePath+plotName;
   TString plotPath = (TString(infilePath)).ReplaceAll("graphs.root", "")+plotName;
   c->SaveAs(plotPath.Data());
@@ -1224,7 +1214,7 @@ void do_plot_all_years(
 
 
 // void plots(const string & year) {
-void plots(const string & arg_year, const string & arg_tagger) {
+void plots_privateWork_thesis(const string & arg_year, const string & arg_tagger) {
 
   // const vector<Year> years = { Year::isUL16preVFP, Year::isUL16postVFP, Year::isUL17, Year::isUL18 };
   // const Year year = Year::isUL16preVFP;
@@ -1236,21 +1226,21 @@ void plots(const string & arg_year, const string & arg_tagger) {
   else if(arg_year == "UL18") year = Year::isUL18;
 
   vector<PtBin> pt_bins_vec;
-  pt_bins_vec.push_back(PtBin{"pt_300to400", "300 < #it{p}_{T} < 400 GeV", kOrange-3, 1});
+  pt_bins_vec.push_back(PtBin{"pt_300to400", "300 < #it{p}_{T}/GeV < 400", kOrange-3, 1});
   pt_bins_vec.push_back(PtBin{"pt_400toInf", "#it{p}_{T} > 400 GeV", kCyan, 1});
-  pt_bins_vec.push_back(PtBin{"pt_400to480", "400 < #it{p}_{T} < 480 GeV", kBlue, 2});
-  pt_bins_vec.push_back(PtBin{"pt_480to600", "480 < #it{p}_{T} < 600 GeV", kBlue, 3});
+  pt_bins_vec.push_back(PtBin{"pt_400to480", "400 < #it{p}_{T}/GeV < 480", kBlue, 2});
+  pt_bins_vec.push_back(PtBin{"pt_480to600", "480 < #it{p}_{T}/GeV < 600", kBlue, 3});
   pt_bins_vec.push_back(PtBin{"pt_600toInf", "#it{p}_{T} > 600 GeV", kBlue, 4});
   pt_bins_vec.push_back(PtBin{"pt_300toInf", "#it{p}_{T} > 300 GeV"});
   pt_bins_vec.push_back(PtBin{"pt_1000toInf", "#it{p}_{T} > 1000 GeV"});
 
-  pt_bins_vec.push_back(PtBin{"pt_300to350", "300 < #it{p}_{T} < 350 GeV", kOrange-3, 5});
-  pt_bins_vec.push_back(PtBin{"pt_350to400", "350 < #it{p}_{T} < 400 GeV", kOrange-3, 6});
+  pt_bins_vec.push_back(PtBin{"pt_300to350", "300 < #it{p}_{T}/GeV < 350", kOrange-3, 5});
+  pt_bins_vec.push_back(PtBin{"pt_350to400", "350 < #it{p}_{T}/GeV < 400", kOrange-3, 6});
   pt_bins_vec.push_back(PtBin{"pt_200toInf", "#it{p}_{T} > 200 GeV", kOrange-3, 7});
-  pt_bins_vec.push_back(PtBin{"pt_200to250", "200 < #it{p}_{T} < 250 GeV", kOrange-3, 8});
-  pt_bins_vec.push_back(PtBin{"pt_250to300", "250 < #it{p}_{T} < 300 GeV", kOrange-3, 9});
+  pt_bins_vec.push_back(PtBin{"pt_200to250", "200 < #it{p}_{T}/GeV < 250", kOrange-3, 8});
+  pt_bins_vec.push_back(PtBin{"pt_250to300", "250 < #it{p}_{T}/GeV < 300", kOrange-3, 9});
 
-  pt_bins_vec.push_back(PtBin{"pt_500to600", "500 < #it{p}_{T} < 600 GeV", kMagenta, 1});
+  pt_bins_vec.push_back(PtBin{"pt_500to600", "500 < #it{p}_{T}/GeV < 600", kMagenta, 1});
 
   map<string, PtBin> pt_bins;
   for(const auto & pt_bin : pt_bins_vec) {
@@ -1273,7 +1263,7 @@ void plots(const string & arg_year, const string & arg_tagger) {
     .target_effs_bkg = {0.001, 0.005, 0.01, 0.025, 0.05},
     .linestyle_variants = {2, 2, 3},
     .linecolor_variants = {kCyan, kBlue, kBlack},
-    .legend_base = "105 < #it{m}_{SD} < 210 GeV",
+    .legend_base = "105 < #it{m}_{SD}/GeV < 210",
     .legend_variants = {"#it{m}_{SD} + loose DeepCSV b tag", "#it{m}_{SD} + loose DeepJet b tag", "Inclusive jet collection"},
     .scan_var_tlatex = "#tau_{3}/#tau_{2}",
     .scan_var_tlatex_axis = "#tau_{3}/#tau_{2} upper limit",
@@ -1301,7 +1291,7 @@ void plots(const string & arg_year, const string & arg_tagger) {
     .target_effs_bkg = {0.03},
     .linestyle_variants = {3},
     .linecolor_variants = {kBlack},
-    .legend_base = "65 < #it{m}_{SD} < 105 GeV",
+    .legend_base = "65 < #it{m}_{SD}/GeV < 105",
     .legend_variants = {"Inclusive jet collection"},
     .scan_var_tlatex = "ParticleNet \"WvsQCD\" score",
     .scan_var_tlatex_axis = "ParticleNet \"WvsQCD\" score lower limit",
@@ -1316,7 +1306,7 @@ void plots(const string & arg_year, const string & arg_tagger) {
     .target_effs_bkg = {0.001, 0.005, 0.01, 0.025, 0.05},
     .linestyle_variants = {3},
     .linecolor_variants = {kBlack},
-    .legend_base = "105 < #it{m}_{SD} < 210 GeV",
+    .legend_base = "105 < #it{m}_{SD}/GeV < 210",
     .legend_variants = {"Inclusive jet collection"},
     .scan_var_tlatex = "DeepAK8 \"TvsQCD\" score",
     .scan_var_tlatex_axis = "DeepAK8 \"TvsQCD\" score lower limit",
@@ -1331,7 +1321,7 @@ void plots(const string & arg_year, const string & arg_tagger) {
     .target_effs_bkg = {0.001, 0.005, 0.01, 0.025, 0.05},
     .linestyle_variants = {3},
     .linecolor_variants = {kBlack},
-    .legend_base = "105 < #it{m}_{SD} < 210 GeV",
+    .legend_base = "105 < #it{m}_{SD}/GeV < 210",
     .legend_variants = {"Inclusive jet collection"},
     .scan_var_tlatex = "Mass-decorrelated DeepAK8 \"TvsQCD\" score",
     .scan_var_tlatex_axis = "Mass-decorrelated DeepAK8 \"TvsQCD\" score lower limit",
@@ -1346,7 +1336,7 @@ void plots(const string & arg_year, const string & arg_tagger) {
     .target_effs_bkg = {0.001, 0.005, 0.01, 0.025, 0.05},
     .linestyle_variants = {3},
     .linecolor_variants = {kBlack},
-    .legend_base = "65 < #it{m}_{SD} < 105 GeV",
+    .legend_base = "65 < #it{m}_{SD}/GeV < 105",
     .legend_variants = {"Inclusive jet collection"},
     .scan_var_tlatex = "DeepAK8 \"WvsQCD\" score",
     .scan_var_tlatex_axis = "DeepAK8 \"WvsQCD\" score lower limit",
@@ -1361,7 +1351,7 @@ void plots(const string & arg_year, const string & arg_tagger) {
     .target_effs_bkg = {0.001, 0.005, 0.01, 0.025, 0.05},
     .linestyle_variants = {3},
     .linecolor_variants = {kBlack},
-    .legend_base = "65 < #it{m}_{SD} < 105 GeV",
+    .legend_base = "65 < #it{m}_{SD}/GeV < 105",
     .legend_variants = {"Inclusive jet collection"},
     .scan_var_tlatex = "Mass-decorrelated DeepAK8 \"WvsQCD\" score",
     .scan_var_tlatex_axis = "Mass-decorrelated DeepAK8 \"WvsQCD\" score lower limit",
@@ -1425,8 +1415,6 @@ void plots(const string & arg_year, const string & arg_tagger) {
       //do_plot_all_years(temp_tagger, pt_bin.second, graph_base_name, false);
     }
   }
-
-  //return;
 
   vector<PtBin> pt_bins_summary_plots;
   pt_bins_summary_plots.push_back(pt_bins.at("pt_400toInf"));

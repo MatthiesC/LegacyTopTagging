@@ -23,11 +23,6 @@ _SYSTEMATICS = systematics.get_all_variations()
 # for k,v in _SYSTEMATICS.items():
 #     print(k, v.weight_based)
 
-# for k,v in _SYSTEMATICS.items():
-#     print(k)
-# exit()
-
-
 from parallel_threading import run_with_pool
 
 
@@ -123,7 +118,8 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
     elif tagger.name.startswith('hotvr'):
         probejetalgo = 'HOTVR'
 
-    binning, _, _, _, _, _ = get_variable_binning_xlabel_xunit(variable_name=variable.split('_'+probejetalgo+'_')[-1], tagger_name=tagger.name, fit_variable=arg_fit_variable)
+    #binning, _, _, _, _, _ = get_variable_binning_xlabel_xunit(variable_name=variable.split('_'+probejetalgo+'_')[-1], tagger_name=tagger.name, fit_variable=arg_fit_variable)
+    binning = np.linspace(0, 500, num=101)  # HACK: 5 GeV
 
     # # binning = None # FIXME: other variables than mSD and mass use other binning than the following one...
     # if variable.endswith('_mSD') or variable.endswith('_mass'):
@@ -165,11 +161,6 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
         wp = tagger.get_wp(wp_index, year)
     else:
         tandp_rule = 'True'
-        if tagger.name == 'ak8_t__tau':
-            tandp_rule = '(output_probejet_AK8_mSD > 105) & (output_probejet_AK8_mSD < 210)'
-        elif tagger.name == 'hotvr_t__tau':
-            tandp_rule = '(output_probejet_HOTVR_fpt1 < 0.8) & (output_probejet_HOTVR_nsub > 2) & (output_probejet_HOTVR_mpair > 50) & (output_probejet_HOTVR_mass > 140) & (output_probejet_HOTVR_mass < 220)'
-            # tandp_rule = '(output_probejet_HOTVR_mass > 140) & (output_probejet_HOTVR_mass < 220)'
         wp = _NULL_WP
 
     for pt_bin in tagger.var_intervals.values():
@@ -177,7 +168,6 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
         # #HACK: only process total range pt bin for NullWP
         # if arg_wp_index == -1 and pt_bin.total_range != True:
         #     continue
-        if pt_bin.name != 'pt_400toInf': continue
 
         batches = {}
         hists = {}
@@ -315,8 +305,6 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
                                 if var_string.startswith('output'):
                                     expressions.append(var_string)
 
-                            expressions = list(set(expressions))  # get rid of duplicates
-
                             for batch in tqdm(uproot.iterate(batches[band_k][region][channel][process][syst], expressions=expressions, aliases={'the_weight': weight_alias}, cut=cut_rule, library='pd')):
 
                                 if is_murmuf and not is_data: # no murmuf norm factors available for data
@@ -336,7 +324,7 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
 
                 task_name = '-'.join([tagger.name, wp.name, pt_bin.name, year, syst, variable])
                 # outDir = os.path.join(outDirBase, task_name)
-                outDir = os.path.join(outDirBase, 'Anna_BasicHists')
+                outDir = os.path.join(outDirBase, 'BasicHists-MSD')
                 os.system('mkdir -p '+outDir)
                 outFileName = 'BasicHists-'+task_name+'.root'
                 outFilePath = os.path.join(outDir, outFileName)
@@ -412,28 +400,28 @@ if __name__ == '__main__':
     the_vars = []
     if the_tagger.name.startswith('ak8_t'):
         the_vars = [
-            'output_probejet_AK8_tau32',
+            # 'output_probejet_AK8_tau32',
             # 'output_probejet_AK8_maxDeepJet',
             # 'output_probejet_AK8_maxDeepCSV',
             # 'output_probejet_AK8_MDDeepAK8_TvsQCD',
-            # 'output_probejet_AK8_mSD',
+            'output_probejet_AK8_mSD',
             # 'output_probejet_AK8_mass',
             # 'output_probejet_AK8_pt',
         ]
     elif the_tagger.name.startswith('ak8_w'):
         the_vars = [
             # 'output_probejet_AK8_ParticleNet_WvsQCD',
-            # 'output_probejet_AK8_mSD',
+            'output_probejet_AK8_mSD',
             # 'output_probejet_AK8_mass',
             # 'output_probejet_AK8_pt',
         ]
     elif the_tagger.name.startswith('hotvr_t'):
         the_vars = [
-            'output_probejet_HOTVR_tau32',
+            # 'output_probejet_HOTVR_tau32',
             # 'output_probejet_HOTVR_nsub',
             # 'output_probejet_HOTVR_fpt1',
             # 'output_probejet_HOTVR_mpair',
-            # 'output_probejet_HOTVR_mass',
+            'output_probejet_HOTVR_mass',
             # 'output_probejet_HOTVR_pt',
         ]
     # if args.vars:
@@ -447,8 +435,12 @@ if __name__ == '__main__':
 
     for var in the_vars:
         for year in years:
+            the_wp_indices = range(0, len(the_tagger.get_wp(year=year)))
+            the_wp_indices = list(the_wp_indices)
+            the_wp_indices.append(-1)  # NullWP
             for syst in the_systs:
-                create_input_hists(variable=var, tagger=the_tagger, arg_wp_index=-1, year=year, arg_syst=_SYSTEMATICS[syst], arg_fit_variable=False)
+                for wp_index in the_wp_indices:
+                    create_input_hists(variable=var, tagger=the_tagger, arg_wp_index=wp_index, year=year, arg_syst=_SYSTEMATICS[syst], arg_fit_variable=False, arg_region='Pass')
 
 
     # #_______________________________________

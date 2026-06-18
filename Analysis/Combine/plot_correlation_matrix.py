@@ -11,7 +11,7 @@ import json
 
 workdir = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel/combine/')
 workdir = os.path.join(workdir, 'ak8_t__tau/workdirs/combineTask-ak8_t__tau-BkgEff0p001-pt_480to600-UL16preVFP')
-plot_name = 'correlation_matrix_nuisances.pdf'
+plot_name = 'correlation_matrix_nuisances_withLabel.pdf'
 plot_path = os.path.join(workdir, plot_name)
 rootfile_name = 'robustHesse_obs.root'
 rootfile_path = os.path.join(workdir, rootfile_name)
@@ -96,7 +96,10 @@ plt.xticks(rotation=45, ha='right')
 # plt.figtext(0.01, 0.99, r"$\mathbf{CMS}$ Private Work", fontsize=14, fontweight="bold", verticalalignment="top")
 # plt.figtext(0.01, 0.96, r"Private Work", fontsize=12, fontstyle="italic", verticalalignment="top")
 
-
+# Get the current axes limits
+x_min, x_max = heatmap.get_xlim()
+y_min, y_max = heatmap.get_ylim()
+plt.text(x_min, y_max + 1, 'Private work\n(CMS data/simulation)', fontsize=8, ha='left', va='bottom')
 
 # Save the heatmap plot as an image file (e.g., PNG)
 plt.savefig(plot_path, bbox_inches="tight")

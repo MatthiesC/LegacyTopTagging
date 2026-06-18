@@ -43,8 +43,8 @@ taggers = [
 # 'ak8_t__tau', #naf11 tmux5
 # 'ak8_t_btagDJet__tau', #naf11 tmux6
 # 'ak8_t_btagDCSV__tau',#naf11 tmux7
-# 'hotvr_t__tau', #naf11 tmux8
-'ak8_w__partnet',
+'hotvr_t__tau', #naf11 tmux8
+# 'ak8_w__partnet',
 # 'ak8_t__MDdeepak8',
 ]
 taggers = {k: _TAGGERS[k] for k in taggers}
@@ -109,8 +109,8 @@ do_legend = True
 # do_legend = False
 # mscSplitting = 'mscNone'
 # mscSplitting = 'mscTop2'
-# mscSplitting = 'mscTop3'
-mscSplitting = 'mscW3'
+mscSplitting = 'mscTop3'
+# mscSplitting = 'mscW3'
 
 processes_Plotter = None
 
@@ -369,9 +369,9 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
     is_fit_template = not wp.null
 
     baseDir = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel', year, 'combine', tagger.name)
-    inDir = os.path.join(baseDir, 'BasicHists')
-    task_name = '-'.join([tagger.name, wp.name, pt_bin.name, year, variable])
-    outDir = os.path.join(baseDir, task_name)
+    inDir = os.path.join(baseDir, 'Anna_BasicHists')
+    task_name = '-'.join(['Anna', tagger.name, wp.name, pt_bin.name, year, variable])
+    outDir = os.path.join(baseDir, task_name+'---fullTag')
     os.system('mkdir -p '+outDir)
     outFileName = 'Templates-'+task_name+'.root'
     if 'both' in channels:
@@ -593,14 +593,12 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
             #     x_axis_title = 'Probe jet #it{m}_{jet}'
             #     x_axis_unit = 'GeV'
 
+
             if tagger.name.startswith('ak8_'):
                 probejetalgo = 'AK8'
             elif tagger.name.startswith('hotvr_'):
                 probejetalgo = 'HOTVR'
-
-            variable_name = variable.split('_'+probejetalgo+'_')[-1]
-
-            _, x_axis_title, x_axis_unit, logy, leg_offset_x, leg_offset_y = get_variable_binning_xlabel_xunit(variable_name=variable_name, tagger_name=tagger.name, fit_variable=is_fit_template)
+            _, x_axis_title, x_axis_unit, logy, leg_offset_x, leg_offset_y = get_variable_binning_xlabel_xunit(variable_name=variable.split('_'+probejetalgo+'_')[-1], tagger_name=tagger.name, fit_variable=is_fit_template)
 
             nice = NiceStackWithRatio(
                 infile_path = outFilePath,
@@ -611,7 +609,7 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
                 processes = processes_Plotter.values(),
                 syst_names = systs_Plotter,
                 lumi_unc = _YEARS.get(year).get('lumi_unc'),
-                divide_by_bin_width = is_fit_template,
+                divide_by_bin_width = False,
                 data_name = 'data_obs',
                 # text_prelim = 'Private Work',
                 text_prelim = 'Preliminary',
@@ -626,27 +624,10 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
                 logy = logy,
             )
 
-            y_axis_titles = {
-                "pt": "Events / 20 GeV",
-                "tau32": "Events / 0.02 units",
-                "mass": "Events / 6 GeV" if tagger.name.startswith('ak8_w') else "Events / 10 GeV",
-                "mSD": "Events / 6 GeV" if tagger.name.startswith('ak8_w') else "Events / 10 GeV",
-                "maxDeepJet": "Events / 0.02 units",
-                "maxDeepCSV": "Events / 0.02 units",
-                "MDDeepAK8_TvsQCD": "Events / 0.02 units",
-                "mpair": "Events / 5 GeV",
-                "fpt1": "Events / 0.02 units",
-                "nsub": "Events",
-                "ParticleNet_WvsQCD": "Events / 0.02 units",
-            }
-            if not is_fit_template:
-                nice.y_axis_title = y_axis_titles[variable_name]
+            nice.y_axis_title = "Events / 0.02 units"
 
-            plotName = 'Plot-prefitRaw-'+task_name+'-'+outFolderName+'-'+mscSplitting+('-withLeg' if do_legend else '-noLeg')+('-Preliminary' if nice.text_prelim == 'Preliminary' else '')+'.pdf'
+            plotName = 'Plot-prefitRaw-'+task_name+'-'+outFolderName+'-'+mscSplitting+('-withLeg' if do_legend else '-noLeg')+('-Preliminary' if nice.text_prelim == 'Preliminary' else '')+'---fullTag.pdf'
             plotDir = os.path.join(outDir, 'plots')
-
-            if variable_name == 'mpair':  # evil HACK
-                nice.bug_fix_y_scaling = 2.
 
             nice.plot()
 
@@ -675,15 +656,54 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
             tlatex_pt.SetNDC()
             tlatex_pt.Draw()
 
-            if is_fit_template or variable_name == "mpair":
-                if variable_name == 'mpair':
-                    pt_text_string2 = '#it{N}_{subjets} #geq 3'
+            if is_fit_template:
                 tlatex_pt2 = root.TLatex(nice.coord.graph_to_pad_x(0.95), nice.coord.graph_to_pad_y(0.78), pt_text_string2)
                 tlatex_pt2.SetTextAlign(31) # left top
                 tlatex_pt2.SetTextFont(42)
                 tlatex_pt2.SetTextSize(0.025)
                 tlatex_pt2.SetNDC()
                 tlatex_pt2.Draw()
+
+            pt_text_string3 = '#bf{Full HOTVR t tag:}'
+            tlatex_pt3 = root.TLatex(nice.coord.graph_to_pad_x(0.95), nice.coord.graph_to_pad_y(0.78), pt_text_string3)
+            tlatex_pt3.SetTextAlign(31) # left top
+            tlatex_pt3.SetTextFont(42)
+            tlatex_pt3.SetTextSize(0.025)
+            tlatex_pt3.SetNDC()
+            tlatex_pt3.Draw()
+
+            pt_text_string4 = "140 < #it{m}_{jet} < 220 GeV"
+            tlatex_pt4 = root.TLatex(nice.coord.graph_to_pad_x(0.95), nice.coord.graph_to_pad_y(0.72), pt_text_string4)
+            tlatex_pt4.SetTextAlign(31) # left top
+            tlatex_pt4.SetTextFont(42)
+            tlatex_pt4.SetTextSize(0.025)
+            tlatex_pt4.SetNDC()
+            tlatex_pt4.Draw()
+
+            pt_text_string5 = '#it{N}_{subjets} #geq 3'
+            tlatex_pt5 = root.TLatex(nice.coord.graph_to_pad_x(0.95), nice.coord.graph_to_pad_y(0.66), pt_text_string5)
+            tlatex_pt5.SetTextAlign(31) # left top
+            tlatex_pt5.SetTextFont(42)
+            tlatex_pt5.SetTextSize(0.025)
+            tlatex_pt5.SetNDC()
+            tlatex_pt5.Draw()
+
+            pt_text_string6 = '#it{m}_{ij} > 50 GeV'
+            tlatex_pt6 = root.TLatex(nice.coord.graph_to_pad_x(0.95), nice.coord.graph_to_pad_y(0.6), pt_text_string6)
+            tlatex_pt6.SetTextAlign(31) # left top
+            tlatex_pt6.SetTextFont(42)
+            tlatex_pt6.SetTextSize(0.025)
+            tlatex_pt6.SetNDC()
+            tlatex_pt6.Draw()
+
+            pt_text_string7 = '#it{p}_{T}^{lead. subjet}/#it{p}_{T} < 0.8'
+            # pt_text_string7 = 'Lead. subjet #it{p}_{T} fraction < 0.8'
+            tlatex_pt7 = root.TLatex(nice.coord.graph_to_pad_x(0.95), nice.coord.graph_to_pad_y(0.54), pt_text_string7)
+            tlatex_pt7.SetTextAlign(31) # left top
+            tlatex_pt7.SetTextFont(42)
+            tlatex_pt7.SetTextSize(0.025)
+            tlatex_pt7.SetNDC()
+            tlatex_pt7.Draw()
 
             tlatex_probejetalgo = root.TLatex(nice.coord.graph_to_pad_x(0.95), nice.coord.graph_to_pad_y(0.95), probejetalgo+' PUPPI')
             tlatex_probejetalgo.SetTextAlign(33) # right top
@@ -720,7 +740,10 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
 
                 else:
 
-                    legend = root.TLegend(nice.coord.graph_to_pad_x(0.45+leg_offset_x), nice.coord.graph_to_pad_y(0.5+leg_offset_y), nice.coord.graph_to_pad_x(0.7+leg_offset_x), nice.coord.graph_to_pad_y(0.73+leg_offset_y))
+                    more_offset_x = -0.05
+                    more_offset_y = -0.11
+
+                    legend = root.TLegend(nice.coord.graph_to_pad_x(0.45+leg_offset_x+more_offset_x), nice.coord.graph_to_pad_y(0.5+leg_offset_y+more_offset_y), nice.coord.graph_to_pad_x(0.7+leg_offset_x+more_offset_x), nice.coord.graph_to_pad_y(0.73+leg_offset_y+more_offset_y))
                     if mscSplitting == 'mscTop3' or mscSplitting == 'mscW3':
                         legend.SetHeader('')
                     legend.AddEntry(nice.data_hist, 'Data', 'ep')
@@ -732,7 +755,10 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
                     legend.SetFillStyle(0)
                     legend.Draw()
 
-                    legend2 = root.TLegend(nice.coord.graph_to_pad_x(0.45+0.22+leg_offset_x), nice.coord.graph_to_pad_y(0.5+leg_offset_y), nice.coord.graph_to_pad_x(0.7+0.22+leg_offset_x), nice.coord.graph_to_pad_y(0.73+leg_offset_y))
+                    more_offset2_x = -0.22-0.05
+                    more_offset2_y = 0.08
+
+                    legend2 = root.TLegend(nice.coord.graph_to_pad_x(0.45+0.22+leg_offset_x+more_offset2_x), nice.coord.graph_to_pad_y(0.5+leg_offset_y+more_offset2_y), nice.coord.graph_to_pad_x(0.7+0.22+leg_offset_x+more_offset2_x), nice.coord.graph_to_pad_y(0.73+leg_offset_y+more_offset2_y))
                     legend2.SetHeader('t#bar{t} / single t categories:')
                     if mscSplitting == 'mscTop2':
                         legend2.AddEntry(nice.stack.GetStack().At(processes_Plotter['TTbar__MSc_FullyMerged'].index), '/', 'f')
@@ -753,7 +779,7 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
                     legend2.SetFillStyle(0)
                     legend2.Draw()
 
-                    legend3 = root.TLegend(nice.coord.graph_to_pad_x(0.45+0.22+0.067+leg_offset_x), nice.coord.graph_to_pad_y(0.5+leg_offset_y), nice.coord.graph_to_pad_x(0.7+0.22+0.067+leg_offset_x), nice.coord.graph_to_pad_y(0.73+leg_offset_y))
+                    legend3 = root.TLegend(nice.coord.graph_to_pad_x(0.45+0.22+0.067+leg_offset_x+more_offset2_x), nice.coord.graph_to_pad_y(0.5+leg_offset_y+more_offset2_y), nice.coord.graph_to_pad_x(0.7+0.22+0.067+leg_offset_x+more_offset2_x), nice.coord.graph_to_pad_y(0.73+leg_offset_y+more_offset2_y))
                     legend3.SetHeader('')
                     if mscSplitting == 'mscTop2':
                         legend3.AddEntry(nice.stack.GetStack().At(processes_Plotter['ST__MSc_FullyMerged'].index), processes_Plotter['ST__MSc_FullyMerged'].legend, 'f')
@@ -781,6 +807,142 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
             # tlatex_pt3.SetTextSize(nice.text_size)
             # tlatex_pt3.SetNDC()
             # tlatex_pt3.Draw()
+
+            pt_text_prepostfit = '#minus prefit #minus'
+            #tlatex_prepostfit = root.TLatex(nice.coord.graph_to_pad_x(0.95), nice.coord.graph_to_pad_y(0.4 if is_fit_template else 0.77), pt_text_prepostfit)
+            tlatex_prepostfit = root.TLatex(nice.coord.graph_to_pad_x(0.58), nice.coord.graph_to_pad_y(0.81), pt_text_prepostfit)
+            tlatex_prepostfit.SetTextAlign(31) # left top
+            tlatex_prepostfit.SetTextFont(72)
+            tlatex_prepostfit.SetTextSize(nice.text_size)
+            tlatex_prepostfit.SetNDC()
+            tlatex_prepostfit.Draw()
+
+            do_ratio_fit = True
+
+            if do_ratio_fit:
+
+                initial_value_A = 0.8
+                initial_value_lambda = 0.1
+
+                # Limit the x-axis range of the fit
+                #fit_x_min = 0.21
+                #fit_x_max = 0.79
+                fit_x_min = 0.09
+                fit_x_max = 0.91
+
+                # exp_fit_func = root.TF1("exp_fit_func", "[0] * TMath::Exp([1] * x)") # Exponential fit
+                exp_fit_func = root.TF1("exp_fit_func", "[0] + [1] * x") # Linear fit
+                exp_fit_func.SetParameter(0, initial_value_A)      # Initial value for A
+                exp_fit_func.SetParameter(1, initial_value_lambda) # Initial value for lambda
+                exp_fit_func.SetRange(fit_x_min, fit_x_max)
+                # Perform the fit
+
+                graph_fot_fit = root.TGraphAsymmErrors(30)
+
+                ratio_graph = deepcopy(nice.ratio_data) # make a deepcopy that is not drawn. If we perform the following fit directly on the graph that is drawn, then the plot has a red line that i cannot remove
+
+                graph_x = []
+                graph_y = []
+                graph_x_up = []
+                graph_x_down = []
+                graph_y_up = []
+                graph_y_down = []
+
+                for point_i in range(ratio_graph.GetN()):
+                    point_x = root.Double()
+                    point_y = root.Double()
+                    ratio_graph.GetPoint(point_i, point_x, point_y)
+                    print(point_x, point_y)
+
+                    if point_i > 3 and point_i < 46:
+                        graph_x.append(point_x)
+                        graph_y.append(point_y)
+                        graph_x_up.append(ratio_graph.GetErrorXhigh(point_i))
+                        graph_x_down.append(ratio_graph.GetErrorXlow(point_i))
+                        graph_y_up.append(ratio_graph.GetErrorYhigh(point_i))
+                        graph_y_down.append(ratio_graph.GetErrorYlow(point_i))
+
+
+                print(graph_x)
+                 # TGraphAsymmErrors(n,x,y,exl,exh,eyl,eyh);
+                ratio_graph_for_fit = root.TGraphAsymmErrors(
+                    len(graph_x),
+                    np.array(graph_x),
+                    np.array(graph_y),
+                    np.array(graph_x_down),
+                    np.array(graph_x_up),
+                    np.array(graph_y_down),
+                    np.array(graph_y_up),
+                )
+
+                fit_result = ratio_graph_for_fit.Fit(exp_fit_func, "S")  # "S" indicates to store the fit result
+
+
+                fit_amplitude = exp_fit_func.GetParameter(0)
+                fit_amplitude_error = exp_fit_func.GetParError(0)
+
+                fit_lambda = exp_fit_func.GetParameter(1)
+                fit_lambda_error = exp_fit_func.GetParError(1)
+
+                # Get the covariance matrix from the fit result
+                cov_matrix = fit_result.GetCovarianceMatrix()
+
+                n_points_fit = 100
+                error_band_graph = root.TGraphAsymmErrors(n_points_fit)
+                for i_point in range(n_points_fit+1):
+                    x_value = fit_x_min + (fit_x_max - fit_x_min) / n_points_fit * i_point
+                    y_fit = exp_fit_func.Eval(x_value)
+                    # Calculate the error band using the covariance matrix
+                    err_fit = root.TMath.Sqrt(cov_matrix(1,1) * (x_value**2) + cov_matrix(0,0) + 2 * x_value * cov_matrix(0,1))
+                    # Fill the TGraphAsymmErrors
+                    error_band_graph.SetPoint(i_point, x_value, y_fit)
+                    error_band_graph.SetPointError(i_point, 0, 0, err_fit*5, err_fit*5)
+
+
+                year_color = root.kBlue
+
+                nice.pad_ratio.cd()
+
+                error_band_graph.SetFillColorAlpha(year_color, 0.4)
+                # error_band_graph.SetFillStyle(3356)
+                error_band_graph.SetLineColor(year_color)
+                error_band_graph.SetLineWidth(2)
+                #error_band_graph.Draw("3 same")
+                #exp_fit_func.Draw("same")
+                exp_fit_func.SetLineColor(year_color)
+                exp_fit_func.SetLineWidth(2)
+                
+
+                # Access the chi-squared and number of degrees of freedom
+                chi2 = fit_result.Chi2()
+                ndf = fit_result.Ndf()
+                print('chi2', chi2)
+                print('ndf', ndf)
+
+
+                string_fit1 = 'Linear fit (#pm5#sigma)'
+                tlatex_fit1 = root.TLatex(0.25, 1.4, string_fit1)
+                tlatex_fit1.SetTextAlign(12) # left center
+                tlatex_fit1.SetTextFont(42)
+                tlatex_fit1.SetTextColor(year_color)
+                tlatex_fit1.SetTextSize(0.1)
+                # tlatex_fit1.SetNDC()
+                #tlatex_fit1.Draw()
+
+                string_fit2 = '#chi^{2}/n.d.f. = '+"{:.2f}".format(chi2)+'/'+str(ndf)
+                tlatex_fit2 = root.TLatex(0.75, 0.6, string_fit2)
+                tlatex_fit2.SetTextAlign(32) # right center
+                tlatex_fit2.SetTextFont(42)
+                tlatex_fit2.SetTextColor(year_color)
+                tlatex_fit2.SetTextSize(0.1)
+                # tlatex_fit2.SetNDC()
+                #tlatex_fit2.Draw()
+
+
+                #plotName = plotName.replace('.pdf', '---ratioFit.pdf')
+                plotName = plotName.replace('.pdf', '---noRatioFit.pdf')
+
+
 
             nice.save_plot(plotName, plotDir)
 
@@ -811,28 +973,28 @@ if __name__=='__main__':
         if the_tagger.name.startswith('ak8_t'):
             the_vars = [
                 'output_probejet_AK8_tau32',
-                'output_probejet_AK8_maxDeepJet',
+                # 'output_probejet_AK8_maxDeepJet',
                 # 'output_probejet_AK8_maxDeepCSV',
-                'output_probejet_AK8_MDDeepAK8_TvsQCD',
+                # 'output_probejet_AK8_MDDeepAK8_TvsQCD',
                 # 'output_probejet_AK8_mSD',
-                'output_probejet_AK8_mass',
-                'output_probejet_AK8_pt',
+                # 'output_probejet_AK8_mass',
+                # 'output_probejet_AK8_pt',
             ]
         elif the_tagger.name.startswith('ak8_w'):
             the_vars = [
-                'output_probejet_AK8_ParticleNet_WvsQCD',
+                # 'output_probejet_AK8_ParticleNet_WvsQCD',
                 # 'output_probejet_AK8_mSD',
-                'output_probejet_AK8_mass',
-                'output_probejet_AK8_pt',
+                # 'output_probejet_AK8_mass',
+                # 'output_probejet_AK8_pt',
             ]
         elif the_tagger.name.startswith('hotvr_t'):
             the_vars = [
                 'output_probejet_HOTVR_tau32',
-                'output_probejet_HOTVR_nsub',
+                # 'output_probejet_HOTVR_nsub',
                 # 'output_probejet_HOTVR_fpt1',
                 # 'output_probejet_HOTVR_mpair',
-                'output_probejet_HOTVR_mass',
-                'output_probejet_HOTVR_pt',
+                # 'output_probejet_HOTVR_mass',
+                # 'output_probejet_HOTVR_pt',
             ]
 
         print('Working on', the_tagger.name)
@@ -841,6 +1003,7 @@ if __name__=='__main__':
 
             print('Working on', var)
 
+            # for year in all_years:
             for year in ['run2']:
 
                 print('Working on', year)
@@ -848,7 +1011,9 @@ if __name__=='__main__':
 
                 for pt_bin in the_tagger.var_intervals.values():
 
-                    if not pt_bin.total_range: #HACK
+                    # if not pt_bin.total_range: #HACK
+                    #     continue
+                    if not pt_bin.name == 'pt_400toInf':
                         continue
                     print('Working on', pt_bin.name)
                     create_rearranged_hists(var, the_tagger, year, wp, pt_bin, do_plot=do_plotting, do_hists=do_histograms, do_rebinning=False)

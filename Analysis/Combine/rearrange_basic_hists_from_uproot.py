@@ -195,7 +195,7 @@ regions = [
 ]
 
 channels = [
-'muo',
+#'muo',
 'ele',
 ]
 
@@ -609,7 +609,7 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
                 # divide_by_bin_width = False,
                 data_name = 'data_obs',
                 # text_prelim = 'Private Work',
-                text_prelim = 'Preliminary',
+                # text_prelim = 'Preliminary',
                 text_privatework = '(CMS data/simulation)',
                 # text_top_left = _YEARS.get(year).get('long_name'),
                 # text_top_left = 'T&P '+('e' if channel == 'ele' else '#mu')+'+jets, UL '+_YEARS.get(year).get('year'),
@@ -630,7 +630,13 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
             nice.canvas.cd()
 
             # print(tagger.label)
-            pt_text_string = tagger.label.replace('{WP_VALUE}', '{}'.format(wp.get_cut_value(year)))+' [#bf{'+region+'}]'
+
+            # pt_text_string = tagger.label.replace('{WP_VALUE}', '{}'.format(wp.get_cut_value(year)))+' [#bf{'+region+'}]'
+            if region == 'Pass':   # HACK
+                pt_text_string = '#tau_{3}/#tau_{2} < '+str(wp.get_cut_value(year))+' (#bf{Pass region})'
+            elif region == 'Fail':
+                pt_text_string = '#tau_{3}/#tau_{2} > '+str(wp.get_cut_value(year))+' (#bf{Fail region})'
+
             # pt_text_string2 = 'T&P '+('e' if channel == 'ele' else '#mu')+'+jets, '
             pt_text_string2 = ''
             if pt_bin.max_set:
@@ -746,13 +752,13 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
                     legend3.SetFillStyle(0)
                     legend3.Draw()
 
-            # pt_text_string3 = '#minus prefit #minus'
-            # tlatex_pt3 = root.TLatex(nice.coord.graph_to_pad_x(0.95), nice.coord.graph_to_pad_y(0.4 if is_fit_template else 0.77), pt_text_string3)
-            # tlatex_pt3.SetTextAlign(31) # left top
-            # tlatex_pt3.SetTextFont(72)
-            # tlatex_pt3.SetTextSize(nice.text_size)
-            # tlatex_pt3.SetNDC()
-            # tlatex_pt3.Draw()
+            pt_text_string3 = '#minus prefit #minus'
+            tlatex_pt3 = root.TLatex(nice.coord.graph_to_pad_x(0.95), nice.coord.graph_to_pad_y(0.4 if is_fit_template else 0.77), pt_text_string3)
+            tlatex_pt3.SetTextAlign(31) # left top
+            tlatex_pt3.SetTextFont(72)
+            tlatex_pt3.SetTextSize(nice.text_size)
+            tlatex_pt3.SetNDC()
+            tlatex_pt3.Draw()
 
             nice.save_plot(plotName, plotDir)
 

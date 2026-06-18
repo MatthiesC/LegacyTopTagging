@@ -43,8 +43,8 @@ taggers = [
 # 'ak8_t__tau', #naf11 tmux5
 # 'ak8_t_btagDJet__tau', #naf11 tmux6
 # 'ak8_t_btagDCSV__tau',#naf11 tmux7
-# 'hotvr_t__tau', #naf11 tmux8
-'ak8_w__partnet',
+'hotvr_t__tau', #naf11 tmux8
+# 'ak8_w__partnet',
 # 'ak8_t__MDdeepak8',
 ]
 taggers = {k: _TAGGERS[k] for k in taggers}
@@ -109,8 +109,8 @@ do_legend = True
 # do_legend = False
 # mscSplitting = 'mscNone'
 # mscSplitting = 'mscTop2'
-# mscSplitting = 'mscTop3'
-mscSplitting = 'mscW3'
+mscSplitting = 'mscTop3'
+# mscSplitting = 'mscW3'
 
 processes_Plotter = None
 
@@ -369,8 +369,8 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
     is_fit_template = not wp.null
 
     baseDir = os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/output/TagAndProbe/mainsel', year, 'combine', tagger.name)
-    inDir = os.path.join(baseDir, 'BasicHists')
-    task_name = '-'.join([tagger.name, wp.name, pt_bin.name, year, variable])
+    inDir = os.path.join(baseDir, 'Anna_BasicHists')
+    task_name = '-'.join(['Anna', tagger.name, wp.name, pt_bin.name, year, variable])
     outDir = os.path.join(baseDir, task_name)
     os.system('mkdir -p '+outDir)
     outFileName = 'Templates-'+task_name+'.root'
@@ -593,14 +593,12 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
             #     x_axis_title = 'Probe jet #it{m}_{jet}'
             #     x_axis_unit = 'GeV'
 
+
             if tagger.name.startswith('ak8_'):
                 probejetalgo = 'AK8'
             elif tagger.name.startswith('hotvr_'):
                 probejetalgo = 'HOTVR'
-
-            variable_name = variable.split('_'+probejetalgo+'_')[-1]
-
-            _, x_axis_title, x_axis_unit, logy, leg_offset_x, leg_offset_y = get_variable_binning_xlabel_xunit(variable_name=variable_name, tagger_name=tagger.name, fit_variable=is_fit_template)
+            _, x_axis_title, x_axis_unit, logy, leg_offset_x, leg_offset_y = get_variable_binning_xlabel_xunit(variable_name=variable.split('_'+probejetalgo+'_')[-1], tagger_name=tagger.name, fit_variable=is_fit_template)
 
             nice = NiceStackWithRatio(
                 infile_path = outFilePath,
@@ -611,11 +609,11 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
                 processes = processes_Plotter.values(),
                 syst_names = systs_Plotter,
                 lumi_unc = _YEARS.get(year).get('lumi_unc'),
-                divide_by_bin_width = is_fit_template,
+                divide_by_bin_width = False,
                 data_name = 'data_obs',
                 # text_prelim = 'Private Work',
                 text_prelim = 'Preliminary',
-                text_privatework = '(CMS data/simulation)',
+                # text_privatework = '(CMS data/simulation)',
                 # text_top_left = _YEARS.get(year).get('long_name'),
                 # text_top_left = 'T&P '+('e' if channel == 'ele' else '#mu')+'+jets, UL '+_YEARS.get(year).get('year'),
                 # text_top_left = 'T&P'+(' e+jets' if channel == 'ele' else (' #mu+jets' if channel == 'muo' else ' e/#mu+jets'))+', UL '+_YEARS.get(year).get('year'),
@@ -626,27 +624,10 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
                 logy = logy,
             )
 
-            y_axis_titles = {
-                "pt": "Events / 20 GeV",
-                "tau32": "Events / 0.02 units",
-                "mass": "Events / 6 GeV" if tagger.name.startswith('ak8_w') else "Events / 10 GeV",
-                "mSD": "Events / 6 GeV" if tagger.name.startswith('ak8_w') else "Events / 10 GeV",
-                "maxDeepJet": "Events / 0.02 units",
-                "maxDeepCSV": "Events / 0.02 units",
-                "MDDeepAK8_TvsQCD": "Events / 0.02 units",
-                "mpair": "Events / 5 GeV",
-                "fpt1": "Events / 0.02 units",
-                "nsub": "Events",
-                "ParticleNet_WvsQCD": "Events / 0.02 units",
-            }
-            if not is_fit_template:
-                nice.y_axis_title = y_axis_titles[variable_name]
+            nice.y_axis_title = "Events / 0.02 units"
 
             plotName = 'Plot-prefitRaw-'+task_name+'-'+outFolderName+'-'+mscSplitting+('-withLeg' if do_legend else '-noLeg')+('-Preliminary' if nice.text_prelim == 'Preliminary' else '')+'.pdf'
             plotDir = os.path.join(outDir, 'plots')
-
-            if variable_name == 'mpair':  # evil HACK
-                nice.bug_fix_y_scaling = 2.
 
             nice.plot()
 
@@ -675,15 +656,24 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
             tlatex_pt.SetNDC()
             tlatex_pt.Draw()
 
-            if is_fit_template or variable_name == "mpair":
-                if variable_name == 'mpair':
-                    pt_text_string2 = '#it{N}_{subjets} #geq 3'
+            if is_fit_template:
                 tlatex_pt2 = root.TLatex(nice.coord.graph_to_pad_x(0.95), nice.coord.graph_to_pad_y(0.78), pt_text_string2)
                 tlatex_pt2.SetTextAlign(31) # left top
                 tlatex_pt2.SetTextFont(42)
                 tlatex_pt2.SetTextSize(0.025)
                 tlatex_pt2.SetNDC()
                 tlatex_pt2.Draw()
+
+            if tagger.name == "ak8_t__tau":
+                pt_text_string3 = "105 < #it{m}_{SD} < 210 GeV"
+            elif tagger.name == "hotvr_t__tau":
+                pt_text_string3 = "140 < #it{m}_{jet} < 220 GeV"
+            tlatex_pt3 = root.TLatex(nice.coord.graph_to_pad_x(0.95), nice.coord.graph_to_pad_y(0.78), pt_text_string3)
+            tlatex_pt3.SetTextAlign(31) # left top
+            tlatex_pt3.SetTextFont(42)
+            tlatex_pt3.SetTextSize(0.025)
+            tlatex_pt3.SetNDC()
+            tlatex_pt3.Draw()
 
             tlatex_probejetalgo = root.TLatex(nice.coord.graph_to_pad_x(0.95), nice.coord.graph_to_pad_y(0.95), probejetalgo+' PUPPI')
             tlatex_probejetalgo.SetTextAlign(33) # right top
@@ -811,28 +801,28 @@ if __name__=='__main__':
         if the_tagger.name.startswith('ak8_t'):
             the_vars = [
                 'output_probejet_AK8_tau32',
-                'output_probejet_AK8_maxDeepJet',
+                # 'output_probejet_AK8_maxDeepJet',
                 # 'output_probejet_AK8_maxDeepCSV',
-                'output_probejet_AK8_MDDeepAK8_TvsQCD',
+                # 'output_probejet_AK8_MDDeepAK8_TvsQCD',
                 # 'output_probejet_AK8_mSD',
-                'output_probejet_AK8_mass',
-                'output_probejet_AK8_pt',
+                # 'output_probejet_AK8_mass',
+                # 'output_probejet_AK8_pt',
             ]
         elif the_tagger.name.startswith('ak8_w'):
             the_vars = [
-                'output_probejet_AK8_ParticleNet_WvsQCD',
+                # 'output_probejet_AK8_ParticleNet_WvsQCD',
                 # 'output_probejet_AK8_mSD',
-                'output_probejet_AK8_mass',
-                'output_probejet_AK8_pt',
+                # 'output_probejet_AK8_mass',
+                # 'output_probejet_AK8_pt',
             ]
         elif the_tagger.name.startswith('hotvr_t'):
             the_vars = [
                 'output_probejet_HOTVR_tau32',
-                'output_probejet_HOTVR_nsub',
+                # 'output_probejet_HOTVR_nsub',
                 # 'output_probejet_HOTVR_fpt1',
                 # 'output_probejet_HOTVR_mpair',
-                'output_probejet_HOTVR_mass',
-                'output_probejet_HOTVR_pt',
+                # 'output_probejet_HOTVR_mass',
+                # 'output_probejet_HOTVR_pt',
             ]
 
         print('Working on', the_tagger.name)
@@ -841,6 +831,7 @@ if __name__=='__main__':
 
             print('Working on', var)
 
+            # for year in all_years:
             for year in ['run2']:
 
                 print('Working on', year)
@@ -848,7 +839,9 @@ if __name__=='__main__':
 
                 for pt_bin in the_tagger.var_intervals.values():
 
-                    if not pt_bin.total_range: #HACK
+                    # if not pt_bin.total_range: #HACK
+                    #     continue
+                    if not pt_bin.name == 'pt_400toInf':
                         continue
                     print('Working on', pt_bin.name)
                     create_rearranged_hists(var, the_tagger, year, wp, pt_bin, do_plot=do_plotting, do_hists=do_histograms, do_rebinning=False)

@@ -101,7 +101,7 @@ _YEARS = OrderedDict([
     ('run2', {
         'short_name': 'ULRunII',
         'year': '2016 + 2017 + 2018',
-        'long_name': 'Run II Ultra Legacy',
+        'long_name': 'Run 2 Ultra Legacy',
         'lumi_fb': 137.645, # sum from above brilcalc calculations: 137.645535941767
         'lumi_pb': 137645.,
         'lumi_unc': 0.016,
@@ -1850,12 +1850,13 @@ def get_variable_binning_xlabel_xunit(variable_name, tagger_name=None, fit_varia
         binning = np.linspace(0, 1, num=51)
         xlabel = '#it{p}_{T} fraction of leading probe subjet'
         xunit = None
-        leg_offset_x = -0.41
-        leg_offset_y = 0.06
+        # leg_offset_x = -0.41
+        # leg_offset_y = 0.06
+        leg_offset_x = -0.35
 
     elif variable_name=='nsub':
         binning = np.linspace(-0.5, 10.5, num=12)
-        xlabel = 'Probe subjet multiplicity'
+        xlabel = 'Number of probe subjets'
         xunit = None
 
     elif variable_name=='mpair':
@@ -1867,6 +1868,12 @@ def get_variable_binning_xlabel_xunit(variable_name, tagger_name=None, fit_varia
         binning = np.linspace(0, 1000, num=51)
         xlabel = 'Probe jet #it{p}_{T}'
         xunit = 'GeV'
+
+    elif variable_name=='eta':
+        binning = np.linspace(-4, 4, num=33)
+        xlabel = 'Probe jet #eta'
+        xunit = None
+        leg_offset_x = -0.35
 
     else:
         binning = None

@@ -1034,6 +1034,7 @@ WeightTrickery::WeightTrickery(Context & ctx, const string & handle_name_GENtW, 
   fApply(apply),
   fYear(extract_year(ctx)),
   fHandle_weight(ctx.declare_event_output<float>("weight_trickery")),
+  fHandle_weight_pdf(ctx.declare_event_output<float>("weight_trickery_pdf")),
   fHandle_GENtW(ctx.get_handle<ltt::SingleTopGen_tWch>(handle_name_GENtW))
 {
   slct_Mtt700to1000.reset(new MttbarGenSelection(700, 1000));
@@ -1138,6 +1139,15 @@ bool WeightTrickery::process(Event & event) {
 
   if(fApply) event.weight *= weight;
   event.set(fHandle_weight, weight);
+
+  float weight_pdf = weight;
+  if(is_tW) {
+    const auto & GENtW = event.get(fHandle_GENtW);
+    if(is_tW_incl && !(GENtW.IsTopHadronicDecay() && GENtW.IsAssHadronicDecay())) weight_pdf = 0.16 / 0.59; // inclusiveDecays samples include proper PDF weights!
+    else if(is_tW_nfhd && !is_tW_nfhd_syst && !is_tW_nfhd_PDF && !is_tW_nfhd_DS) weight_pdf = 0.; // do not include correct PDF weights
+    else if(is_tW_nfhd_PDF && !fDoingPDFVariations) weight_pdf = 0.43 / 0.59; // include PDF weights
+  }
+  event.set(fHandle_weight_pdf, weight_pdf);
 
   return true;
 }

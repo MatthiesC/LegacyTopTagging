@@ -82,6 +82,7 @@ class Counter_TObject():
 class NiceStackWithRatio():
 
     def __init__(self,
+        totalprocs_NoTopPtRw,  # np.array floats
         infile_path,
         infile_directory, # the directory within the ROOT file
         x_axis_title = '',
@@ -106,6 +107,8 @@ class NiceStackWithRatio():
         '''
         prepostfit options: 'prefitRaw', 'prefitCombine', 'postfitCombine'
         '''
+
+        self.totalprocs_NoTopPtRw = totalprocs_NoTopPtRw
 
         root.gStyle.SetLineWidth(1)
         root.gStyle.SetOptStat(0)
@@ -557,6 +560,25 @@ class NiceStackWithRatio():
                 self.ratio_data.SetPointError(i_point, self.data.GetErrorXlow(i_point), self.data.GetErrorXhigh(i_point), self.data.GetErrorYlow(i_point) / prediction, self.data.GetErrorYhigh(i_point) / prediction)
         return self.ratio_data
 
+    def create_ratio_data_NoTopPtRw(self):
+        self.ratio_data2 = root.TGraphAsymmErrors(self.data)
+        n_points = self.ratio_data2.GetN()
+        for i_point in range(0, n_points):
+            point_x, point_y = self.data.GetX()[i_point], self.data.GetY()[i_point]
+            prediction = self.totalprocs_NoTopPtRw[i_point]
+            # if prediction <= 0. or point_y <= 0.: continue
+            if prediction <= 0.:
+                # Force data points to ratio=-1 with error=0 if no prediction in this bin. Outlier markers for ratio=-1 will be skipped
+                self.ratio_data2.SetPoint(i_point, point_x, -1.)
+                self.ratio_data2.SetPointError(i_point, self.data.GetErrorXlow(i_point), self.data.GetErrorXhigh(i_point), 0., 0.)
+            else:
+                self.ratio_data2.SetPoint(i_point, point_x, point_y / prediction)
+                self.ratio_data2.SetPointError(i_point, self.data.GetErrorXlow(i_point), self.data.GetErrorXhigh(i_point), self.data.GetErrorYlow(i_point) / prediction, self.data.GetErrorYhigh(i_point) / prediction)
+        self.ratio_data2.SetMarkerStyle(4)
+        self.ratio_data2.SetMarkerColor(root.kBlue)
+        self.ratio_data2.SetLineColor(root.kBlue)
+        return self.ratio_data2
+
     def cosmetics_ratio(self):
         self.pad_ratio.cd()
 
@@ -718,6 +740,7 @@ class NiceStackWithRatio():
         self.create_ratio_unc().Draw('same 2')
         # self.create_ratio_data().Draw('same e x0') # if ratio data would be a TH1
         self.create_ratio_data().Draw('pz0')
+        self.create_ratio_data_NoTopPtRw().Draw('pz0')
         self.cosmetics_main()
         self.cosmetics_ratio()
         self.draw_texts()

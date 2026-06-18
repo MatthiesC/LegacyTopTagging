@@ -446,6 +446,7 @@ private:
   const bool fApply;
   const Year fYear;
   const uhh2::Event::Handle<float> fHandle_weight;
+  const uhh2::Event::Handle<float> fHandle_weight_pdf;
   const uhh2::Event::Handle<ltt::SingleTopGen_tWch> fHandle_GENtW;
 
   std::unique_ptr<Selection> slct_Mtt700to1000;

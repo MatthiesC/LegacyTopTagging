@@ -471,10 +471,7 @@ class NiceStackWithRatio():
         else:
             y_axis_title = self.counted_objects+' / bin'
         hist.GetYaxis().SetTitle(y_axis_title)
-        #hist.GetYaxis().SetTitleSize(self.text_size / (1. - self.border_y))
-        hist.GetYaxis().SetTitleSize(0.045 / (1. - self.border_y))
-        #hist.GetYaxis().SetTitleOffset(1.4 / (1. - self.border_y))
-        hist.GetYaxis().SetTitleOffset(1.2)
+        hist.GetYaxis().SetTitleSize(self.text_size / (1. - self.border_y))
         hist.GetYaxis().SetLabelSize(self.text_size / (1. - self.border_y))
         hist.GetYaxis().SetLabelOffset(0.01)
         hist.GetXaxis().SetLabelOffset(999) # hack: let x axis title/labels vanish under pad_ratio
@@ -562,20 +559,17 @@ class NiceStackWithRatio():
 
         self.ratio_null_hist.GetXaxis().SetLabelSize(self.text_size / self.border_y)
         self.ratio_null_hist.GetXaxis().SetLabelOffset(20. / self.stack_hist.GetXaxis().GetLabelOffset())
-        #self.ratio_null_hist.GetXaxis().SetTitleSize(self.text_size / self.border_y)
-        self.ratio_null_hist.GetXaxis().SetTitleSize(0.045 / self.border_y)
+        self.ratio_null_hist.GetXaxis().SetTitleSize(self.text_size / self.border_y)
         self.ratio_null_hist.GetXaxis().SetTitle(self.x_axis_title)
-        #self.ratio_null_hist.GetXaxis().SetTitleOffset(1.3)
-        self.ratio_null_hist.GetXaxis().SetTitleOffset(1.1)
+        self.ratio_null_hist.GetXaxis().SetTitleOffset(1.3)
         self.ratio_null_hist.GetXaxis().SetNdivisions(self.stack_hist.GetXaxis().GetNdivisions())
 
         self.ratio_null_hist.GetYaxis().SetTitle('Data / pred.')
         self.ratio_null_hist.GetYaxis().SetLabelSize(self.text_size / self.border_y)
         self.ratio_null_hist.GetYaxis().SetLabelOffset(0.01)
-        #self.ratio_null_hist.GetYaxis().SetTitleSize(self.text_size / self.border_y)
-        self.ratio_null_hist.GetYaxis().SetTitleSize(0.045 / self.border_y)
-        self.ratio_null_hist.GetYaxis().SetTitleOffset(0.35)
-        #self.ratio_null_hist.GetYaxis().CenterTitle()
+        self.ratio_null_hist.GetYaxis().SetTitleSize(self.text_size / self.border_y)
+        self.ratio_null_hist.GetYaxis().SetTitleOffset(0.45)
+        self.ratio_null_hist.GetYaxis().CenterTitle()
         self.ratio_null_hist.SetMinimum(0.7)
         self.ratio_null_hist.SetMaximum(1.3)
         self.ratio_null_hist.GetYaxis().SetNdivisions(403)

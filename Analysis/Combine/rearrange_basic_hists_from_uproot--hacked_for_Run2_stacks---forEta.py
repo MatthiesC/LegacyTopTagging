@@ -638,15 +638,13 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
                 "fpt1": "Events / 0.02 units",
                 "nsub": "Events",
                 "ParticleNet_WvsQCD": "Events / 0.02 units",
+                "eta": "Events / 0.25 units",
             }
             if not is_fit_template:
                 nice.y_axis_title = y_axis_titles[variable_name]
 
             plotName = 'Plot-prefitRaw-'+task_name+'-'+outFolderName+'-'+mscSplitting+('-withLeg' if do_legend else '-noLeg')+('-Preliminary' if nice.text_prelim == 'Preliminary' else '')+'.pdf'
             plotDir = os.path.join(outDir, 'plots')
-
-            if variable_name == 'mpair':  # evil HACK
-                nice.bug_fix_y_scaling = 2.
 
             nice.plot()
 
@@ -675,9 +673,7 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
             tlatex_pt.SetNDC()
             tlatex_pt.Draw()
 
-            if is_fit_template or variable_name == "mpair":
-                if variable_name == 'mpair':
-                    pt_text_string2 = '#it{N}_{subjets} #geq 3'
+            if is_fit_template:
                 tlatex_pt2 = root.TLatex(nice.coord.graph_to_pad_x(0.95), nice.coord.graph_to_pad_y(0.78), pt_text_string2)
                 tlatex_pt2.SetTextAlign(31) # left top
                 tlatex_pt2.SetTextFont(42)
@@ -720,7 +716,10 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
 
                 else:
 
-                    legend = root.TLegend(nice.coord.graph_to_pad_x(0.45+leg_offset_x), nice.coord.graph_to_pad_y(0.5+leg_offset_y), nice.coord.graph_to_pad_x(0.7+leg_offset_x), nice.coord.graph_to_pad_y(0.73+leg_offset_y))
+                    more_offset_x = -0.05
+                    more_offset_y = -0.11
+
+                    legend = root.TLegend(nice.coord.graph_to_pad_x(0.45+leg_offset_x+more_offset_x), nice.coord.graph_to_pad_y(0.5+leg_offset_y+more_offset_y), nice.coord.graph_to_pad_x(0.7+leg_offset_x+more_offset_x), nice.coord.graph_to_pad_y(0.73+leg_offset_y+more_offset_y))
                     if mscSplitting == 'mscTop3' or mscSplitting == 'mscW3':
                         legend.SetHeader('')
                     legend.AddEntry(nice.data_hist, 'Data', 'ep')
@@ -732,7 +731,10 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
                     legend.SetFillStyle(0)
                     legend.Draw()
 
-                    legend2 = root.TLegend(nice.coord.graph_to_pad_x(0.45+0.22+leg_offset_x), nice.coord.graph_to_pad_y(0.5+leg_offset_y), nice.coord.graph_to_pad_x(0.7+0.22+leg_offset_x), nice.coord.graph_to_pad_y(0.73+leg_offset_y))
+                    more_offset2_x = -0.22-0.05
+                    more_offset2_y = 0.08
+
+                    legend2 = root.TLegend(nice.coord.graph_to_pad_x(0.45+0.22+leg_offset_x+more_offset2_x), nice.coord.graph_to_pad_y(0.5+leg_offset_y+more_offset2_y), nice.coord.graph_to_pad_x(0.7+0.22+leg_offset_x+more_offset2_x), nice.coord.graph_to_pad_y(0.73+leg_offset_y+more_offset2_y))
                     legend2.SetHeader('t#bar{t} / single t categories:')
                     if mscSplitting == 'mscTop2':
                         legend2.AddEntry(nice.stack.GetStack().At(processes_Plotter['TTbar__MSc_FullyMerged'].index), '/', 'f')
@@ -753,7 +755,7 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
                     legend2.SetFillStyle(0)
                     legend2.Draw()
 
-                    legend3 = root.TLegend(nice.coord.graph_to_pad_x(0.45+0.22+0.067+leg_offset_x), nice.coord.graph_to_pad_y(0.5+leg_offset_y), nice.coord.graph_to_pad_x(0.7+0.22+0.067+leg_offset_x), nice.coord.graph_to_pad_y(0.73+leg_offset_y))
+                    legend3 = root.TLegend(nice.coord.graph_to_pad_x(0.45+0.22+0.067+leg_offset_x+more_offset2_x), nice.coord.graph_to_pad_y(0.5+leg_offset_y+more_offset2_y), nice.coord.graph_to_pad_x(0.7+0.22+0.067+leg_offset_x+more_offset2_x), nice.coord.graph_to_pad_y(0.73+leg_offset_y+more_offset2_y))
                     legend3.SetHeader('')
                     if mscSplitting == 'mscTop2':
                         legend3.AddEntry(nice.stack.GetStack().At(processes_Plotter['ST__MSc_FullyMerged'].index), processes_Plotter['ST__MSc_FullyMerged'].legend, 'f')
@@ -810,29 +812,32 @@ if __name__=='__main__':
         the_vars = []
         if the_tagger.name.startswith('ak8_t'):
             the_vars = [
-                'output_probejet_AK8_tau32',
-                'output_probejet_AK8_maxDeepJet',
+                # 'output_probejet_AK8_tau32',
+                # 'output_probejet_AK8_maxDeepJet',
                 # 'output_probejet_AK8_maxDeepCSV',
-                'output_probejet_AK8_MDDeepAK8_TvsQCD',
+                # 'output_probejet_AK8_MDDeepAK8_TvsQCD',
                 # 'output_probejet_AK8_mSD',
-                'output_probejet_AK8_mass',
-                'output_probejet_AK8_pt',
+                # 'output_probejet_AK8_mass',
+                # 'output_probejet_AK8_pt',
+                'output_probejet_AK8_eta',
             ]
         elif the_tagger.name.startswith('ak8_w'):
             the_vars = [
-                'output_probejet_AK8_ParticleNet_WvsQCD',
+                # 'output_probejet_AK8_ParticleNet_WvsQCD',
                 # 'output_probejet_AK8_mSD',
-                'output_probejet_AK8_mass',
-                'output_probejet_AK8_pt',
+                # 'output_probejet_AK8_mass',
+                # 'output_probejet_AK8_pt',
+                'output_probejet_AK8_eta',
             ]
         elif the_tagger.name.startswith('hotvr_t'):
             the_vars = [
-                'output_probejet_HOTVR_tau32',
-                'output_probejet_HOTVR_nsub',
+                # 'output_probejet_HOTVR_tau32',
+                # 'output_probejet_HOTVR_nsub',
                 # 'output_probejet_HOTVR_fpt1',
                 # 'output_probejet_HOTVR_mpair',
-                'output_probejet_HOTVR_mass',
-                'output_probejet_HOTVR_pt',
+                # 'output_probejet_HOTVR_mass',
+                # 'output_probejet_HOTVR_pt',
+                'output_probejet_HOTVR_eta',
             ]
 
         print('Working on', the_tagger.name)
@@ -842,6 +847,7 @@ if __name__=='__main__':
             print('Working on', var)
 
             for year in ['run2']:
+                # for year in all_years:
 
                 print('Working on', year)
                 wp = _NULL_WP

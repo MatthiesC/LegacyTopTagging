@@ -23,11 +23,6 @@ _SYSTEMATICS = systematics.get_all_variations()
 # for k,v in _SYSTEMATICS.items():
 #     print(k, v.weight_based)
 
-# for k,v in _SYSTEMATICS.items():
-#     print(k)
-# exit()
-
-
 from parallel_threading import run_with_pool
 
 
@@ -165,19 +160,13 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
         wp = tagger.get_wp(wp_index, year)
     else:
         tandp_rule = 'True'
-        if tagger.name == 'ak8_t__tau':
-            tandp_rule = '(output_probejet_AK8_mSD > 105) & (output_probejet_AK8_mSD < 210)'
-        elif tagger.name == 'hotvr_t__tau':
-            tandp_rule = '(output_probejet_HOTVR_fpt1 < 0.8) & (output_probejet_HOTVR_nsub > 2) & (output_probejet_HOTVR_mpair > 50) & (output_probejet_HOTVR_mass > 140) & (output_probejet_HOTVR_mass < 220)'
-            # tandp_rule = '(output_probejet_HOTVR_mass > 140) & (output_probejet_HOTVR_mass < 220)'
         wp = _NULL_WP
 
     for pt_bin in tagger.var_intervals.values():
 
         # #HACK: only process total range pt bin for NullWP
-        # if arg_wp_index == -1 and pt_bin.total_range != True:
-        #     continue
-        if pt_bin.name != 'pt_400toInf': continue
+        if arg_wp_index == -1 and pt_bin.total_range != True:
+            continue
 
         batches = {}
         hists = {}
@@ -294,6 +283,7 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
                             print(cut_rule)
 
                             weight_alias = syst_v.weight_alias
+                            weight_alias += ' / weight_toppt_applied'
                             expressions = [
                                 # variable,
                                 'the_weight',
@@ -315,8 +305,6 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
                                 if var_string.startswith('output'):
                                     expressions.append(var_string)
 
-                            expressions = list(set(expressions))  # get rid of duplicates
-
                             for batch in tqdm(uproot.iterate(batches[band_k][region][channel][process][syst], expressions=expressions, aliases={'the_weight': weight_alias}, cut=cut_rule, library='pd')):
 
                                 if is_murmuf and not is_data: # no murmuf norm factors available for data
@@ -336,7 +324,7 @@ def create_input_hists(variable, tagger, year, arg_wp_index=None, arg_syst=None,
 
                 task_name = '-'.join([tagger.name, wp.name, pt_bin.name, year, syst, variable])
                 # outDir = os.path.join(outDirBase, task_name)
-                outDir = os.path.join(outDirBase, 'Anna_BasicHists')
+                outDir = os.path.join(outDirBase, 'BasicHists-NoTopPtRw')
                 os.system('mkdir -p '+outDir)
                 outFileName = 'BasicHists-'+task_name+'.root'
                 outFilePath = os.path.join(outDir, outFileName)
@@ -412,29 +400,29 @@ if __name__ == '__main__':
     the_vars = []
     if the_tagger.name.startswith('ak8_t'):
         the_vars = [
-            'output_probejet_AK8_tau32',
+            # 'output_probejet_AK8_tau32',
             # 'output_probejet_AK8_maxDeepJet',
             # 'output_probejet_AK8_maxDeepCSV',
             # 'output_probejet_AK8_MDDeepAK8_TvsQCD',
             # 'output_probejet_AK8_mSD',
             # 'output_probejet_AK8_mass',
-            # 'output_probejet_AK8_pt',
+            'output_probejet_AK8_pt',
         ]
     elif the_tagger.name.startswith('ak8_w'):
         the_vars = [
             # 'output_probejet_AK8_ParticleNet_WvsQCD',
             # 'output_probejet_AK8_mSD',
             # 'output_probejet_AK8_mass',
-            # 'output_probejet_AK8_pt',
+            'output_probejet_AK8_pt',
         ]
     elif the_tagger.name.startswith('hotvr_t'):
         the_vars = [
-            'output_probejet_HOTVR_tau32',
+            # 'output_probejet_HOTVR_tau32',
             # 'output_probejet_HOTVR_nsub',
             # 'output_probejet_HOTVR_fpt1',
             # 'output_probejet_HOTVR_mpair',
             # 'output_probejet_HOTVR_mass',
-            # 'output_probejet_HOTVR_pt',
+            'output_probejet_HOTVR_pt',
         ]
     # if args.vars:
     #     the_vars = args.vars

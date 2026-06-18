@@ -23,7 +23,7 @@ systs = systematics.base
 # sys.exit()
 
 sys.path.append(os.path.join(os.environ.get('CMSSW_BASE'), 'src/UHH2/LegacyTopTagging/NicePlots/python'))
-from plotter import NiceStackWithRatio, Process, human_format
+from plotter___hacked_for_mSD_plots import NiceStackWithRatio, Process, human_format
 
 from parallel_threading import run_with_pool
 
@@ -645,15 +645,35 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
             plotName = 'Plot-prefitRaw-'+task_name+'-'+outFolderName+'-'+mscSplitting+('-withLeg' if do_legend else '-noLeg')+('-Preliminary' if nice.text_prelim == 'Preliminary' else '')+'.pdf'
             plotDir = os.path.join(outDir, 'plots')
 
-            if variable_name == 'mpair':  # evil HACK
-                nice.bug_fix_y_scaling = 2.
-
             nice.plot()
 
             #________________
             # Some text labels
 
             nice.canvas.cd()
+
+
+            if tagger.name.startswith('ak8_w'):
+                text1_bin1 = "First bin, data: 146,705 / 6 GeV"
+                text2_bin1 = "First bin, pred.: 171,364 / 6 GeV"
+            elif tagger.name.startswith('ak8_t'):
+                text1_bin1 = "First bin, data: 81,111 / 10 GeV"
+                text2_bin1 = "First bin, pred.: 90,964 / 10 GeV"
+
+            tlatex1_bin1 = root.TLatex(nice.coord.graph_to_pad_x(0.07), nice.coord.graph_to_pad_y(0.79), text1_bin1)
+            tlatex1_bin1.SetTextAlign(11) # left top
+            tlatex1_bin1.SetTextFont(42)
+            tlatex1_bin1.SetTextSize(0.025)
+            tlatex1_bin1.SetNDC()
+            tlatex1_bin1.Draw()
+
+            tlatex2_bin1 = root.TLatex(nice.coord.graph_to_pad_x(0.07), nice.coord.graph_to_pad_y(0.73), text2_bin1)
+            tlatex2_bin1.SetTextAlign(11) # left top
+            tlatex2_bin1.SetTextFont(42)
+            tlatex2_bin1.SetTextSize(0.025)
+            tlatex2_bin1.SetNDC()
+            tlatex2_bin1.Draw()
+
 
             # print(tagger.label)
             pt_text_string = tagger.label.replace('{WP_VALUE}', '{}'.format(wp.get_cut_value(year)))+' [#bf{'+region+'}]'
@@ -675,9 +695,7 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
             tlatex_pt.SetNDC()
             tlatex_pt.Draw()
 
-            if is_fit_template or variable_name == "mpair":
-                if variable_name == 'mpair':
-                    pt_text_string2 = '#it{N}_{subjets} #geq 3'
+            if is_fit_template:
                 tlatex_pt2 = root.TLatex(nice.coord.graph_to_pad_x(0.95), nice.coord.graph_to_pad_y(0.78), pt_text_string2)
                 tlatex_pt2.SetTextAlign(31) # left top
                 tlatex_pt2.SetTextFont(42)
@@ -782,7 +800,7 @@ def create_rearranged_hists(variable, tagger, year, wp, pt_bin, do_plot=False, d
             # tlatex_pt3.SetNDC()
             # tlatex_pt3.Draw()
 
-            nice.save_plot(plotName, plotDir)
+            nice.save_plot(plotName, plotDir)  # HACK
 
 
 if __name__=='__main__':
@@ -810,27 +828,27 @@ if __name__=='__main__':
         the_vars = []
         if the_tagger.name.startswith('ak8_t'):
             the_vars = [
-                'output_probejet_AK8_tau32',
-                'output_probejet_AK8_maxDeepJet',
+                # 'output_probejet_AK8_tau32',
+                # 'output_probejet_AK8_maxDeepJet',
                 # 'output_probejet_AK8_maxDeepCSV',
-                'output_probejet_AK8_MDDeepAK8_TvsQCD',
-                # 'output_probejet_AK8_mSD',
-                'output_probejet_AK8_mass',
-                'output_probejet_AK8_pt',
+                # 'output_probejet_AK8_MDDeepAK8_TvsQCD',
+                'output_probejet_AK8_mSD',
+                # 'output_probejet_AK8_mass',
+                # 'output_probejet_AK8_pt',
             ]
         elif the_tagger.name.startswith('ak8_w'):
             the_vars = [
-                'output_probejet_AK8_ParticleNet_WvsQCD',
-                # 'output_probejet_AK8_mSD',
-                'output_probejet_AK8_mass',
-                'output_probejet_AK8_pt',
+                # 'output_probejet_AK8_ParticleNet_WvsQCD',
+                'output_probejet_AK8_mSD',
+                # 'output_probejet_AK8_mass',
+                # 'output_probejet_AK8_pt',
             ]
         elif the_tagger.name.startswith('hotvr_t'):
             the_vars = [
                 'output_probejet_HOTVR_tau32',
                 'output_probejet_HOTVR_nsub',
-                # 'output_probejet_HOTVR_fpt1',
-                # 'output_probejet_HOTVR_mpair',
+                'output_probejet_HOTVR_fpt1',
+                'output_probejet_HOTVR_mpair',
                 'output_probejet_HOTVR_mass',
                 'output_probejet_HOTVR_pt',
             ]
